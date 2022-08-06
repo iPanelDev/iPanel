@@ -1,0 +1,141 @@
+body {
+    background: #f5f5f5;
+    width: 100%;
+    margin: 0;
+}
+
+#mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #99999920;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+input{
+    outline: none;
+}
+
+#login {
+    background: #fdfdfd;
+    background: linear-gradient(60deg, #fdfdfd 0%, #f8f8f8 100%);
+    border-radius: 10px;
+    width: 60%;
+    max-width: 200px;
+    padding: 40px 80px;
+    box-shadow: 0 0.1rem 0.5rem #0000001a;
+    text-align: center;
+}
+
+#login>input {
+    background: transparent;
+    outline: none;
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border:  none;
+    transition: box-shadow 0.2s;
+}
+
+#login>input:focus,#login>input:hover{
+    box-shadow: 0 0.1rem 0.5rem #0000001a;
+}
+
+#login>button{
+    background: #fdfdfd;
+    margin: 10px 0;
+    padding: 5px 10px ;
+    border:  none;
+    width: 100px;
+    transition: box-shadow 0.2s;
+    border-radius: 5px;
+}
+
+#login>button:hover{
+    box-shadow: 0 0.1rem 0.5rem #0000001a;
+}
+.section {
+    background: #fdfdfd;
+    background: linear-gradient(60deg, #fdfdfd 0%, #f8f8f8 100%);
+    border-radius: 10px;
+    padding: 30px;
+    margin: 30px 30px;
+    box-shadow: 0 0.1rem 0.5rem #0000001a;
+    transition: box-shadow 0.2s;
+}
+
+.section:hover {
+    box-shadow: 0 0.1rem 0.5rem #00000030;
+}
+
+#main {
+    filter: blur(2px);
+    display: flex;
+    width: 100%;
+    transition: filter 0.2s;
+}
+
+.section:nth-child(1) {
+    width: 80%;
+}
+
+.section:nth-child(2) {
+    min-width: 200px;
+}
+
+.title {
+    width: 100%;
+    text-align: center;
+    font-size: 20px;
+    padding-bottom: 10px;
+}
+
+#console {
+    border: #aaa solid 1px;
+    height: 500px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+#console #console-child {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
+    width: 100%;
+    word-break: break-all;
+}
+
+#console #console-child>div {
+    font-family: Consolas, 'Courier New', Courier, monospace, 微软雅黑;
+    margin: 5px;
+}
+
+#input-area {
+    width: 100%;
+    display: flex;
+    justify-content: space-between
+}
+
+#input-area>input {
+    border: #666 solid 1px;
+    padding: 5px;
+    border-radius: 5px;
+    width: calc(100% - 80px);
+}
+
+#input-area>button {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: #666 solid 1px;
+    background-color: #eee;
+}
+
+#input-area>*:focus {
+    border: #000 solid 1px;
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="style.css">
+    <script src="./base.js" defer></script>
+    <script src="./console.js"></script>
+    <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="mask">
+        <div id="login">
+            <div class="title">
+                登录
+            </div>
+            <input placeholder="ws地址">
+            <input placeholder="密码" type="password">
+            <button id="connect">连接</button>
+        </div>
+    </div>
+    <div id="main">
+        <div class="section">
+            <div id="console">
+                <div id="console-child">
+                </div>
+            </div>
+            <div id="input-area">
+                <input placeholder="在此处输入命令...">
+                <button>发送</button>
+            </div>
+        </div>
+        <div class="section">
+            <div class="title">
+                控制面板
+            </div>
+            <div id="panel-info">
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
