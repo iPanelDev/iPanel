@@ -17,8 +17,20 @@ body {
     justify-content: center;
 }
 
-input{
+input {
     outline: none;
+}
+
+.shadow {
+    background: transparent;
+    border: #aaa solid 1px !important;
+    border-radius: 5px;
+    transition: box-shadow 0.2s;
+}
+
+.shadow:hover,
+.shadow:focus {
+    box-shadow: 0 0.1rem 0.5rem #0000001a;
 }
 
 #login {
@@ -30,35 +42,31 @@ input{
     padding: 40px 80px;
     box-shadow: 0 0.1rem 0.5rem #0000001a;
     text-align: center;
+    user-select: none;
 }
 
 #login>input {
-    background: transparent;
     outline: none;
     width: 100%;
     margin: 10px 0;
     padding: 10px;
-    border:  none;
-    transition: box-shadow 0.2s;
+    border: none;
 }
 
-#login>input:focus,#login>input:hover{
-    box-shadow: 0 0.1rem 0.5rem #0000001a;
-}
-
-#login>button{
+#login>button {
     background: #fdfdfd;
     margin: 10px 0;
-    padding: 5px 10px ;
-    border:  none;
+    padding: 5px 10px;
+    border: none;
     width: 100px;
-    transition: box-shadow 0.2s;
     border-radius: 5px;
 }
 
-#login>button:hover{
-    box-shadow: 0 0.1rem 0.5rem #0000001a;
+#login>#state {
+    color: #666;
+    font-size: 10px;
 }
+
 .section {
     background: #fdfdfd;
     background: linear-gradient(60deg, #fdfdfd 0%, #f8f8f8 100%);
@@ -119,23 +127,17 @@ input{
 #input-area {
     width: 100%;
     display: flex;
-    justify-content: space-between
+    justify-content: space-between;
+    user-select: none;
 }
 
 #input-area>input {
-    border: #666 solid 1px;
     padding: 5px;
-    border-radius: 5px;
-    width: calc(100% - 80px);
+    width: calc(100% - 100px);
+    border: none;
 }
 
 #input-area>button {
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: #666 solid 1px;
-    background-color: #eee;
-}
-
-#input-area>*:focus {
-    border: #000 solid 1px;
+    padding: 5px 20px;
+    border: none;
 }

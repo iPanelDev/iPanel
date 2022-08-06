@@ -4,22 +4,20 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="style.css">
-    <script src="./base.js" defer></script>
-    <script src="./console.js"></script>
     <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script src="./base.js" defer></script>
+    <script src="./console.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>WebConsole</title>
 </head>
 <body>
     <div id="mask">
         <div id="login">
-            <div class="title">
-                登录
-            </div>
-            <input placeholder="ws地址">
-            <input placeholder="密码" type="password">
-            <button id="connect">连接</button>
+            <input placeholder="ws地址" class="shadow addr">
+            <input placeholder="密码" type="password" class="shadow pwd">
+            <button id="connect" class="shadow">连接</button>
+            <div id="state"></div>
         </div>
     </div>
     <div id="main">
@@ -29,8 +27,8 @@
                 </div>
             </div>
             <div id="input-area">
-                <input placeholder="在此处输入命令...">
-                <button>发送</button>
+                <input placeholder="> 在此处输入命令..." class="shadow" type="text">
+                <button class="shadow">发送</button>
             </div>
         </div>
         <div class="section">
