@@ -1,4 +1,4 @@
-var wsclient = new WebSocket("ws://0.0.0.0");
+﻿var wsclient = new WebSocket("ws://0.0.0.0");
 var connected = false;
 var verifid = false;
 var last_input =null;
@@ -6,7 +6,7 @@ var last_input =null;
 $(document).ready(init);
 
 function debugMode() {
-    $("#login input.pwd").val("pwd");
+    $("#login-main input.pwd").val("pwd");
     wsclient = new WebSocket("ws://127.0.0.1:30000");
     wsclient.onmessage = receive;
     wsclient.onopen = open;
@@ -14,22 +14,25 @@ function debugMode() {
 }
 
 function init() {
-    debugMode();
-    $("#login>#state").hide();
-    $("#connect").click(tryConnect);
+    // debugMode();
+    $("#disconnect").click(function(){
+        location.reload() 
+        })
+    $("#login-main>#state").hide();
+    $("#login-main>#connect").click(tryConnect);
     $("#input-area>button").click(cmdInput);
-    $("#login>input.addr").bind("keypress", function (event) {
+    $("#login-main>input.addr").bind("keypress", function (event) {
         if (event.keyCode == "13") {
             $("#login>input.pwd").focus();
         }
     });
-    $("#login>input.pwd").bind("keypress", function (event) {
+    $("#login-main>input.pwd").bind("keypress", function (event) {
         if (event.keyCode == "13") {
             tryConnect();
         }
     });
-    $("#login>input").bind("input propertychange", function () {
-        $("#login>#state").hide();
+    $("#login-main>input").bind("input propertychange", function () {
+        $("#login-main>#state").hide();
     });
     $("#input-area>input").bind("keypress", function (event) {
         if (event.keyCode == "13") {
@@ -77,14 +80,12 @@ function open() {
 function close() {
     connected = false;
     if (connected && verifid) {
-        $("#login>#state").text("连接断开");
+        alert("连接断开");
     } else if (connected) {
         $("#login>#state").text("密码验证失败");
     } else {
         $("#login>#state").text("连接超时");
     }
-    $("#mask").show();
-    $("#main").css("filter", "blur(2px)");
 }
 
 function receive(e) {
@@ -97,7 +98,7 @@ function receive(e) {
                 {
                     "type": "verify",
                     "sub_type": "console_reply",
-                    "data": md5(json.data + $("#login input.pwd").val()),
+                    "data": md5(json.data + $("#login-main input.pwd").val()),
                     "from": "WebConsole"
                 }
             ))
@@ -105,9 +106,8 @@ function receive(e) {
     }
     if (json.type == "notice" && json.sub_type == "verify_success") {
         verifid = true;
-        $("#mask").hide();
-        $("#main").css("filter", "none");
-        $("#login>#state").text("验证成功");
+        $("#login-container").hide();
+        $("body").css("overflow","auto");
     }
     if (json.type == "output") {
         if (json.sub_type == "colored") {

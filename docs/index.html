@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="preset.css">
     <link rel="stylesheet" href="vanilla.css">
+    <link rel="stylesheet" href="h.css">
     <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <script src="./base.js" defer></script>
@@ -13,35 +15,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebConsole</title>
 </head>
+
 <body>
-    <div id="mask">
-        <div id="login">
-            <input placeholder="ws地址" class="shadow addr">
-            <input placeholder="密码" type="password" class="shadow pwd">
-            <button id="connect" class="shadow">连接</button>
+    <div id="login-container">
+        <div id="login-main">
+            <div class="title">
+                Serein 网页控制台
+            </div>
+            <input placeholder="ws地址" type="text" class="underline addr" spellcheck="false">
+            <input placeholder="密码" type="password" class="underline pwd" spellcheck="false">
+            <button id="connect" class="underline">连 接</button>
             <div id="state"></div>
         </div>
+        <div id="login-bg"></div>
     </div>
-    <div id="main">
-        <div class="section">
-            <div id="console">
+    <header>
+        <div>
+            Serein 网页控制台
+        </div>
+        <div id="header-state">
+            <div id="header-select">
+                <select class="underline">
+                    <option value="" disabled selected>选择一个实例</option>
+                    <option value="">选择一个实例选择一个实例选择一个实例选择一个实例选择一个实例选择一个实例选择一个实例选择一个实例选择一个实例选择一个实例</option>
+                </select>
+            </div>
+            <div id="disconnect" class="underline">
+                断开连接
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div class="section" id="console">
+            <div id="console-main">
                 <div id="console-child">
                 </div>
             </div>
             <div id="input-area">
-                <input placeholder="> 在此处输入命令..." class="shadow" type="text">
-                <button class="shadow">发送</button>
+                <input placeholder="> 在此处输入命令..." class="underline" type="text">
+                <button class="underline">发送</button>
             </div>
         </div>
-        <div class="section">
-            <div class="title">
-                控制面板
-            </div>
-            <div id="panel-info">
-                <span></span>
-                <span></span>
-            </div>
-        </div>
+
     </div>
+    <footer>
+        <div id="links">
+            <a class="underline" href="https://github.com/Zaitonn/WebConsole/">
+                GITHUB仓库
+            </a>
+            /
+            <a class="underline" href="https://jq.qq.com/?_wv=1027&k=XNZqPSPv">
+                食用方法
+            </a>
+            /
+            <a class="underline" href="https://jq.qq.com/?_wv=1027&k=XNZqPSPv">
+                联系作者
+            </a>
+        </div>
+        <div id="copyright">
+            Copyright © 2022 Zaitonn. All Rights Reserved.
+        </div>
+    </footer>
 </body>
+
 </html>
