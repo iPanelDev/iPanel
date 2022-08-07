@@ -1,9 +1,7 @@
 var wsclient = new WebSocket("ws://0.0.0.0");
 var connected = false;
 var verifid = false;
-
-
-
+var last_input =null;
 
 $(document).ready(init);
 
@@ -16,27 +14,44 @@ function debugMode() {
 }
 
 function init() {
-    debugMode()
+    debugMode();
     $("#login>#state").hide();
     $("#connect").click(tryConnect);
-    $("#login>input.addr").bind("keypress",function(event){
-        if(event.keyCode == "13"){
+    $("#input-area>button").click(cmdInput);
+    $("#login>input.addr").bind("keypress", function (event) {
+        if (event.keyCode == "13") {
             $("#login>input.pwd").focus();
         }
     });
-    $("#login>input.pwd").bind("keypress",function(event){
-        if(event.keyCode == "13"){
+    $("#login>input.pwd").bind("keypress", function (event) {
+        if (event.keyCode == "13") {
             tryConnect();
         }
     });
     $("#login>input").bind("input propertychange", function () {
         $("#login>#state").hide();
     });
-    $("#input-area>input").bind("keypress",function(event){
-        if(event.keyCode == "13"){
+    $("#input-area>input").bind("keypress", function (event) {
+        if (event.keyCode == "13") {
+            cmdInput();
         }
     });
-    
+}
+
+function cmdInput() {
+    var cmd = $("#input-area>input").val();
+    last_input=cmd;
+    AppendText(">" + html2Escape(cmd));
+    if (connected) {
+        wsclient.send(JSON.stringify(
+            {
+                "type": "input",
+                "sub_type": "console",
+                "data": cmd
+            }
+        ));
+    }
+    $("#input-area>input").val("");
 }
 
 function tryConnect() {
@@ -60,6 +75,7 @@ function open() {
 }
 
 function close() {
+    connected = false;
     if (connected && verifid) {
         $("#login>#state").text("连接断开");
     } else if (connected) {
@@ -75,14 +91,14 @@ function receive(e) {
     console.log(e.data)
     connected = true;
     var json = JSON.parse(e.data);
-    if (json.type == "request") {
-        if (json.sub_type == "verify") {
+    if (json.type == "verify") {
+        if (json.sub_type == "request") {
             wsclient.send(JSON.stringify(
                 {
-                    "type": "reply",
-                    "sub_type": "verify",
+                    "type": "verify",
+                    "sub_type": "console_reply",
                     "data": md5(json.data + $("#login input.pwd").val()),
-                    "from": "server"
+                    "from": "WebConsole"
                 }
             ))
         }
@@ -93,9 +109,19 @@ function receive(e) {
         $("#main").css("filter", "none");
         $("#login>#state").text("验证成功");
     }
-    if (json.type == "msg") {
-        if (json.sub_type == "server_output") {
-            AppendText(json.data)
+    if (json.type == "output") {
+        if (json.sub_type == "colored") {
+            AppendText(json.data);
         }
     }
+    if (json.type == "input"&&json.data!=last_input) {
+        AppendText("<span style=\"color:#666\">" + ">" + html2Escape(json.data) + "</span><span style=\"color:#ccc\">(来自["+json.sub_type+"]"+json.from+")</span>");
+        last_input=null;
+    }
+}
+
+function html2Escape(sHtml) {
+    return sHtml.replace(/[<>&"]/g, function (c) {
+        return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+    });
 }

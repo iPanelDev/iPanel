@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Timers;
+using Serein.Base;
 
 namespace WebConsole
 {
@@ -16,6 +17,7 @@ namespace WebConsole
             public IWebSocketConnection WebSocketConnection;
             public string WebSocketId;
             public int Type = -1;
+            public string Name = string.Empty;
         }
         private static IDictionary<string, Socket> Sockets = new Dictionary<string, Socket>();
         private static List<string> VerifidClientUrl = new List<string>();
@@ -51,7 +53,7 @@ namespace WebConsole
                     string ClientUrl = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort;
                     string GUID = Guid.NewGuid().ToString().Replace("-", string.Empty);
                     Console.WriteLine($"\x1b[36m[＋]\x1b[0m<{ClientUrl}> guid:{GUID}, md5:{GetMD5(GUID + (Program.Args.Count > 0 ? Program.Args[0] : "pwd"))}");
-                    socket.Send(JsonConvert.SerializeObject(new Packet("request", "verify", GUID, "host")));
+                    socket.Send(new Packet("verify", "request", GUID, "host", ClientUrl).ToString());
                     Sockets.Add(
                         ClientUrl,
                         new Socket()
@@ -70,7 +72,7 @@ namespace WebConsole
                     {
                         if (!VerifidClientUrl.Contains(ClientUrl))
                         {
-                            socket.Send(JsonConvert.SerializeObject(new Packet("notice", "verify_timeout", "验证超时", "host")));
+                            socket.Send(new Packet("notice", "verify_timeout", "验证超时", "host", ClientUrl).ToString());
                             socket.Close();
                         }
                         VerifyTimer.Dispose();
@@ -98,34 +100,43 @@ namespace WebConsole
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine($"\x1b[91m[Error]序列化数据包时出现错误(From:{ClientUrl}):{e}\x1b[0m");
+                            Console.WriteLine($"\x1b[33m[Warn]序列化数据包时出现错误(From:{ClientUrl}):{e.Message}\x1b[0m");
+                        }
+                        int ClientType = Sockets[ClientUrl].Type;
+                        string Name = Sockets[ClientUrl].Name;
+                        if (ClientType == -1&& packet.Type!="verify")
+                        {
+                            socket.Send(new Packet("notice", "unverified", "需要通过验证", "host", ClientUrl).ToString());
+                            Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 你需要通过验证({packet.Type}:{packet.SubType})");
                         }
                         switch (packet.Type)
                         {
-                            case "reply":
-                                if (!VerifidClientUrl.Contains(ClientUrl) && packet.SubType == "verify")
+                            case "verify":
+                                if (!VerifidClientUrl.Contains(ClientUrl))
                                 {
+                                    Sockets[ClientUrl].Name = string.IsNullOrEmpty(packet.From) || packet.From.ToLower() == "host" ?
+                                        Sockets[ClientUrl].WebSocketId : packet.From;
+                                    Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 自定义名称:{Sockets[ClientUrl].Name}");
                                     if (packet.Data == GetMD5(
                                             Sockets[ClientUrl].WebSocketId +
-                                            (Program.Args.Count > 0 ? Program.Args[0] : "pwd"))||
-                                            packet.Data=="test")
+                                            (Program.Args.Count > 0 ? Program.Args[0] : "pwd")))
                                     {
-                                        switch (packet.From.ToLower())
+                                        switch (packet.SubType)
                                         {
-                                            case "server":
+                                            case "server_reply":
                                                 Sockets[ClientUrl].Type = 0;
                                                 VerifidClientUrl.Add(ClientUrl);
-                                                socket.Send(JsonConvert.SerializeObject(new Packet("notice", "verify_success", "验证成功:服务器", "host")));
+                                                socket.Send(new Packet("notice", "verify_success", "验证成功:服务器", "host", ClientUrl).ToString());
                                                 Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证成功:服务器");
                                                 break;
-                                            case "console":
+                                            case "console_reply":
                                                 Sockets[ClientUrl].Type = 1;
                                                 VerifidClientUrl.Add(ClientUrl);
-                                                socket.Send(JsonConvert.SerializeObject(new Packet("notice", "verify_success", "验证成功:控制台", "host")));
+                                                socket.Send(new Packet("notice", "verify_success", "验证成功:控制台", "host", ClientUrl).ToString());
                                                 Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证成功:控制台");
                                                 break;
                                             default:
-                                                socket.Send(JsonConvert.SerializeObject(new Packet("notice", "verify_failed", "验证失败:无效的客户端类型", "host")));
+                                                socket.Send(new Packet("notice", "verify_failed", "验证失败:无效的客户端类型", "host", ClientUrl).ToString());
                                                 Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证失败:无效的客户端类型");
                                                 socket.Close();
                                                 break;
@@ -134,60 +145,55 @@ namespace WebConsole
                                     else
                                     {
                                         Console.WriteLine($"\x1b[95m[﹗]\x1b[0m<{ClientUrl}> 验证失败:错误的MD5值");
-                                        socket.Send(JsonConvert.SerializeObject(new Packet("notice", "verify_failed", "验证失败:错误的MD5值", "host")));
+                                        socket.Send(new Packet("notice", "verify_failed", "验证失败:错误的MD5值", "host", ClientUrl).ToString());
                                         socket.Close();
                                     }
                                 }
                                 break;
-                            case "msg":
-                                int ClientType = Sockets[ClientUrl].Type;
-                                if (ClientType == 0)
+                            case "input":
+                                foreach (string TargetUrl in Sockets.Keys.ToArray())
                                 {
-                                    if (packet.SubType.ToLower() == "output" ||
-                                        packet.SubType.ToLower() == "input")
+                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket))
                                     {
-                                        foreach (string TargetUrl in Sockets.Keys.ToArray())
-                                        {
-                                            if (Sockets.TryGetValue(TargetUrl, out Socket TargetSocket))
-                                            {
-                                                TargetSocket.WebSocketConnection.Send(
-                                                    JsonConvert.SerializeObject(new Packet(
-                                                        "msg", 
-                                                        "server_"+packet.SubType.ToLower(),
-                                                        packet.Data,
-                                                        ClientUrl
-                                                        )));
-                                                Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
-                                            }
-                                        }
+                                        TargetSocket.WebSocketConnection.Send(
+                                            new Packet(
+                                                "input",
+                                                ClientType == 0 ? "server" : "console",
+                                                packet.Data,
+                                                Name,
+                                                TargetUrl
+                                                ).ToString());
+                                        Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
                                     }
                                 }
-                                else if (ClientType == 1)
+                                break;
+                            case "output":
+                                if (ClientType == 1)
                                 {
-                                    if (packet.SubType.ToLower() == "input")
+                                    socket.Send(new Packet("notice", "permission_denied", "没有权限", "host", ClientUrl).ToString());
+                                    Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 没有权限({packet.Type}:{packet.SubType})");
+                                    break;
+                                }
+                                string Colored = Log.ColorLog(packet.Data,3);
+                                string Origin = Log.ColorLog(packet.Data,0);
+                                foreach (string TargetUrl in Sockets.Keys.ToArray())
+                                {
+                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket))
                                     {
-                                        foreach (string TargetUrl in Sockets.Keys.ToArray())
-                                        {
-                                            if (
-                                                Sockets.TryGetValue(TargetUrl, out Socket TargetSocket) &&
-                                                TargetSocket.Type == 0
-                                            )
-                                            {
-                                                TargetSocket.WebSocketConnection.Send(
-                                                    JsonConvert.SerializeObject(new Packet(
-                                                        "msg",
-                                                        "console_" + packet.SubType.ToLower(),
-                                                        packet.Data,
-                                                        ClientUrl
-                                                        )));
-                                                Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
-                                            }
-                                        }
+                                        TargetSocket.WebSocketConnection.Send(
+                                            new Packet(
+                                                "output",
+                                                TargetSocket.Type==0 ? "origin":"colored",
+                                                TargetSocket.Type == 0 ? Origin : Colored,
+                                                Name,
+                                                TargetUrl
+                                                ).ToString());
+                                        Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
                                     }
                                 }
                                 break;
                             default:
-                                socket.Send(JsonConvert.SerializeObject(new Packet("notice", "unknown_type", "未知的数据包类型", "host")));
+                                socket.Send(new Packet("notice", "unknown_type", "未知的数据包类型", "host", ClientUrl).ToString());
                                 Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 未知的数据包类型({packet.Type}:{packet.SubType})");
                                 break;
                         }

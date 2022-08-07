@@ -9,7 +9,7 @@ function AppendText(str) {
         div.innerHTML = str;
         ConsoleDiv.appendChild(div);
     }
-    if (line > 250) {
+    if (line > 2500) {
         ConsoleDiv.removeChild(ConsoleDiv.children[0]);
         line = line - 1;
     }

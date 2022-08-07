@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace WebConsole
 {
@@ -16,12 +17,23 @@ namespace WebConsole
         [JsonProperty(PropertyName = "from")]
         public string From { get; set; } = string.Empty;
 
-        public Packet(string type = "", string sub_type = "", string data = "", string from = "")
+        [JsonProperty(PropertyName = "target")]
+        public string Target { get; set; } = string.Empty;
+        [JsonProperty(PropertyName = "time")]
+        public long Time { get; set; } = 0;
+
+        public Packet(string type = "", string sub_type = "", string data = "", string from = "",string target = "")
         {
             Type = type;
             SubType = sub_type;
             Data = data;
             From = from;
+            Target = target;
+            Time = (long)DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+        }
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }
