@@ -28,7 +28,7 @@ a {
     transition: border-bottom 0.2s;
     border: none;
     outline: none;
-    border-bottom: transparent solid 2px;
+    border-bottom: transparent solid 1px;
     border-radius: 0;
     text-decoration: none;
     padding: 3px;
@@ -38,9 +38,35 @@ a {
 .underline:hover,
 .underline:active,
 input.underline:focus {
-    border-bottom: #2b82a4 solid 2px;
+    border-bottom: #2b82a4 solid 1px;
 }
 
+.alert {
+    z-index: 20;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.alert>div {
+    border-radius: 5px;
+    box-shadow: 0 0.1rem 0.5rem #00000030;
+    background: #fff;
+    text-align: center;
+    padding: 10px 20px;
+    transform: translateY(-200px);
+    transition: transform 0.5s;
+}
+
+.alert>div>span {
+    color: #a44;
+    font-weight: bolder;
+    margin-right:10px;
+    font-size: 18px;
+}
 
 #login-container,
 #login-container>#login-bg {

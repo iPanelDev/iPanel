@@ -1,5 +1,5 @@
 var line = 0;
-function AppendText(str) {
+function append_text(str) {
     var ConsoleDiv = document.querySelector("#console-child");
     line = line + 1;
     if (str == "#clear") {
