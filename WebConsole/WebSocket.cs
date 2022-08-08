@@ -1,12 +1,12 @@
 ﻿using Fleck;
 using Newtonsoft.Json;
+using Serein.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Timers;
-using Serein.Base;
 
 namespace WebConsole
 {
@@ -22,6 +22,11 @@ namespace WebConsole
         private static IDictionary<string, Socket> Sockets = new Dictionary<string, Socket>();
         private static List<string> VerifidClientUrl = new List<string>();
         private static WebSocketServer server;
+        private static readonly List<string> RequesetSubTypes = new List<string>()
+        {
+            "server_info",
+            "sys_info"
+        };
         public static void Start()
         {
             FleckLog.LogAction = (Level, Message, e) =>
@@ -104,7 +109,8 @@ namespace WebConsole
                         }
                         int ClientType = Sockets[ClientUrl].Type;
                         string Name = Sockets[ClientUrl].Name;
-                        if (ClientType == -1&& packet.Type!="verify")
+                        string GUID = Sockets[ClientUrl].WebSocketId;
+                        if (ClientType == -1 && packet.Type != "verify")
                         {
                             socket.Send(new Packet("notice", "unverified", "需要通过验证", "host", ClientUrl).ToString());
                             Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 你需要通过验证({packet.Type}:{packet.SubType})");
@@ -115,7 +121,7 @@ namespace WebConsole
                                 if (!VerifidClientUrl.Contains(ClientUrl))
                                 {
                                     Sockets[ClientUrl].Name = string.IsNullOrEmpty(packet.From) || packet.From.ToLower() == "host" ?
-                                        Sockets[ClientUrl].WebSocketId : packet.From;
+                                        GUID : packet.From;
                                     Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 自定义名称:{Sockets[ClientUrl].Name}");
                                     if (packet.Data == GetMD5(
                                             Sockets[ClientUrl].WebSocketId +
@@ -153,15 +159,15 @@ namespace WebConsole
                             case "input":
                                 foreach (string TargetUrl in Sockets.Keys.ToArray())
                                 {
-                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket))
+                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket)&& (packet.Target == "all" || packet.Target == TargetSocket.WebSocketId))
                                     {
                                         TargetSocket.WebSocketConnection.Send(
                                             new Packet(
                                                 "input",
                                                 ClientType == 0 ? "server" : "console",
                                                 packet.Data,
-                                                Name,
-                                                TargetUrl
+                                                GUID,
+                                                TargetSocket.WebSocketId
                                                 ).ToString());
                                         Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
                                     }
@@ -174,8 +180,8 @@ namespace WebConsole
                                     Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 没有权限({packet.Type}:{packet.SubType})");
                                     break;
                                 }
-                                string Colored = Log.ColorLog(packet.Data,3);
-                                string Origin = Log.ColorLog(packet.Data,0);
+                                string Colored = Log.ColorLog(packet.Data, 3);
+                                string Origin = Log.ColorLog(packet.Data, 0);
                                 foreach (string TargetUrl in Sockets.Keys.ToArray())
                                 {
                                     if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket))
@@ -183,12 +189,60 @@ namespace WebConsole
                                         TargetSocket.WebSocketConnection.Send(
                                             new Packet(
                                                 "output",
-                                                TargetSocket.Type==0 ? "origin":"colored",
+                                                TargetSocket.Type == 0 ? "origin" : "colored",
                                                 TargetSocket.Type == 0 ? Origin : Colored,
-                                                Name,
-                                                TargetUrl
+                                                GUID,
+                                                TargetSocket.WebSocketId
                                                 ).ToString());
                                         Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
+                                    }
+                                }
+                                break;
+                            case "request":
+                                if (!RequesetSubTypes.Contains(packet.SubType))
+                                {
+                                    socket.Send(new Packet("notice", "unknown_type", "未知的数据包类型", "host", ClientUrl).ToString());
+                                    Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 未知的数据包类型({packet.Type}:{packet.SubType})");
+                                    break;
+                                }
+                                foreach (string TargetUrl in Sockets.Keys.ToArray())
+                                {
+                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket) &&
+                                    TargetSocket.Type == 0 && (packet.Target == "all" || packet.Target == TargetSocket.WebSocketId))
+                                    {
+                                        TargetSocket.WebSocketConnection.Send(
+                                            new Packet(
+                                                "request",
+                                                packet.SubType,
+                                                "",
+                                                GUID,
+                                                TargetSocket.WebSocketId
+                                                ).ToString());
+                                        Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
+                                    }
+                                }
+                                break;
+                            case "response":
+                                if (!RequesetSubTypes.Contains(packet.SubType))
+                                {
+                                    socket.Send(new Packet("notice", "unknown_type", "未知的数据包类型", "host", ClientUrl).ToString());
+                                    Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 未知的数据包类型({packet.Type}:{packet.SubType})");
+                                    break;
+                                }
+                                foreach (string TargetUrl in Sockets.Keys.ToArray())
+                                {
+                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket) && TargetSocket.WebSocketId == packet.Target)
+                                    {
+                                        TargetSocket.WebSocketConnection.Send(
+                                            new Packet(
+                                                "response",
+                                                packet.SubType,
+                                                packet.Data,
+                                                GUID,
+                                                TargetSocket.WebSocketId
+                                                ).ToString());
+                                        Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({packet.SubType.ToLower()})");
+                                        break;
                                     }
                                 }
                                 break;

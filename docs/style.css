@@ -1,12 +1,27 @@
 body {
-    background: #f5f5f5;
+    background: linear-gradient(30deg, #a8edea, #fed6e3);
     width: 100%;
     margin: 0;
     overflow: hidden;
 }
 
-* {
+#body-mask {
+    background: #f5f5f5aa;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(100% + 50px);
+    pointer-events: none;
+    z-index: -1;
+}
+
+*:not(#console-main *) {
     font-family: sans-serif;
+}
+
+a {
+    color: #000;
 }
 
 .underline {
@@ -14,17 +29,21 @@ body {
     border: none;
     outline: none;
     border-bottom: transparent solid 2px;
+    border-radius: 0;
     text-decoration: none;
     padding: 3px;
     background: transparent;
 }
 
-.underline:hover,.underline:active,input.underline:focus {
-    border-bottom: #2a8862 solid 2px;
+.underline:hover,
+.underline:active,
+input.underline:focus {
+    border-bottom: #2b82a4 solid 2px;
 }
 
 
-#login-container ,#login-container >#login-bg{
+#login-container,
+#login-container>#login-bg {
     position: absolute;
     top: 0;
     left: 0;
@@ -37,26 +56,36 @@ body {
     justify-content: center;
     overflow: hidden;
 }
-#login-container >#login-bg{
+
+#login-container>#login-bg {
     filter: blur(20px);
-    background: linear-gradient(30deg,#a8edea,#fed6e3);
+    background: linear-gradient(30deg, #a8edea, #fed6e3);
     transform: scale(1.2);
 }
+
 #login-main {
     background: #fdfdfd;
     background: linear-gradient(60deg, #fdfdfd 0%, #f8f8f8 100%);
     border-radius: 5px;
-    width: 60%;
+    width: 40%;
     max-width: 200px;
-    padding: 40px 80px;
+    padding: 30px 60px;
     box-shadow: 0 0.1rem 0.5rem #0000001a;
     text-align: center;
     user-select: none;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
     z-index: 2;
 }
 
 #login-main>* {
     margin: 10px 0;
+}
+
+#login-main>#connect {
+    max-width: 200px;
 }
 
 #login-main>input {
@@ -69,7 +98,6 @@ body {
     color: #aaa;
     margin: 0;
 }
-
 
 .section {
     background: #fdfdfd;
@@ -129,7 +157,7 @@ body {
 }
 
 #console-main #console-child>div {
-    font-family: Consolas, 'Courier New', Courier, monospace, 微软雅黑;
+    font-family: Consolas, 'Courier New', Courier, monospace, 微软雅黑 !important;
     margin: 5px;
 }
 
