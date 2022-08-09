@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 
 namespace WebConsole
 {
@@ -7,6 +6,9 @@ namespace WebConsole
     {
         [JsonProperty(PropertyName = "guid")]
         public string GUID { get; set; } = string.Empty;
+
+        [JsonProperty(PropertyName = "name")]
+        public string Name { get; set; } = string.Empty;
         [JsonProperty(PropertyName = "server_status")]
         public bool ServerStatus { get; set; } = false;
         [JsonProperty(PropertyName = "server_file")]

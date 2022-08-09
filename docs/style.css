@@ -49,6 +49,7 @@ input.underline:focus {
     top: 20px;
     display: flex;
     justify-content: center;
+    cursor: default;
 }
 
 .alert>div {
@@ -59,13 +60,39 @@ input.underline:focus {
     padding: 10px 20px;
     transform: translateY(-200px);
     transition: transform 0.5s;
+    position: absolute;
 }
 
 .alert>div>span {
-    color: #a44;
     font-weight: bolder;
-    margin-right:10px;
+    margin-right: 10px;
     font-size: 18px;
+    user-select: none;
+}
+
+.alert a {
+    color: #2b82a4;
+    text-decoration: none;
+}
+
+.alert a:hover {
+    text-decoration: underline;
+}
+
+.alert>div.info>span {
+    color: #2a5b98;
+}
+
+.alert>div.error>span {
+    color: #a44;
+}
+.alert>div>span.close{
+    margin: 0 0 0 15px;
+    cursor: pointer;
+    color: #882626;
+}
+.alert>div>span.close:hover{
+    color: #631313;
 }
 
 #login-container,
@@ -134,8 +161,6 @@ input.underline:focus {
     box-shadow: 0 0.1rem 0.5rem #0000001a;
     transition: box-shadow 0.2s;
 }
-
-
 
 
 .container {

@@ -19,13 +19,16 @@ namespace WebConsole
 
         [JsonProperty(PropertyName = "target", NullValueHandling = NullValueHandling.Ignore)]
         public string Target { get; set; } = null;
+        [JsonProperty(PropertyName = "custom_name", NullValueHandling = NullValueHandling.Ignore)]
+
+        public string CustomName { get; set; } = null;
         [JsonProperty(PropertyName = "time")]
         public long Time { get; set; } = 0;
 
         [JsonProperty(PropertyName = "info", NullValueHandling = NullValueHandling.Ignore)]
         public Info Info { get; set; } = null;
 
-        public Packet(string type = "", string sub_type = "", object data = null, string from = null,string target = null)
+        public Packet(string type = "", string sub_type = "", object data = null, string from = null, string target = null)
         {
             Type = type;
             SubType = sub_type;

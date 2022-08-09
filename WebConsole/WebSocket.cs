@@ -20,6 +20,7 @@ namespace WebConsole
             public int Type = -1;
             public string Name = string.Empty;
             public Info Info = null;
+            public DateTime LastTime = DateTime.Now;
         }
         private static IDictionary<string, Socket> Sockets = new Dictionary<string, Socket>();
         private static List<string> VerifidClientUrl = new List<string>();
@@ -57,7 +58,7 @@ namespace WebConsole
                     string ClientUrl = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort;
                     string GUID = Guid.NewGuid().ToString().Replace("-", string.Empty);
                     Console.WriteLine($"\x1b[36m[＋]\x1b[0m<{ClientUrl}> guid:{GUID}, md5:{GetMD5(GUID + (Program.Args.Count > 0 ? Program.Args[0] : "pwd"))}");
-                    socket.Send(new Packet("verify", "request", GUID, "host", ClientUrl).ToString());
+                    socket.Send(new Packet("verify", "request", GUID, "host", null).ToString());
                     Sockets.Add(
                         ClientUrl,
                         new Socket()
@@ -76,7 +77,7 @@ namespace WebConsole
                     {
                         if (!VerifidClientUrl.Contains(ClientUrl))
                         {
-                            socket.Send(new Packet("notice", "verify_timeout", "验证超时", "host", ClientUrl).ToString());
+                            socket.Send(new Packet("notice", "verify_timeout", "验证超时", "host", null).ToString());
                             socket.Close();
                         }
                         VerifyTimer.Dispose();
@@ -84,11 +85,11 @@ namespace WebConsole
                 };
                 socket.OnClose = () =>
                 {
-                    Console.Title = $"WebConsole - Serein ({Sockets.Count})";
                     string ClientUrl = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort;
                     Console.WriteLine($"\x1b[36m[－]\x1b[0m<{ClientUrl}>");
                     Sockets.Remove(ClientUrl);
                     VerifidClientUrl.Remove(ClientUrl);
+                    Console.Title = $"WebConsole - Serein ({Sockets.Count})";
                 };
                 socket.OnMessage = message =>
                 {
@@ -110,6 +111,7 @@ namespace WebConsole
                             Console.WriteLine($"\x1b[91m[Error]序列化数据包时出现错误(From:{ClientUrl}):{e.Message}\x1b[0m");
                             return;
                         }
+                        Sockets[ClientUrl].LastTime = DateTime.Now;
                         int ClientType = Sockets[ClientUrl].Type;
                         string Name = Sockets[ClientUrl].Name;
                         string GUID = Sockets[ClientUrl].GUID;
@@ -120,16 +122,18 @@ namespace WebConsole
                         JToken Data = packet["data"];
                         if (ClientType == -1 && Type != "verify")
                         {
-                            socket.Send(new Packet("notice", "unverified", "需要通过验证", "host", ClientUrl).ToString());
-                            Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 你需要通过验证({Type}:{SubType})");
+                            socket.Send(new Packet("notice", "unverified", "需要通过验证", "host", null).ToString());
+                            Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 需要通过验证({Type}:{SubType})");
                         }
                         switch (Type)
                         {
                             case "verify":
                                 if (!VerifidClientUrl.Contains(ClientUrl))
                                 {
-                                    Sockets[ClientUrl].Name = string.IsNullOrEmpty(From) || From.ToLower() == "host" ?
-                                        GUID : From;
+                                    string CustomName = (packet["custom_name"] ?? "").ToString();
+                                    Sockets[ClientUrl].Name = string.IsNullOrEmpty(CustomName) || CustomName.ToLower() == "host" ?
+                                        GUID : CustomName;
+                                    Name = Sockets[ClientUrl].Name;
                                     Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 自定义名称:{Sockets[ClientUrl].Name}");
                                     if ((Data ?? "").ToString() == GetMD5(
                                             Sockets[ClientUrl].GUID +
@@ -137,20 +141,15 @@ namespace WebConsole
                                     {
                                         switch (SubType)
                                         {
-                                            case "server_reply":
-                                                Sockets[ClientUrl].Type = 0;
-                                                VerifidClientUrl.Add(ClientUrl);
-                                                socket.Send(new Packet("notice", "verify_success", "验证成功:服务器", "host", ClientUrl).ToString());
-                                                Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证成功:服务器");
-                                                break;
+                                            case "panel_reply":
                                             case "console_reply":
-                                                Sockets[ClientUrl].Type = 1;
+                                                Sockets[ClientUrl].Type = SubType == "panel_reply" ? 0 : 1;
                                                 VerifidClientUrl.Add(ClientUrl);
-                                                socket.Send(new Packet("notice", "verify_success", "验证成功:控制台", "host", ClientUrl).ToString());
-                                                Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证成功:控制台");
+                                                socket.Send(new Packet("notice", "verify_success", "验证成功", "host", null).ToString());
+                                                Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证成功:{(SubType == "panel_reply" ? "服务器" : "控制台")}");
                                                 break;
                                             default:
-                                                socket.Send(new Packet("notice", "verify_failed", "验证失败:无效的客户端类型", "host", ClientUrl).ToString());
+                                                socket.Send(new Packet("notice", "verify_failed", "无效的客户端类型", "host", null).ToString());
                                                 Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证失败:无效的客户端类型");
                                                 socket.Close();
                                                 break;
@@ -159,12 +158,16 @@ namespace WebConsole
                                     else
                                     {
                                         Console.WriteLine($"\x1b[95m[﹗]\x1b[0m<{ClientUrl}> 验证失败:错误的MD5值");
-                                        socket.Send(new Packet("notice", "verify_failed", "验证失败:错误的MD5值", "host", ClientUrl).ToString());
+                                        socket.Send(new Packet("notice", "verify_failed", "验证失败:错误的MD5值", "host", null).ToString());
                                         socket.Close();
                                     }
                                 }
                                 break;
                             case "input":
+                                if (SubType != "execute")
+                                {
+                                    break;
+                                }
                                 foreach (string TargetUrl in Sockets.Keys.ToArray())
                                 {
                                     if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket) && (ClientType == 0 || Target == "all" || Target == TargetSocket.GUID))
@@ -172,10 +175,10 @@ namespace WebConsole
                                         TargetSocket.WebSocketConnection.Send(
                                             new Packet(
                                                 "input",
-                                                ClientType == 0 ? "server" : "console",
+                                                ClientType == 0 ? "panel_input" : "console_input",
                                                 (Data ?? "").ToString(),
                                                 GUID,
-                                                TargetSocket.GUID
+                                                null
                                                 ).ToString());
                                         Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({SubType.ToLower()})");
                                     }
@@ -184,7 +187,7 @@ namespace WebConsole
                             case "output":
                                 if (ClientType == 1)
                                 {
-                                    socket.Send(new Packet("notice", "permission_denied", "没有权限", "host", ClientUrl).ToString());
+                                    socket.Send(new Packet("notice", "permission_denied", "没有权限", "host", null).ToString());
                                     Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 没有权限({packet.Type}:{SubType})");
                                     break;
                                 }
@@ -198,7 +201,7 @@ namespace WebConsole
                                                 TargetSocket.Type == 0 ? "origin" : "colored",
                                                 Log.ColorLog((Data ?? "").ToString(), TargetSocket.Type == 0 ? 0 : 3),
                                                 GUID,
-                                                TargetSocket.GUID
+                                                null
                                                 ).ToString());
                                         Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({SubType.ToLower()})");
                                     }
@@ -222,7 +225,7 @@ namespace WebConsole
                                 }
                                 break;
                             default:
-                                socket.Send(new Packet("notice", "unknown_type", "未知的数据包类型", "host", ClientUrl).ToString());
+                                socket.Send(new Packet("notice", "unknown_type", "未知的数据包类型", "host", null).ToString());
                                 Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 未知的数据包类型({packet.Type}:{SubType})");
                                 break;
                         }
@@ -241,6 +244,7 @@ namespace WebConsole
                     if (socket.Type == 0 && socket.Info != null)
                     {
                         socket.Info.GUID = socket.GUID;
+                        socket.Info.Name = socket.Name;
                         Infos.Add(socket.Info);
                     }
                 }
@@ -248,15 +252,20 @@ namespace WebConsole
                 {
                     if (Sockets.TryGetValue(TargetUrl, out Socket TargetSocket))
                     {
-                        TargetSocket.WebSocketConnection.Send(
-                            new Packet(
-                                "heartbeat",
-                                "request",
-                                "",
-                                "host",
-                                TargetSocket.GUID
-                                ).ToString());
-                        if (TargetSocket.Type == 1)
+                        if (TargetSocket.Type == 0 && (DateTime.Now - TargetSocket.LastTime).TotalSeconds > 15)
+                        {
+                            TargetSocket.WebSocketConnection.Send(
+                                new Packet(
+                                    "notics",
+                                    "auto_close",
+                                    "状态异常，请重新连接",
+                                    "host",
+                                    null
+                                    ).ToString());
+                            Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{TargetUrl}> 状态异常，请重新连接");
+                            TargetSocket.WebSocketConnection.Close();
+                        }
+                        else if (TargetSocket.Type == 1)
                         {
                             TargetSocket.WebSocketConnection.Send(
                             new Packet(
@@ -264,7 +273,18 @@ namespace WebConsole
                                 "info",
                                 Infos,
                                 "host",
-                                TargetSocket.GUID
+                                null
+                                ).ToString());
+                        }
+                        else
+                        {
+                            TargetSocket.WebSocketConnection.Send(
+                            new Packet(
+                                "heartbeat",
+                                "request",
+                                null,
+                                "host",
+                                null
                                 ).ToString());
                         }
                     }
