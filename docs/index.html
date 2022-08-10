@@ -26,20 +26,20 @@
     </div>
     <div id="login-container">
         <div id="login-main">
-            <img src="./icon.png" width="30px">
+            <img src="./icon.png" width="30px" alt="logo">
             <div class="title">
                 Serein 网页控制台
             </div>
-            <input placeholder="ws地址" type="text" class="underline addr" spellcheck="false">
-            <input placeholder="密码" type="password" class="underline pwd" spellcheck="false">
-            <button id="connect" class="underline">连 接</button>
+            <input placeholder="ws地址" type="text" class="underline addr" spellcheck="false" autocomplete="false" value="ws://">
+            <input placeholder="密码" type="password" class="underline pwd" spellcheck="false" autocomplete="false">
+            <button id="connect" class="underline" type="button">连 接</button>
             <div id="state"></div>
         </div>
         <div id="login-bg"></div>
     </div>
     <header>
         <div id="logo">
-            <img src="./icon.png" width="20px">
+            <img src="./icon.png" width="20px" alt="logo">
             Serein 网页控制台
         </div>
         <div id="header-state">
@@ -61,7 +61,7 @@
                 </div>
             </div>
             <div id="input-area">
-                <input placeholder="> 在此处输入命令..." class="underline" type="text">
+                <input placeholder="> 在此处输入命令..." class="underline" type="text" spellcheck="false" autocomplete="false">
                 <button class="underline">发送</button>
             </div>
         </div>

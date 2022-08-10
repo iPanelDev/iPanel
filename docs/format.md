@@ -28,7 +28,7 @@
 | ------------- | ------------------- | ------------------------- | ---------- |
 | `type`        | String              | `verify` `notice`         | 类型       |
 | `sub_type`    | String              | `request` `console_reply` | 子类型     |
-| `data`        | String/Array/Object | ``                       | 主要数据   |
+| `data`        | String/Array/Object | `-`                       | 主要数据   |
 | `from`        | String              | `host` *`guid`*           | 来源       |
 | `target`      | String              | *`guid`*                  | 目标       |
 | `custom_name` | String              | *`自定义名称`*            | 自定义名称 |
@@ -46,7 +46,7 @@
 
 ### 服务器请求
 
-```json
+```jsonc
 {
     "type": "verify",
     "sub_type": "request",
@@ -58,7 +58,7 @@
 
 ### 客户端答复
 
-```json
+```jsonc
 {
     "type": "verify",
     "sub_type": "console_reply", // 网页控制台：console_reply  面板：panel_reply
@@ -71,7 +71,7 @@
 
 #### 验证通过
 
-```json
+```jsonc
 {
     "type": "notice",
     "sub_type": "verify_success",
@@ -83,7 +83,7 @@
 
 #### 密码错误
 
-```json
+```jsonc
 {
     "type": "notice",
     "sub_type": "verify_failed",
@@ -95,7 +95,7 @@
 
 #### 客户端类型错误
 
-```json
+```jsoncc
 {
     "type": "notice",
     "sub_type": "verify_failed",
@@ -107,7 +107,7 @@
 
 #### 验证超时
 
-```json
+```jsonc
 {
     "type": "notice",
     "sub_type": "verify_timeout",
@@ -124,7 +124,7 @@
 
 ### 心跳数据包（请求）
 
-```json
+```jsonc
 {
     "type": "heartbeat",
     "sub_type": "request",
@@ -135,7 +135,7 @@
 
 ### 心跳数据包（答复）
 
-```json
+```jsonc
 {
     "type": "heartbeat",
     "sub_type": "response",
@@ -156,7 +156,7 @@
 
 ### 心跳数据包（面板信息）
 
-```json
+```jsonc
 {
     "type": "heartbeat",
     "sub_type": "info",
@@ -187,7 +187,7 @@
 
 当面板客户端执行输入操作时上报
 
-```json
+```jsonc
 {
     "type": "input",
     "sub_type": "panel_input", // 网页控制台：console_input  面板：panel_input
@@ -201,7 +201,7 @@
 
 >网页版控制台执行输入操作时会触发上报事件
 
-```json
+```jsonc
 {
     "type": "input",
     "sub_type": "execute", 
@@ -217,7 +217,7 @@
 
 ### 上报事件
 
-```json
+```jsonc
 {
     "type": "output",
     "sub_type": "output",
@@ -227,7 +227,7 @@
 
 ### 转发→面板
 
-```json
+```jsonc
 {
     "type": "output",
     "sub_type": "origin",
@@ -243,7 +243,7 @@
 
 >输出格式与`Serin`的混合输出模式一致
 
-```json
+```jsonc
 {
     "type": "output",
     "sub_type": "colored",

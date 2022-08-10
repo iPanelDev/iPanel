@@ -19,8 +19,11 @@ function debugMode() {
 
 function init() {
     $("footer").hide();
-    $("#login-main input.addr").val(getQueryString("addr"));
-    if (getQueryString("addr") == null) { alert(1, "如果是首次使用此控制台，你可以查看<a href='#'>食用方法</a>"); }
+    if (getQueryString("addr") == null) {
+        alert(1, "如果是首次使用此控制台，你可以查看<a href='#'>食用方法</a>");
+    } else {
+        $("#login-main input.addr").val(getQueryString("addr"));
+    }
     $("#disconnect").click(function () { location.reload() });
     $("#login-main>#state").hide();
     $("#login-main>#connect").click(try_connect);

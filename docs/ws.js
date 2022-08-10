@@ -24,15 +24,22 @@ function try_connect() {
     history.pushState({ 'page_id': 1, 'user_id': 5 }, "", "?addr=" + encodeURIComponent($("#login-main input.addr").val()));
     $("#login-main>#state").show();
     $("#login-main>#state").text("正在连接");
-    try {
-        wsclient = new WebSocket($("#login-main>input.addr").val());
-        wsclient.onmessage = ws_receive;
-        wsclient.onopen = ws_open;
-        wsclient.onclose = ws_close;
-    } catch (e) {
-        alert(3, e);
-        $("#login-main>#state").text("连接失败");
+    if ($("#login-main>input.addr").val() == "debug") {
+        $("#login-container").hide();
+        $("footer").show();
+        $("body").css("overflow", "auto");
+    } else {
+        try {
+            wsclient = new WebSocket($("#login-main>input.addr").val());
+            wsclient.onmessage = ws_receive;
+            wsclient.onopen = ws_open;
+            wsclient.onclose = ws_close;
+        } catch (e) {
+            alert(3, e);
+            $("#login-main>#state").text("连接失败");
+        }
     }
+
 }
 
 function ws_open() {
@@ -82,7 +89,7 @@ function ws_receive(e) {
             break;
         case "output":
             // 输出
-            if (sub_type == "colored"&&json.from==$("header select").find("option:selected").val()) {
+            if (sub_type == "colored" && json.from == $("header select").find("option:selected").val()) {
                 append_text(data);
             }
             break;

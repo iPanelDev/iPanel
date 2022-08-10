@@ -59,10 +59,10 @@ function update_server(list) {
             if ($("header select").find("option:selected").val() == server_list[i].guid) {
                 alert(2, "所选的实例\"" + $("header select option:selected").text() + "\"已丢失");
                 $("header select option:selected").remove();
-                $("header select").selectedIndex = 0;
+                $("header select").get(0).selectedIndex = 0;
             } else {
                 $("header select option[value=" + server_list[i].guid + "]").remove();
-                $("header select").selectedIndex = 0;
+                $("header select").get(0).selectedIndex = 0;
             }
 
             server_list = server_list.splice(i, i);
