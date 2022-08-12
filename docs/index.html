@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="preset.css">
     <link rel="stylesheet" href="vanilla.css">
-    <link rel="stylesheet" href="h.css">
+    <link rel="stylesheet" href="head.css">
+    <link rel="stylesheet" href="base.css">
     <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <script src="./ws.js" defer></script>
@@ -30,7 +31,8 @@
             <div class="title">
                 Serein 网页控制台
             </div>
-            <input placeholder="ws地址" type="text" class="underline addr" spellcheck="false" autocomplete="false" value="ws://">
+            <input placeholder="ws地址" type="text" class="underline addr" spellcheck="false" autocomplete="false"
+                value="ws://">
             <input placeholder="密码" type="password" class="underline pwd" spellcheck="false" autocomplete="false">
             <button id="connect" class="underline" type="button">连 接</button>
             <div id="state"></div>
@@ -65,7 +67,90 @@
                 <button class="underline">发送</button>
             </div>
         </div>
-
+        <div class="child-container">
+            <div class="section" id="info">
+                <div class="title">详细信息</div>
+                <div class="table text">
+                    <div class="row" id="server_status">
+                        <span>
+                            状态
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row" id="server_file">
+                        <span>
+                            启动文件
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row" id="server_cpuperc">
+                        <span>
+                            进程占用
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row" id="server_time">
+                        <span>
+                            运行时长
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row" id="os">
+                        <span>
+                            系统名称
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row" id="cpu">
+                        <span>
+                            CPU
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row" id="cpu_perc">
+                        <span>
+                            CPU占用
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row" id="ram">
+                        <span>
+                            内存使用
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="section" id="panel">
+                <div class="title">控制面板</div>
+                <div class="table">
+                    <div class="row">
+                        <button class="button_normal">启动</button>
+                        <button class="button_normal">关闭</button>
+                    </div>
+                    <div class="row">
+                        <button class="button_normal">重启</button>
+                        <button class="button_danger">结束进程</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <footer>
         <div id="links">

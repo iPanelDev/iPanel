@@ -44,12 +44,11 @@ function init() {
             send_command();
         }
     });
-    // debugMode();
 }
 
 function html2Escape(sHtml) {
-    return sHtml.replace(/[<>&"]/g, function (c) {
-        return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+    return sHtml.replace(/[<>&" ]/g, function (c) {
+        return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' ,' ':'&ensp;'}[c];
     });
 }
 

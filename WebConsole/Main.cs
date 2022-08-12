@@ -62,11 +62,12 @@ namespace WebConsole
             Console.OutputEncoding = Encoding.UTF8;
             Console.Title = "WebConsole - Serein";
         }
+
         private static void ReadKey()
         {
             while (true)
             {
-                Console.ReadKey(true);
+                Console.ReadLine();
             }
         }
     }

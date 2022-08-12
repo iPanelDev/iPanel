@@ -75,7 +75,8 @@ function ws_receive(e) {
         case "verify":
             // 验证请求
             if (sub_type == "request") {
-                ws_send("verify", "console_reply", md5(data + $("#login-main input.pwd").val()), "", "webconsole")
+                ws_send("verify", "console_reply", md5(data + $("#login-main input.pwd").val()), "", "webconsole");
+                $("#login-main input.pwd").val('');
             }
             break;
         case "notice":
@@ -103,6 +104,19 @@ function ws_receive(e) {
             last_heartbeat_time = Date.now();
             if (sub_type == "info") {
                 update_server(data);
+            }
+            break;
+        case "event":
+            if (!json.from == $("header select").find("option:selected").val()) {
+                break;
+            }
+            switch (sub_type) {
+                case "server_start":
+                    append_text("#clear");
+                    append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>启动中");
+                    break;
+                case "server_stop":
+                    append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>进程已退出（返回：" + html2Escape(data + "") + "）");
             }
             break;
     }

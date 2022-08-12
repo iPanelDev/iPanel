@@ -109,6 +109,10 @@ namespace WebConsole
                         catch (Exception e)
                         {
                             Console.WriteLine($"\x1b[91m[Error]序列化数据包时出现错误(From:{ClientUrl}):{e.Message}\x1b[0m");
+                            if (Sockets[ClientUrl].Type < 0)
+                            {
+                                socket.Close();
+                            }
                             return;
                         }
                         Sockets[ClientUrl].LastTime = DateTime.Now;
@@ -170,7 +174,7 @@ namespace WebConsole
                                 }
                                 foreach (string TargetUrl in Sockets.Keys.ToArray())
                                 {
-                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket) && (ClientType == 0 || Target == "all" || Target == TargetSocket.GUID))
+                                    if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket) && (ClientType == 1 || Target == "all" || Target == TargetSocket.GUID))
                                     {
                                         TargetSocket.WebSocketConnection.Send(
                                             new Packet(
@@ -178,8 +182,8 @@ namespace WebConsole
                                                 ClientType == 0 ? "panel_input" : "console_input",
                                                 (Data ?? "").ToString(),
                                                 GUID,
-                                                null
-                                                ).ToString());
+                                                TargetSocket.GUID
+                                                ).ToString()) ;
                                         Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({SubType.ToLower()})");
                                     }
                                 }
@@ -200,11 +204,34 @@ namespace WebConsole
                                                 "output",
                                                 TargetSocket.Type == 0 ? "origin" : "colored",
                                                 Log.ColorLog((Data ?? "").ToString(), TargetSocket.Type == 0 ? 0 : 3),
-                                                GUID,
-                                                null
+                                                GUID
                                                 ).ToString());
                                         Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({SubType.ToLower()})");
                                     }
+                                }
+                                break;
+                            case "event":
+                                switch (SubType)
+                                {
+                                    case "server_start":
+                                    case "server_stop":
+                                    case "panel_stop":
+                                        Sockets[ClientUrl].Info.ServerStatus = SubType == "server_start";
+                                        foreach (string TargetUrl in Sockets.Keys.ToArray())
+                                        {
+                                            if (TargetUrl != ClientUrl && Sockets.TryGetValue(TargetUrl, out Socket TargetSocket))
+                                            {
+                                                TargetSocket.WebSocketConnection.Send(
+                                                    new Packet(
+                                                        "event",
+                                                        SubType,
+                                                        SubType == "server_stop" ? Data : null,
+                                                        GUID
+                                                        ).ToString());
+                                                Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({SubType.ToLower()})");
+                                            }
+                                        }
+                                        break;
                                 }
                                 break;
                             case "heartbeat":

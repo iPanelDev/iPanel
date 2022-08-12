@@ -20,7 +20,7 @@ class Server {
 }
 
 function send_command() {
-    if (!($("header select").find("option:selected").val() == null || $("header select").find("option:selected").val() == "") ){
+    if (!($("header select").find("option:selected").val() == null || $("header select").find("option:selected").val() == "")) {
         var cmd = $("#input-area>input").val();
         last_input = cmd;
         append_text(">" + html2Escape(cmd));
@@ -67,5 +67,8 @@ function update_server(list) {
 
             server_list = server_list.splice(i, i);
         }
+    }
+    if (server_list.length > 0) {
+        $("header select").get(0).selectedIndex = 1;
     }
 }
