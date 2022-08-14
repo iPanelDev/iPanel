@@ -1,18 +1,16 @@
 var wsclient;
 var connected = false;
 var verifid = false;
-var last_input = null;
 var last_heartbeat_time = Date.now();
+var server_status = false;
 
-function ws_send(type, sub_type, data, target = "", from = "") {
+function ws_send(type, sub_type, data) {
     if (connected) {
         wsclient.send(JSON.stringify(
             {
                 "type": type,
                 "sub_type": sub_type,
-                "data": data,
-                "target": target,
-                "from": from
+                "data": data
             }
         ));
     }
@@ -44,11 +42,6 @@ function try_connect() {
 
 function ws_open() {
     connected = true;
-    setInterval(() => { // 连接异常（心跳包超过10s未收到）
-        if (connected && last_heartbeat_time - Date.now() > 10) {
-            alert(2, "连接可能异常，请检查网络状态");
-        }
-    }, 5000);
     $("#login-main>#state").text("连接成功，正在进行验证");
 }
 
@@ -65,60 +58,70 @@ function ws_close() {
 
 function ws_receive(e) {
     // 控制台输出
-    console.log(e.data);
+    // console.log(e.data);
     connected = true;
     var json = JSON.parse(e.data);
     var type = json.type;
     var sub_type = json.sub_type;
     var data = json.data;
     switch (type) {
-        case "verify":
-            // 验证请求
-            if (sub_type == "request") {
-                ws_send("verify", "console_reply", md5(data + $("#login-main input.pwd").val()), "", "webconsole");
-                $("#login-main input.pwd").val('');
-            }
-            break;
-        case "notice":
-            // 验证通过
-            if (sub_type == "verify_success") {
-                verifid = true;
-                $("#login-container").hide();
-                $("footer").show();
-                $("body").css("overflow", "auto");
-            }
-            break;
-        case "output":
-            // 输出
-            if (sub_type == "colored" && json.from == $("header select").find("option:selected").val()) {
-                append_text(data);
-            }
-            break;
-        case "input":
-            if (data != last_input) {
-                append_text("<span style=\"color:#666\">" + ">" + html2Escape(data) + "</span><span style=\"color:#ccc\">(来自[" + sub_type + "]" + json.from.substring(0, 6) + ")</span>");
-                last_input = null;
-            }
-            break;
-        case "heartbeat":
-            last_heartbeat_time = Date.now();
-            if (sub_type == "info") {
-                update_server(data);
-            }
-            break;
         case "event":
-            if (!json.from == $("header select").find("option:selected").val()) {
-                break;
-            }
             switch (sub_type) {
-                case "server_start":
+                case "verify_request":
+                    wsclient.send(JSON.stringify(
+                        {
+                            "type": "api",
+                            "sub_type": "console_verify",
+                            "data": md5(data + $("#login-main input.pwd").val()),
+                            "custom_name": "webconsole"
+                        }
+                    ));
+                    break;
+                case "input":
+                    for (var i = 0; i < data.length; i++) {
+                        append_text(">"+html2Escape(data[i]));
+                    }
+                    break;
+                case "output":
+                    for (var i = 0; i < data.length; i++) {
+                        append_text(color_escape(html2Escape(data[i])));
+                    }
+                    break;
+                case "start":
                     append_text("#clear");
                     append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>启动中");
+                    server_status = true;
                     break;
-                case "server_stop":
+                case "stop":
                     append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>进程已退出（返回：" + html2Escape(data + "") + "）");
+                    server_status = false;
+                    update_info();
+                    break;
+                case "heartbeat":
+                    update_info(data);
+                    break;
             }
             break;
+        case "response":
+            switch (sub_type) {
+                case "verify_success":
+                    ws_send("api", "list");
+                    verifid = true;
+                    $("#login-container").hide();
+                    $("footer").show();
+                    $("body").css("overflow", "auto");
+                    setInterval(() => { // 连接异常（心跳包超过10s未收到）
+                        if (connected && last_heartbeat_time - Date.now() > 10) {
+                            alert(2, "连接可能异常，请检查网络状态");
+                        } else {
+                            ws_send("api", "list");
+                        }
+                    }, 7500);
+                    break;
+                case "list":
+                    update_panel_dic(data);
+                    break;
+            }
     }
 }
 

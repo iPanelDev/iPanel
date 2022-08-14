@@ -19,36 +19,28 @@ function debugMode() {
 
 function init() {
     $("footer").hide();
-    if (getQueryString("addr") == null) {
-        alert(1, "如果是首次使用此控制台，你可以查看<a href='#'>食用方法</a>");
-    } else {
-        $("#login-main input.addr").val(getQueryString("addr"));
-    }
-    $("#disconnect").click(function () { location.reload() });
+    if (getQueryString("addr")) { alert(1, "如果是首次使用此控制台，你可以查看<a href='#'>食用方法</a>"); } else { $("#login-main input.addr").val(getQueryString("addr")); }
+    $("#disconnect").click(function () { location.reload(); });
     $("#login-main>#state").hide();
     $("#login-main>#connect").click(try_connect);
-    $("#input-area>button").click(send_command);
-    $("#login-main>input.addr").bind("keypress", function (event) {
-        if (event.keyCode == "13") {
-            $("#login-main>input.pwd").focus();
-        }
-    });
-    $("#login-main>input.pwd").bind("keypress", function (event) {
-        if (event.keyCode == "13") {
-            try_connect();
-        }
-    });
+    $("#login-main>input.addr").bind("keypress", function (event) { if (event.keyCode == "13") { $("#login-main>input.pwd").focus(); } });
+    $("#login-main>input.pwd").bind("keypress", function (event) { if (event.keyCode == "13") { try_connect(); } });
     $("#login-main>input").bind("input propertychange", function () { $("#login-main>#state").hide(); });
-    $("#input-area>input").bind("keypress", function (event) {
-        if (event.keyCode == "13") {
-            send_command();
-        }
-    });
+    $("#input-area>input").bind("keypress", function (event) { if (event.keyCode == "13") { send_command(); } });
+    $("#input-area>button").click(send_command);
+    $("#button_start").click(start_server);
+    $("#button_stop").click(stop_server);
+    $("#button_kill").click(kill_server);
+    $("#button_restart").click(start_server);
+    $(".section#console").height(($(".child-container").height() - 90) + "px");
+    $("header select").change(change_panel);
+    $(window).resize(function () { $(".section#console").height(($(".child-container").height() - 90) + "px"); });
+    // debugMode();
 }
 
 function html2Escape(sHtml) {
     return sHtml.replace(/[<>&" ]/g, function (c) {
-        return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' ,' ':'&ensp;'}[c];
+        return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', ' ': '&ensp;' }[c];
     });
 }
 
@@ -56,4 +48,12 @@ function getQueryString(name) {
     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
     var r = window.location.search.substring(1).match(reg);
     if (r != null) return decodeURIComponent(r[2]); return null;
+}
+
+function dic_count(dic) {
+    var n = 0;
+    for (var _key in dic) {
+        n++;
+    }
+    return n;
 }

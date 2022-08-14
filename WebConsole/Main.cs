@@ -14,7 +14,7 @@ namespace WebConsole
         const uint ENABLE_QUICK_EDIT_MODE = 0x0040;
         const uint ENABLE_INSERT_MODE = 0x0020;
 
-        public static IList<string> Args = new string[] { };
+        public static IList<string> Args = new string[] { "pwd" };
         private static Thread WebSocketThreading = new Thread(WebSocket.Start);
 
         [DllImport("user32.dll", EntryPoint = "FindWindow")]
@@ -39,7 +39,7 @@ namespace WebConsole
         private static void Main(string[] args)
         {
             Init();
-            Args = args;
+            Args = args.Length==0?Args:args;
             WebSocket.Start();
             ReadKey();
         }

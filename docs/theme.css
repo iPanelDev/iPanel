@@ -1,0 +1,29 @@
+@media (prefers-color-scheme: light) {
+    * {
+        color: #fff;
+    }
+
+    body,.alert div,
+    #login-container>#login-bg {
+        background: #444444;
+    }
+
+    header,
+    footer {
+        background: #242424;
+    }
+
+    .text,
+    .text * {
+        color: #ddd;
+    }
+
+    .section,#login-main {
+        background: #373737;
+    }
+
+    #console-main {
+        border: #5d5d5d solid 1px;
+    }
+
+}

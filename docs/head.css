@@ -4,7 +4,7 @@ header {
     right: 0;
     left: 0;
     background: #fff;
-    padding: 20px;
+    padding: 15px 20px;
     box-shadow: 0 0.1rem 0.5rem #0000001a;
     display: flex;
     justify-content: space-between;
@@ -14,16 +14,21 @@ header {
     white-space:nowrap;
 }
 
+header #header-title img{
+    width: 18px;
+    image-rendering: pixelated;
+}
+
 header div {
-    font-size: 20px;
+    font-size: 16px;
     display: inline-block;
-    margin: 0 10px;
+    margin: 0 5px;
     height: 100%;
 }
 
 header>#header-state>#disconnect {
-    font-size: smaller;
-    height: 100%;
+    font-size: 13px;
+    height: 30px;
     cursor: pointer;
 }
 
@@ -48,14 +53,14 @@ footer>div {
 }
 
 footer>div#copyright {
-    padding: 3px;
+    padding: 3px 3px 3px 0;
 }
 
 footer>#links>a {
     display: inline-block;
     letter-spacing: 2px;
-    color: black;
     margin: 0 10px;
+    padding: 0;
     text-decoration: none;
 }
 

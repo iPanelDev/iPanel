@@ -10,6 +10,11 @@ a {
     color: #000;
 }
 
+button {
+    cursor: pointer;
+    user-select: none;
+}
+
 .underline,
 button.underline:active {
     border: none;
@@ -28,13 +33,14 @@ input.underline:focus {
 
 .container {
     display: flex;
+    align-items: start;
     width: 100%;
 }
 
 .title {
     width: 100%;
     text-align: center;
-    font-size: 20px;
+    font-size: 16px;
     padding-bottom: 10px;
 }
 
@@ -52,8 +58,7 @@ input.underline:focus {
     padding: 30px;
     margin: 30px;
     box-shadow: 0 0.1rem 0.5rem #0000001a;
-    min-width: 250px;
-    width: 50%;
+    
 }
 
 .section:hover {
@@ -80,7 +85,7 @@ input.underline:focus {
 
 .button_normal:active,
 .button_danger:active {
-    border: transparent solid 1px;
+    background: #00000020;
 }
 
 .section .table {
@@ -95,19 +100,25 @@ input.underline:focus {
 }
 
 .text {
+    font-size: 13px;
     color: #666;
 }
 
-.child-container{
+.child-container {
     display: flex;
     flex-wrap: wrap;
 }
 
 @media only screen and (max-width: 800px) {
-    .container{
+    .container {
         flex-wrap: wrap;
     }
-    .section{
+
+    .section {
+        width: 100%;
+    }
+
+    .child-container {
         width: 100%;
     }
 }

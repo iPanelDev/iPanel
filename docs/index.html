@@ -1,20 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-cn">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="preset.css">
     <link rel="stylesheet" href="vanilla.css">
     <link rel="stylesheet" href="head.css">
     <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="theme.css">
     <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <script src="./ws.js" defer></script>
     <script src="./base.js" defer></script>
     <script src="./console.js" defer></script>
-    <script src="./server.js" defer></script>
+    <script src="./panel.js" defer></script>
+    <script src="./color.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         Serein 网页控制台
@@ -40,8 +41,8 @@
         <div id="login-bg"></div>
     </div>
     <header>
-        <div id="logo">
-            <img src="./icon.png" width="20px" alt="logo">
+        <div id="header-title">
+            <img src="./icon.png" alt="logo">
             Serein 网页控制台
         </div>
         <div id="header-state">
@@ -50,12 +51,11 @@
                     <option value="" disabled selected>选择一个实例</option>
                 </select>
             </div>
-            <div id="disconnect" class="underline">
+            <button id="disconnect" class="underline">
                 断开连接
-            </div>
+            </button>
         </div>
     </header>
-    <div id="body-mask"></div>
     <div class="container">
         <div class="section" id="console">
             <div id="console-main">
@@ -71,7 +71,7 @@
             <div class="section" id="info">
                 <div class="title">详细信息</div>
                 <div class="table text">
-                    <div class="row" id="server_status">
+                    <div class="row info-item" id="server_status">
                         <span>
                             状态
                         </span>
@@ -79,7 +79,7 @@
                             -
                         </span>
                     </div>
-                    <div class="row" id="server_file">
+                    <div class="row info-item" id="server_file">
                         <span>
                             启动文件
                         </span>
@@ -87,7 +87,7 @@
                             -
                         </span>
                     </div>
-                    <div class="row" id="server_cpuperc">
+                    <div class="row info-item" id="server_cpuperc">
                         <span>
                             进程占用
                         </span>
@@ -95,7 +95,7 @@
                             -
                         </span>
                     </div>
-                    <div class="row" id="server_time">
+                    <div class="row info-item" id="server_time">
                         <span>
                             运行时长
                         </span>
@@ -103,7 +103,7 @@
                             -
                         </span>
                     </div>
-                    <div class="row" id="os">
+                    <div class="row info-item" id="os">
                         <span>
                             系统名称
                         </span>
@@ -111,7 +111,7 @@
                             -
                         </span>
                     </div>
-                    <div class="row" id="cpu">
+                    <div class="row info-item" id="cpu">
                         <span>
                             CPU
                         </span>
@@ -119,7 +119,7 @@
                             -
                         </span>
                     </div>
-                    <div class="row" id="cpu_perc">
+                    <div class="row info-item" id="cpu_perc">
                         <span>
                             CPU占用
                         </span>
@@ -127,7 +127,7 @@
                             -
                         </span>
                     </div>
-                    <div class="row" id="ram">
+                    <div class="row info-item" id="ram">
                         <span>
                             内存使用
                         </span>
@@ -139,20 +139,16 @@
             </div>
             <div class="section" id="panel">
                 <div class="title">控制面板</div>
-                <div class="table">
-                    <div class="row">
-                        <button class="button_normal">启动</button>
-                        <button class="button_normal">关闭</button>
-                    </div>
-                    <div class="row">
-                        <button class="button_normal">重启</button>
-                        <button class="button_danger">结束进程</button>
-                    </div>
+                <div class="text">
+                    <button class="button_normal" id="button_start">启动</button>
+                    <button class="button_normal" id="button_stop">关闭</button>
+                    <button class="button_normal" id="button_restart">重启</button>
+                    <button class="button_danger" id="button_kill">结束进程</button>
                 </div>
             </div>
         </div>
     </div>
-    <footer>
+    <footer  class="text">
         <div id="links">
             <a class="underline" href="https://github.com/Zaitonn/WebConsole/">
                 GITHUB仓库
