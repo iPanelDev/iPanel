@@ -173,7 +173,7 @@ body::-webkit-scrollbar {
 }
 
 .child-container>div {
-    margin: 0 30px 30px 30px;
+    margin: 0 30px 30px;
     width: 250px;
 }
 
