@@ -13,10 +13,9 @@ namespace WebConsole
     internal static class WebSocket
     {
         private static Dictionary<string, string> GUIDs = new Dictionary<string, string>();
-        private static Dictionary<string, ConsoleSocket> Consoles = new Dictionary<string, ConsoleSocket>();
-        private static Dictionary<string, PanelSocket> Panels = new Dictionary<string, PanelSocket>();
-        private static WebSocketServer server;
-        private static List<Info> Infos = new List<Info>();
+        public static Dictionary<string, ConsoleSocket> Consoles = new Dictionary<string, ConsoleSocket>();
+        public static Dictionary<string, PanelSocket> Panels = new Dictionary<string, PanelSocket>();
+        private static WebSocketServer Server;
 
         public static void Start()
         {
@@ -38,17 +37,17 @@ namespace WebConsole
                         break;
                 }
             };
-            server = new WebSocketServer("ws://0.0.0.0:30000")
+            Server = new WebSocketServer(Program.Setting.Addr)
             {
                 RestartAfterListenError = true
             };
-            server.Start(socket =>
+            Server.Start(socket =>
             {
                 socket.OnOpen = () =>
                 {
                     string ClientUrl = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort;
                     string GUID = Guid.NewGuid().ToString().Replace("-", string.Empty);
-                    Console.WriteLine($"\x1b[36m[＋]\x1b[0m<{ClientUrl}> guid:{GUID}, md5:{GetMD5(GUID + (Program.Args.Count > 0 ? Program.Args[0] : "pwd"))}");
+                    Console.WriteLine($"\x1b[36m[＋]\x1b[0m<{ClientUrl}> guid:{GUID}, md5:{GetMD5(GUID + Program.Setting.Password)}");
                     socket.Send(new Packet(
                         "event",
                         "verify_request",
@@ -127,7 +126,7 @@ namespace WebConsole
         {
             Console.Title = $"WebConsole - Serein ({GUIDs.Count})";
             string ClientUrl = Socket.ConnectionInfo.ClientIpAddress + ":" + Socket.ConnectionInfo.ClientPort;
-            if (!Message.Contains("\"type\":\"heartbeat\""))
+            if (!Message.Contains("\"sub_type\":\"heartbeat\""))
             {
                 Console.WriteLine($"\x1b[92m[↓]\x1b[0m<{ClientUrl}> {Message}");
             }
@@ -169,7 +168,7 @@ namespace WebConsole
                     case "panel_verify":
                         if (ClientType == -1)
                         {
-                            if (DataStr == GetMD5(GUID + Program.Args[0]))
+                            if (DataStr == GetMD5(GUID +Program.Setting.Password))
                             {
                                 string CustomName = (Packet["custom_name"] ?? "unknown").ToString();
                                 if (SubType == "console_verify")
