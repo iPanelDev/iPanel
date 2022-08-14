@@ -168,7 +168,7 @@ namespace WebConsole
                     case "panel_verify":
                         if (ClientType == -1)
                         {
-                            if (DataStr == GetMD5(GUID +Program.Setting.Password))
+                            if (DataStr == GetMD5(GUID + Program.Setting.Password))
                             {
                                 string CustomName = (Packet["custom_name"] ?? "unknown").ToString();
                                 if (SubType == "console_verify")
