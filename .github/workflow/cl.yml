@@ -1,0 +1,76 @@
+name: CL
+
+on: 
+  push:
+    paths:
+  pull_request:
+
+jobs:
+    Build:
+      runs-on: windows-latest
+      steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Install dotnet-format
+        run: dotnet tool install -g dotnet-format
+
+      - name: Format
+        run: dotnet-format  ${{ github.workspace }}\WebConsole.sln
+
+      - name: Commit and Push
+        shell: bash
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "action@github.com"
+          git add -u
+          git commit -m "format: Automated dotnet-format update from commit ${GITHUB_SHA} on ${GITHUB_REF}"
+          git log -1
+          remote_repo="https://${GITHUB_ACTOR}:${{secrets.GITHUB_TOKEN}}@github.com/${GITHUB_REPOSITORY}.git"
+          git push "${remote_repo}" HEAD:${GITHUB_REF}
+        continue-on-error: true
+        
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+        with:
+          nuget-api-key: ${{ secrets.NuGetAPIKey }}
+          nuget-version: '5.x'
+
+      - name: NuGet restore
+        run: nuget restore
+
+      - name: Build the solution(Release)
+        run: msbuild /p:Configuration=$env:Configuration
+        env:
+          Configuration: Release
+
+      - name: Build the solution(Debug)
+        run: msbuild /p:Configuration=$env:Configuration
+        env:
+          Configuration: Debug
+
+      - name: Upload 
+        uses: actions/upload-artifact@v3
+        with:
+          name: bin
+          path: ${{ github.workspace }}\bin\
