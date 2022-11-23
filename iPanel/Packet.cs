@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WebConsole
+namespace iPanel
 {
     internal class Packet
     {

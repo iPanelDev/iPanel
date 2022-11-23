@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Timers;
 
-namespace WebConsole
+namespace iPanel
 {
     internal static class WebSocket
     {
@@ -55,7 +55,7 @@ namespace WebConsole
                         "host"
                         ).ToString());
                     GUIDs.Add(ClientUrl, GUID);
-                    Console.Title = $"WebConsole - Serein ({GUIDs.Count})";
+                    Console.Title = $"iPanel - Serein ({GUIDs.Count})";
                     Timer VerifyTimer = new Timer(5000)
                     {
                         AutoReset = false,
@@ -78,7 +78,7 @@ namespace WebConsole
                     GUIDs.Remove(ClientUrl);
                     Panels.Remove(ClientUrl);
                     Consoles.Remove(ClientUrl);
-                    Console.Title = $"WebConsole - Serein ({GUIDs.Count})";
+                    Console.Title = $"iPanel - Serein ({GUIDs.Count})";
                 };
                 socket.OnMessage = message => Receive(socket, message);
             });
@@ -124,7 +124,7 @@ namespace WebConsole
 
         private static void Receive(IWebSocketConnection Socket, string Message)
         {
-            Console.Title = $"WebConsole - Serein ({GUIDs.Count})";
+            Console.Title = $"iPanel - Serein ({GUIDs.Count})";
             string ClientUrl = Socket.ConnectionInfo.ClientIpAddress + ":" + Socket.ConnectionInfo.ClientPort;
             if (!Message.Contains("\"sub_type\":\"heartbeat\""))
             {

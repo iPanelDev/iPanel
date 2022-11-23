@@ -1,4 +1,4 @@
-var panel_dic = {};
+var instance_dic = {};
 var input_lines = [];
 
 class Panel {
@@ -34,26 +34,26 @@ function send_command() {
     $("#input-area>input").val("");
 }
 
-function update_panel_dic(list) {
+function update_instance_dic(list) {
     // 更新字典
     list.forEach(element => {
-        if (panel_dic.hasOwnProperty(element.guid)) {
-            var added = panel_dic[element.guid].added;
-            panel_dic[element.guid] = new Panel(element);
-            panel_dic[element.guid].added = added;
+        if (instance_dic.hasOwnProperty(element.guid)) {
+            var added = instance_dic[element.guid].added;
+            instance_dic[element.guid] = new Panel(element);
+            instance_dic[element.guid].added = added;
         } else {
-            panel_dic[element.guid] = new Panel(element)
+            instance_dic[element.guid] = new Panel(element)
         }
     });
 
-    for (var key in panel_dic) {
-        if (Date.now() - panel_dic[key].update_time < 10) {
-            if (!panel_dic[key].added) {
-                $("header select").append("<option value='" + key + "'>" + panel_dic[key].name + "(" + key.substring(0, 6) + ")" + "</option>");
-                panel_dic[key].added = true;
+    for (var key in instance_dic) {
+        if (Date.now() - instance_dic[key].update_time < 10) {
+            if (!instance_dic[key].added) {
+                $("header select").append("<option value='" + key + "'>" + instance_dic[key].name + "(" + key.substring(0, 6) + ")" + "</option>");
+                instance_dic[key].added = true;
             }
         }
-        else if (panel_dic[key].added) {
+        else if (instance_dic[key].added) {
             if ($("header select").find("option:selected").val() == key) {
                 alert(2, "所选的实例\"" + $("header select option:selected").text() + "\"已丢失");
                 $("header select option:selected").remove();
@@ -62,10 +62,10 @@ function update_panel_dic(list) {
                 $("header select option[value=" + key + "]").remove();
                 $("header select").get(0).selectedIndex = 0;
             }
-            delete panel_dic[key];
+            delete instance_dic[key];
         }
     }
-    if (dic_count(panel_dic) > 0) {
+    if (dic_count(instance_dic) > 0) {
         $("header select").get(0).selectedIndex = 1;
         change_panel();
     }

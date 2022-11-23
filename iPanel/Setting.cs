@@ -1,4 +1,4 @@
-﻿namespace WebConsole
+﻿namespace iPanel
 {
     internal class Setting
     {

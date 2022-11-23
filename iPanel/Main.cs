@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace WebConsole
+namespace iPanel
 {
     static class Program
     {
@@ -84,7 +84,7 @@ namespace WebConsole
             uint SC_CLOSE = 0xF060;
             RemoveMenu(closeMenu, SC_CLOSE, 0x0);
             Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "WebConsole - Serein";
+            Console.Title = "iPanel - Serein";
         }
 
         private static void ReadLine()

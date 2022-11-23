@@ -73,13 +73,13 @@ function ws_receive(e) {
                             "type": "api",
                             "sub_type": "console_verify",
                             "data": md5(data + $("#login-main input.pwd").val()),
-                            "custom_name": "webconsole"
+                            "custom_name": "iPanel"
                         }
                     ));
                     break;
                 case "input":
                     for (var i = 0; i < data.length; i++) {
-                        append_text(">"+html2Escape(data[i]));
+                        append_text(">" + html2Escape(data[i]));
                     }
                     break;
                 case "output":
@@ -96,9 +96,11 @@ function ws_receive(e) {
                     append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>进程已退出（返回：" + html2Escape(data + "") + "）");
                     server_status = false;
                     update_info();
+                    change_panel();
                     break;
                 case "heartbeat":
                     update_info(data);
+                    change_panel();
                     break;
             }
             break;
@@ -119,7 +121,7 @@ function ws_receive(e) {
                     }, 7500);
                     break;
                 case "list":
-                    update_panel_dic(data);
+                    update_instance_dic(data);
                     break;
             }
     }

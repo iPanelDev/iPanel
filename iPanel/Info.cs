@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace WebConsole
+namespace iPanel
 {
     internal class Info
     {

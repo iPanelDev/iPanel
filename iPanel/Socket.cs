@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace WebConsole
+namespace iPanel
 {
     internal class Socket
     {
