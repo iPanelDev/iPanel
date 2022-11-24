@@ -14,7 +14,7 @@ namespace iPanel
 
         [JsonProperty(PropertyName = "guid")]
         public string GUID;
-        
+
         [JsonProperty(PropertyName = "custom_name", NullValueHandling = NullValueHandling.Ignore)]
         public string CustomName = string.Empty;
     }
