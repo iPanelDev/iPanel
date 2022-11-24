@@ -11,10 +11,10 @@ header {
     align-items: center;
     flex-direction: row;
     user-select: none;
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
-header #header-title img{
+header #header-title img {
     width: 18px;
     image-rendering: pixelated;
 }
@@ -69,10 +69,11 @@ footer>#links>a:first-child {
 }
 
 @media only screen and (max-width: 480px) {
-    header{
+    header {
         padding: 20px 10px;
     }
-    header div{
+
+    header div {
         margin: 0;
     }
 }

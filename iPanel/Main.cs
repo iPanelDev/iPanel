@@ -35,13 +35,14 @@ namespace iPanel
         /// </summary>
         /// <param name="args">启动参数</param>
         [STAThread]
-        private static void Main(string[] args)
+        private static void Main()
         {
             Init();
             if (!File.Exists("./setting.json"))
             {
                 File.WriteAllText("./setting.json", JsonConvert.SerializeObject(new Setting(), Formatting.Indented));
-                Console.WriteLine($"\x1b[96m[Info]\x1b[0m配置文件已生成，请修改后重新启动\r\n\r\n请按任意键退出...");
+                Logger.Warn("配置文件已生成，请修改后重新启动");
+                Logger.Normal("\r\n\r\n请按任意键退出...");
                 Console.ReadKey(true);
             }
             else
@@ -51,7 +52,8 @@ namespace iPanel
                     Setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("./setting.json"));
                     if (string.IsNullOrEmpty(Setting.Password))
                     {
-                        Console.WriteLine($"\x1b[91m[Error]密码不可为空\x1b[0m\r\n\r\n请按任意键退出...");
+                        Logger.Error("密码不可为空");
+                        Logger.Normal("\r\n\r\n请按任意键退出...");
                         Console.ReadKey(true);
                     }
                     else
@@ -62,7 +64,8 @@ namespace iPanel
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\x1b[91m[Error]读取文件出现错误: {e}\x1b[0m\r\n\r\n请按任意键退出...");
+                    Logger.Error($"读取文件出现错误: {e}");
+                    Logger.Normal("\r\n\r\n请按任意键退出...");
                     Console.ReadKey(true);
                 }
             }
@@ -84,7 +87,7 @@ namespace iPanel
             uint SC_CLOSE = 0xF060;
             RemoveMenu(closeMenu, SC_CLOSE, 0x0);
             Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "iPanel - Serein";
+            Console.Title = "iPanel";
         }
 
         private static void ReadLine()
@@ -93,17 +96,19 @@ namespace iPanel
             {
                 if (Console.ReadLine() == "list")
                 {
-                    Console.WriteLine($"\x1b[96m[Info]\x1b[0m当前有{WebSocket.Consoles.Count}个控制台和{WebSocket.Panels.Count}个面板在线");
+                    Logger.Info($"当前有{WebSocket.Consoles.Count}个控制台和{WebSocket.Instances.Count}个面板在线");
                     WebSocket.Consoles.Keys.ToList().ForEach((Key) =>
                     {
-                        Console.WriteLine($"控制台 {Key}({WebSocket.Consoles[Key].GUID.Substring(0, 6)})\t{WebSocket.Consoles[Key].CustomName}");
+                        Logger.Normal($"控制台 {Key}({WebSocket.Consoles[Key].GUID.Substring(0, 6)})\t{WebSocket.Consoles[Key].CustomName}");
                     });
-                    WebSocket.Panels.Keys.ToList().ForEach((Key) =>
+                    WebSocket.Instances.Keys.ToList().ForEach((Key) =>
                     {
-                        Console.WriteLine($"面板 {Key}({WebSocket.Consoles[Key].GUID.Substring(0, 6)})\t{WebSocket.Panels[Key].CustomName}");
+                        Logger.Normal($"面板 {Key}({WebSocket.Instances[Key].GUID.Substring(0, 6)})\t{WebSocket.Instances[Key].CustomName}");
                     });
-                    Console.WriteLine("");
+                    Logger.Normal("");
                 }
+                else
+                    Logger.Warn("未知的命令");
             }
         }
     }

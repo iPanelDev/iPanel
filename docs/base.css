@@ -3,7 +3,8 @@
 }
 
 * {
-    transition: all 0.2s;
+    transition: color 0.2s;
+    transition: border 0.2s;
 }
 
 a {
@@ -58,7 +59,7 @@ input.underline:focus {
     padding: 30px;
     margin: 30px;
     box-shadow: 0 0.1rem 0.5rem #0000001a;
-    
+    transition: box-shadow 0.2s !important;
 }
 
 .section:hover {

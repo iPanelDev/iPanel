@@ -12,9 +12,9 @@ namespace iPanel
 {
     internal static class WebSocket
     {
-        private static Dictionary<string, string> GUIDs = new Dictionary<string, string>();
-        public static Dictionary<string, ConsoleSocket> Consoles = new Dictionary<string, ConsoleSocket>();
-        public static Dictionary<string, PanelSocket> Panels = new Dictionary<string, PanelSocket>();
+        private static readonly Dictionary<string, string> GUIDs = new Dictionary<string, string>();
+        public static readonly Dictionary<string, ConsoleSocket> Consoles = new Dictionary<string, ConsoleSocket>();
+        public static readonly Dictionary<string, InstanceSocket> Instances = new Dictionary<string, InstanceSocket>();
         private static WebSocketServer Server;
 
         public static void Start()
@@ -27,13 +27,13 @@ namespace iPanel
                         //Console.WriteLine($"\x1b[95m[Debug]\x1b[0m{Message} {e}");
                         break;
                     case 1:
-                        Console.WriteLine($"\x1b[96m[Info]\x1b[0m{Message} {e}");
+                        Logger.Info($"{Message} {e}");
                         break;
                     case 2:
-                        Console.WriteLine($"\x1b[33m[Warn]{Message} {e}\x1b[0m");
+                        Logger.Warn($"{Message} {e}");
                         break;
                     case 3:
-                        Console.WriteLine($"\x1b[91m[Error]{Message} {e}\x1b[0m");
+                        Logger.Error($"{Message} {e}");
                         break;
                 }
             };
@@ -47,7 +47,7 @@ namespace iPanel
                 {
                     string ClientUrl = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort;
                     string GUID = Guid.NewGuid().ToString().Replace("-", string.Empty);
-                    Console.WriteLine($"\x1b[36m[＋]\x1b[0m<{ClientUrl}> guid:{GUID}, md5:{GetMD5(GUID + Program.Setting.Password)}");
+                    Logger.Connect($"<{ClientUrl}> guid:{GUID}, excepted md5:{GetMD5(GUID + Program.Setting.Password)}");
                     socket.Send(new Packet(
                         "event",
                         "verify_request",
@@ -55,7 +55,7 @@ namespace iPanel
                         "host"
                         ).ToString());
                     GUIDs.Add(ClientUrl, GUID);
-                    Console.Title = $"iPanel - Serein ({GUIDs.Count})";
+                    Console.Title = $"iPanel - 连接数：{GUIDs.Count}";
                     Timer VerifyTimer = new Timer(5000)
                     {
                         AutoReset = false,
@@ -63,7 +63,7 @@ namespace iPanel
                     VerifyTimer.Start();
                     VerifyTimer.Elapsed += (sender, e) =>
                     {
-                        if (!Consoles.ContainsKey(ClientUrl) && !Panels.ContainsKey(ClientUrl))
+                        if (!Consoles.ContainsKey(ClientUrl) && !Instances.ContainsKey(ClientUrl))
                         {
                             socket.Send(new Packet("response", "verify_timeout", "验证超时", "host").ToString());
                             socket.Close();
@@ -74,11 +74,11 @@ namespace iPanel
                 socket.OnClose = () =>
                 {
                     string ClientUrl = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort;
-                    Console.WriteLine($"\x1b[36m[－]\x1b[0m<{ClientUrl}>");
+                    Logger.Disconnect($"<{ClientUrl}>");
                     GUIDs.Remove(ClientUrl);
-                    Panels.Remove(ClientUrl);
+                    Instances.Remove(ClientUrl);
                     Consoles.Remove(ClientUrl);
-                    Console.Title = $"iPanel - Serein ({GUIDs.Count})";
+                    Console.Title = $"iPanel - 连接数：{GUIDs.Count}";
                 };
                 socket.OnMessage = message => Receive(socket, message);
             });
@@ -94,7 +94,7 @@ namespace iPanel
         {
             foreach (string TargetUrl in GUIDs.Keys)
             {
-                if (Panels.TryGetValue(TargetUrl, out PanelSocket TargetSocket))
+                if (Instances.TryGetValue(TargetUrl, out InstanceSocket TargetSocket))
                 {
                     if ((DateTime.Now - TargetSocket.LastTime).TotalSeconds > 15)
                     {
@@ -105,7 +105,7 @@ namespace iPanel
                                 "状态异常",
                                 "host"
                                 ).ToString());
-                        Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{TargetUrl}> 状态异常，请重新连接");
+                        Logger.Notice($"<{TargetUrl}> 状态异常，已自动断开");
                         TargetSocket.WebSocketConnection.Close();
                     }
                     else
@@ -124,13 +124,13 @@ namespace iPanel
 
         private static void Receive(IWebSocketConnection Socket, string Message)
         {
-            Console.Title = $"iPanel - Serein ({GUIDs.Count})";
+            Console.Title = $"iPanel - 连接数：{GUIDs.Count}";
             string ClientUrl = Socket.ConnectionInfo.ClientIpAddress + ":" + Socket.ConnectionInfo.ClientPort;
             if (!Message.Contains("\"sub_type\":\"heartbeat\""))
             {
-                Console.WriteLine($"\x1b[92m[↓]\x1b[0m<{ClientUrl}> {Message}");
+                Logger.Recieve($"<{ClientUrl}> {Message}");
             }
-            int ClientType = Panels.ContainsKey(ClientUrl) ? 1 : Consoles.ContainsKey(ClientUrl) ? 0 : -1;
+            int ClientType = Instances.ContainsKey(ClientUrl) ? 1 : Consoles.ContainsKey(ClientUrl) ? 0 : -1;
             JObject Packet;
             try
             {
@@ -138,11 +138,9 @@ namespace iPanel
             }
             catch (Exception e)
             {
-                Console.WriteLine($"\x1b[91m[Error]序列化数据包时出现错误(From:{ClientUrl}):{e.Message}\x1b[0m");
+                Logger.Error($"序列化数据包时出现错误(From:{ClientUrl}):{e.Message}\x1b[0m");
                 if (ClientType < 0)
-                {
                     Socket.Close();
-                }
                 return;
             }
             string GUID = GUIDs[ClientUrl];
@@ -154,18 +152,16 @@ namespace iPanel
             {
                 Socket.Send(new Packet("response", "unverified", "需要通过验证", "host").ToString());
                 Socket.Close();
-                Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 需要通过验证");
+                Logger.Notice($"<{ClientUrl}> 未通过验证，已自动断开");
             }
-            else if (ClientType == 1 && Panels.ContainsKey(ClientUrl))
-            {
-                Panels[ClientUrl].LastTime = DateTime.Now;
-            }
+            else if (ClientType == 1 && Instances.ContainsKey(ClientUrl))
+                Instances[ClientUrl].LastTime = DateTime.Now;
             if (Type == "api")
             {
                 switch (SubType)
                 {
                     case "console_verify":
-                    case "panel_verify":
+                    case "instance_verify":
                         if (ClientType == -1)
                         {
                             if (DataStr == GetMD5(GUID + Program.Setting.Password))
@@ -182,7 +178,7 @@ namespace iPanel
                                 }
                                 else
                                 {
-                                    Panels.Add(ClientUrl, new PanelSocket()
+                                    Instances.Add(ClientUrl, new InstanceSocket()
                                     {
                                         CustomName = CustomName,
                                         WebSocketConnection = Socket,
@@ -190,11 +186,11 @@ namespace iPanel
                                     });
                                 }
                                 Socket.Send(new Packet("response", "verify_success", "验证成功", "host").ToString());
-                                Console.WriteLine($"\x1b[93m[﹗]\x1b[0m<{ClientUrl}> 验证成功:{(SubType == "panel_reply" ? "服务器" : "控制台")}");
+                                Logger.Notice($"<{ClientUrl}> 验证成功:{(SubType == "console_verify" ? "控制台" : "实例")}");
                             }
                             else
                             {
-                                Console.WriteLine($"\x1b[95m[﹗]\x1b[0m<{ClientUrl}> 验证失败:错误的MD5值");
+                                Logger.Notice($"<{ClientUrl}> 验证失败:错误的MD5值，已自动断开");
                                 Socket.Send(new Packet("response", "verify_failed", "验证失败:错误的MD5值", "host").ToString());
                                 Socket.Close();
                             }
@@ -203,24 +199,22 @@ namespace iPanel
                     case "select":
                         if (ClientType == 0 && Consoles.ContainsKey(ClientUrl))
                         {
-                            Consoles[ClientUrl].Select = DataStr;
+                            Consoles[ClientUrl].SelectTarget = DataStr;
                         }
                         break;
                     case "list":
-                        Socket.Send(new Packet("response", "list", Panels.Values, "host").ToString());
+                        Socket.Send(new Packet("response", "list", Instances.Values, "host").ToString());
                         break;
                     case "input":
                     case "start":
                     case "stop":
                     case "kill":
                         if (SubType != "input")
-                        {
                             Data = null;
-                        }
-                        string Target = (Packet["target"] ?? (Consoles.TryGetValue(ClientUrl, out ConsoleSocket ConsoleSocket) ? ConsoleSocket.Select : string.Empty)).ToString();
-                        foreach (string TargetUrl in Panels.Keys.ToArray())
+                        string Target = (Packet["target"] ?? (Consoles.TryGetValue(ClientUrl, out ConsoleSocket ConsoleSocket) ? ConsoleSocket.SelectTarget : string.Empty)).ToString();
+                        foreach (string TargetUrl in Instances.Keys.ToArray())
                         {
-                            if (TargetUrl != ClientUrl && Panels.TryGetValue(TargetUrl, out PanelSocket TargetSocket) && (ClientType == 1 || Target == "all" || Target == TargetSocket.GUID))
+                            if (TargetUrl != ClientUrl && Instances.TryGetValue(TargetUrl, out InstanceSocket TargetSocket) && (ClientType == 1 || Target == "all" || Target == TargetSocket.GUID))
                             {
                                 TargetSocket.WebSocketConnection.Send(
                                     new Packet(
@@ -229,9 +223,9 @@ namespace iPanel
                                         Data,
                                         new Dictionary<string, string>(){
                                             {"guid",GUID },
-                                            {"type",ClientType==0?"panel":"console" }}
+                                            {"type",ClientType == 1 ? "instance" : "console" }}
                                         ).ToString());
-                                Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({SubType})");
+                                Logger.Send($"<{ClientUrl}> -> <{TargetUrl}>({SubType})");
                             }
                         }
                         break;
@@ -247,13 +241,11 @@ namespace iPanel
                     case "output":
                     case "input":
                     case "heartbeat":
-                        if (new[] { "start", "exit" }.Contains(SubType))
-                        {
+                        if (SubType == "start" || SubType == "exit")
                             Data = null;
-                        }
                         foreach (string TargetUrl in Consoles.Keys.ToArray())
                         {
-                            if (TargetUrl != ClientUrl && Consoles.TryGetValue(TargetUrl, out ConsoleSocket TargetSocket) && (TargetSocket.Select == "all" || TargetSocket.Select == GUID))
+                            if (TargetUrl != ClientUrl && Consoles.TryGetValue(TargetUrl, out ConsoleSocket TargetSocket) && (TargetSocket.SelectTarget == "all" || TargetSocket.SelectTarget == GUID))
                             {
                                 TargetSocket.WebSocketConnection.Send(
                                     new Packet(
@@ -262,9 +254,9 @@ namespace iPanel
                                         Data,
                                         new Dictionary<string, string>(){
                                             {"guid",GUID },
-                                            {"type","panel"}}
+                                            {"type","instance"}}
                                         ).ToString());
-                                Console.WriteLine($"\x1b[96m[↑]\x1b[0m<{ClientUrl}> -> <{TargetUrl}>({SubType})");
+                                Logger.Send($"<{ClientUrl}> -> <{TargetUrl}>({SubType})");
                             }
                         }
                         break;

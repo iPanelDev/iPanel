@@ -35,7 +35,7 @@ function init() {
     $(".section#console").height(($(".child-container").height() - 90) + "px");
     $("header select").change(change_panel);
     $(window).resize(function () { $(".section#console").height(($(".child-container").height() - 90) + "px"); });
-    debugMode();
+    // debugMode();
 }
 
 function html2Escape(sHtml) {

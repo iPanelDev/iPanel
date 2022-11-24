@@ -1,27 +1,43 @@
 /* 设置 */
 var config = {
     addr: "ws://127.0.0.1:30000",  // ws地址
-    pwd: "", // 密码
-    name: "Serein " + serein.version,  // 自定义面板名称
-    cd_time: 200 // 发送冷却，设置为0则立即发送
+    pwd: "123",         // 密码
+    name: "",           // 自定义面板名称，为空则为"Serein (版本号)"
+    coolingTime: 200,   // 发送冷却，设置为0则立即发送
+    debug: true,        // 调试模式
 };
 
 
 var ws = new WebSocket(config.addr);
 var output_lines = [];
 var input_lines = [];
+var logger = new Logger("iPanel");
+var reconnectTimer;
 
-ws.onopen = function () {
-    serein.log("成功连接至" + config.addr)
-};
+serein.registerPlugin("iPanel", "v1.1", "Zaitonn", "提供网页版控制台交互");
 
-ws.onclose = function () {
-    serein.log("连接已断开");
-};
+function init() {
+    if (!config.pwd)
+        logger.error("密码为空");
+    else {
+        if (!config.name) {
+            config.name = "Serein " + serein.version;
+        }
+        ws.open();
+        reconnectTimer = setInterval(function () {
+            if (ws.state != 1) {
+                ws.open();
+                logger.info("尝试重连中...")
+            }
+        }, 5000);
+    }
+}
 
-ws.onmessage = function (msg) {
-    serein.log(msg);
-    var json = JSON.parse(msg);
+// 数据包接收处理
+function recieve(text) {
+    if (config.debug)
+        logger.info(text);
+    var json = JSON.parse(text);
     var type = json.type;
     var sub_type = json.sub_type;
     var data = json.data;
@@ -31,7 +47,7 @@ ws.onmessage = function (msg) {
                 case "verify_request":
                     ws.send(JSON.stringify({
                         "type": "api",
-                        "sub_type": "panel_verify",
+                        "sub_type": "instance_verify",
                         "data": getMD5(data + config.pwd),
                         "custom_name": config.name
                     }));
@@ -80,9 +96,27 @@ ws.onmessage = function (msg) {
                 }
             ));
             break;
+        case "response":
+            if (sub_type == "verify_failed") {
+                // 验证失败，自动停止重连
+                logger.error(data);
+                clearInterval(reconnectTimer);
+            }
+            break;
     }
+}
+
+ws.onopen = function () {
+    logger.info("成功连接至" + config.addr)
 };
 
+ws.onclose = function () {
+    logger.warn("连接已断开");
+};
+
+ws.onmessage = recieve;
+
+// 设置服务器启动监听
 serein.setListener("onServerStart", function () {
     ws.send(JSON.stringify({
         "type": "event",
@@ -90,14 +124,16 @@ serein.setListener("onServerStart", function () {
     }));
 });
 
-serein.setListener("onServerStop", function (code) {
+// 设置服务器关闭监听
+serein.setListener("onServerStop", function (exitcode) {
     ws.send(JSON.stringify({
         "type": "event",
         "sub_type": "stop",
-        "data": code
+        "data": exitcode
     }));
 });
 
+// 设置服务器输出监听
 serein.setListener("onServerOriginalOutput", function (line) {
     if (line != null) {
         output_lines.push(line);
@@ -111,10 +147,11 @@ serein.setListener("onServerOriginalOutput", function (line) {
                 }));
                 output_lines.splice(0, output_lines.length);
             }
-        }, config.cd_time + 20);
+        }, config.coolingTime + 20);
     }
 });
 
+// 设置服务器命令输入监听
 serein.setListener("onServerSendCommand", function (line) {
     if (line != null) {
         input_lines.push(line);
@@ -128,15 +165,8 @@ serein.setListener("onServerSendCommand", function (line) {
                 }));
                 input_lines.splice(0, input_lines.length);
             }
-        }, config.cd_time);
+        }, config.coolingTime);
     }
 });
 
-// 自动关闭
-serein.setListener("onPluginsReload", function () {
-    ws.close();
-});
-serein.setListener("onSereinClose", function () {
-    ws.close();
-});
-
+init(); // 初始化
