@@ -3,7 +3,6 @@
 }
 
 * {
-    transition: color 0.2s;
     transition: border 0.2s;
 }
 
@@ -72,6 +71,7 @@ input.underline:focus {
     border: #666 solid 1px;
     outline: none;
     background: transparent;
+    transition: all 0.5s;
 }
 
 .button_normal:hover {

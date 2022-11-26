@@ -1,0 +1,234 @@
+body {
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #eee;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+.alert {
+    z-index: 20;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 20px;
+    display: flex;
+    justify-content: center;
+    cursor: default;
+}
+
+.alert>div {
+    border-radius: 5px;
+    box-shadow: 0 0.1rem 0.5rem #00000030;
+    background: #fff;
+    text-align: center;
+    padding: 10px 20px;
+    transform: translateY(-200px);
+    transition: transform 0.5s !important;
+    position: absolute;
+}
+
+.alert>div>span {
+    font-weight: bolder;
+    margin-right: 10px;
+    font-size: 18px;
+    user-select: none;
+}
+
+.alert a {
+    color: #2b82a4;
+    text-decoration: none;
+}
+
+.alert a:hover {
+    text-decoration: underline;
+}
+
+.alert>div.info>span {
+    color: #2a5b98;
+}
+
+.alert>div.error>span {
+    color: #a44;
+}
+
+.alert>div>span.close {
+    margin: 0 0 0 15px;
+    cursor: pointer;
+    color: #882626;
+}
+
+.alert>div>span.close:hover {
+    color: #631313;
+}
+
+#login-container,
+#login-container>#login-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #99999920;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#login-container>#login-bg {
+    filter: blur(20px);
+    background: linear-gradient(30deg, #a8edea, #fed6e3);
+    transform: scale(1.2);
+}
+
+#login-main {
+    background: #fdfdfd;
+    background: linear-gradient(60deg, #fdfdfd 0%, #f8f8f8 100%);
+    border-radius: 5px;
+    width: 40%;
+    max-width: 200px;
+    padding: 30px 60px;
+    box-shadow: 0 0.1rem 0.5rem #0000001a;
+    text-align: center;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    z-index: 2;
+}
+
+#login-main>* {
+    margin: 10px 0;
+}
+
+#login-main>#connect {
+    max-width: 200px;
+}
+
+#login-main>input {
+    height: 20px;
+    padding: 5px 10px;
+}
+
+#login-main>#state {
+    font-size: 10px;
+    color: #aaa;
+    margin: 0;
+}
+
+#console-main {
+    border: #aaa solid 1px;
+    height: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+#console-main #console-child {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
+    width: 100%;
+    word-break: break-all;
+}
+
+#console-main #console-child>div {
+    font-family: Consolas, 'Courier New', Courier, monospace, 微软雅黑 !important;
+    margin: 5px;
+}
+
+#input-area {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+#input-area>input {
+    padding: 5px;
+    width: calc(100% - 100px);
+}
+
+#input-area>button {
+    padding: 5px 20px;
+}
+
+.section#console {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: height 0s;
+}
+
+.child-container,
+.section#console {
+    margin-top: 30px;
+    margin-bottom: 0;
+}
+
+.child-container>div {
+    margin: 0 30px 30px;
+    width: 250px;
+}
+
+.child-container,
+.container {
+    height: min-content;
+}
+
+.section#info .table .row :first-child {
+    user-select: none;
+    white-space: nowrap;
+    margin: 0 5px 0 0;
+    width: 60px;
+}
+
+.section#info .table .row :last-child {
+    text-align: right;
+    word-wrap: break-word;
+    overflow: hidden;
+    word-break: break-all;
+    max-width: 100%;
+}
+
+.section#panel .text {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.section#panel button {
+    margin: 5px;
+    width: 40%;
+    padding: 10px 20px;
+}
+
+@media only screen and (max-width: 800px) {
+    .section#panel .table .row {
+        justify-content: space-evenly;
+    }
+
+    .section#console {
+        min-height: 70vh;
+    }
+
+    .section#panel .text {
+        flex-wrap: nowrap;
+    }
+
+    .section#panel button {
+        padding: 10px;
+        max-width: 100px;
+    }
+
+    .child-container>div,
+    .child-container {
+        width: 100%;
+    }
+}

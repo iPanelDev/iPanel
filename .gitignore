@@ -1,5 +1,1 @@
-bin/
-obj/
-.vs/
-packages/
-MigrationBackup/
+debug.js

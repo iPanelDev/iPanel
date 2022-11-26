@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Serein</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="Description" content="iPanel">
+    <meta name="Keywords" content="iPanel" />
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css" />
+    <link rel="shortcut icon" href="icon.png" type="image/x-icon" />
+</head>
+
+<body>
+    <div id="app">很快！等我一下！</div>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-regex.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-powershell.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-plugin-flexible-alerts/dist/docsify-plugin-flexible-alerts.min.js"
+        defer></script>
+    <script src="//cdn.jsdelivr.net/npm/@alertbox/docsify-footer/dist/docsify-footer.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-progress@latest/dist/progress.min.js" defer></script>
+    <script>
+        window.$docsify = {
+            autoHeader: true,
+            auto2top: true,
+            coverpage: true,
+            externalLinkTarget: '_blank',
+            homePage: 'README.md',
+            loadFooter: true,
+            loadNavbar: true,
+            loadSidebar: true,
+            mergeNavbar: true,
+            name: 'iPanel',
+            nativeEmoji: true,
+            onlyCover: true,
+            relativePath: true,
+            repo: 'https://github.com/Zaitonn/iPanel',
+            subMaxLevel: 5,
+            search: {
+                placeholder: "🔍 搜我所想...",
+                namespace: 'iPanel',
+                noData: '👉👈没有找到你想要的内容呢'
+            },
+            pagination: {
+                previousText: '👈上一节',
+                nextText: '下一节👉',
+                crossChapter: true,
+                crossChapterText: true
+            },
+            'flexible-alerts': {
+                note: {
+                    label: "提示"
+                },
+                tip: {
+                    label: "小技巧"
+                },
+                warning: {
+                    label: "警告"
+                },
+                attention: {
+                    label: "注意"
+                }
+            },
+            copyCode: {
+                buttonText: '复制',
+                errorText: '复制失败',
+                successText: '复制成功'
+            },
+            progress: {
+                position: "top",
+                color: "#6ca7d1",
+                height: "3px",
+            }
+        }
+    </script>
+
+
+</body>
+
+</html>

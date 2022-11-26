@@ -1,7 +1,7 @@
 var instance_dic = {};
 var input_lines = [];
 
-class Panel {
+class Instance {
     constructor(dic) {
         this.name = dic.custom_name;
         this.server_status = false;
@@ -26,7 +26,7 @@ function send_command() {
         var tmp = input_lines;
         setTimeout(function () {
             if (tmp == input_lines) {
-                ws_send("api", "input", input_lines);
+                ws_send("execute", "input", input_lines);
                 input_lines.splice(0, input_lines.length);
             }
         }, 250);
@@ -39,10 +39,10 @@ function update_instance_dic(list) {
     list.forEach(element => {
         if (instance_dic.hasOwnProperty(element.guid)) {
             var added = instance_dic[element.guid].added;
-            instance_dic[element.guid] = new Panel(element);
+            instance_dic[element.guid] = new Instance(element);
             instance_dic[element.guid].added = added;
         } else {
-            instance_dic[element.guid] = new Panel(element)
+            instance_dic[element.guid] = new Instance(element)
         }
     });
 
@@ -72,16 +72,16 @@ function update_instance_dic(list) {
 }
 
 function start_server() {
-    ws_send("api", "start");
+    ws_send("execute", "start");
 }
 
 function stop_server() {
-    ws_send("api", "stop");
+    ws_send("execute", "stop");
 }
 
 function kill_server() {
     if (confirm("确定结束进程吗？\n此操作可能导致存档损坏等问题")) {
-        ws_send("api", "kill");
+        ws_send("execute", "kill");
     }
 }
 
