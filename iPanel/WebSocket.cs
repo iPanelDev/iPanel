@@ -113,8 +113,8 @@ namespace iPanel
                     {
                         TargetSocket.WebSocketConnection.Send(
                         new Packet(
+                            "event",
                             "heartbeat",
-                            "info",
                             null,
                             "iPanel"
                             ).ToString());

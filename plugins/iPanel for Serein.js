@@ -4,7 +4,7 @@ var config = {
     pwd: "123",         // 密码
     name: "",           // 自定义面板名称，为空则为"Serein (版本号)"
     coolingTime: 200,   // 发送冷却，设置为0则立即发送
-    debug: true,        // 调试模式
+    debug: false,        // 调试模式
 };
 
 
@@ -14,24 +14,7 @@ var input_lines = [];
 var logger = new Logger("iPanel");
 var reconnectTimer;
 
-serein.registerPlugin("iPanel", "v1.1", "Zaitonn", "提供网页版控制台交互");
-
-function init() {
-    if (!config.pwd)
-        logger.error("密码为空");
-    else {
-        if (!config.name) {
-            config.name = "Serein " + serein.version;
-        }
-        ws.open();
-        reconnectTimer = setInterval(function () {
-            if (ws.state != 1) {
-                ws.open();
-                logger.info("尝试重连中...")
-            }
-        }, 5000);
-    }
-}
+serein.registerPlugin("iPanel", "v1.2", "Zaitonn", "提供网页版控制台交互");
 
 // 数据包接收处理
 function recieve(text) {
@@ -41,6 +24,9 @@ function recieve(text) {
     var type = json.type;
     var sub_type = json.sub_type;
     var data = json.data;
+    if (sub_type != "heartbeat" && json.sender != undefined) {
+        logger.info("来自" + json.sender.type + ": " + type + "-" + sub_type);
+    }
     switch (type) {
         case "execute":
             switch (sub_type) {
@@ -64,25 +50,26 @@ function recieve(text) {
                     break;
             }
             break;
-        case "heartbeat":
-            ws.send(JSON.stringify(
-                {
-                    "type": "event",
-                    "sub_type": "heartbeat",
-                    "data": {
-                        "server_status": serein.getServerStatus(),
-                        "server_file": serein.getServerFile(),
-                        "server_cpuperc": serein.getServerCPUPersent(),
-                        "server_time": serein.getServerTime(),
-                        "os": serein.getSysInfo("os"),
-                        "cpu": serein.getSysInfo("CPUName"),
-                        "cpu_perc": serein.getSysInfo("CPUPercentage"),
-                        "ram_total": serein.getSysInfo("TotalRAM"),
-                        "ram_used": serein.getSysInfo("UsedRAM"),
-                        "ram_perc": serein.getSysInfo("RAMPercentage")
-                    },
-                }
-            ));
+        case "event":
+            if (sub_type == "heartbeat")
+                ws.send(JSON.stringify(
+                    {
+                        "type": "event",
+                        "sub_type": "heartbeat",
+                        "data": {
+                            "server_status": serein.getServerStatus(),
+                            "server_file": serein.getServerFile(),
+                            "server_cpuperc": serein.getServerCPUPersent(),
+                            "server_time": serein.getServerTime(),
+                            "os": serein.getSysInfo("os"),
+                            "cpu": serein.getSysInfo("CPUName"),
+                            "cpu_perc": serein.getSysInfo("CPUPercentage"),
+                            "ram_total": serein.getSysInfo("TotalRAM"),
+                            "ram_used": serein.getSysInfo("UsedRAM"),
+                            "ram_perc": serein.getSysInfo("RAMPercentage")
+                        },
+                    }
+                ));
             break;
         case "response":
             switch (sub_type) {
@@ -100,6 +87,7 @@ function recieve(text) {
                     clearInterval(reconnectTimer);
                     break;
             }
+            break;
     }
 }
 
@@ -166,4 +154,17 @@ serein.setListener("onServerSendCommand", function (line) {
     }
 });
 
-init(); // 初始化
+if (!config.pwd)
+    logger.error("密码为空");
+else {
+    if (!config.name) {
+        config.name = "Serein " + serein.version;
+    }
+    ws.open();
+    reconnectTimer = setInterval(function () {
+        if (ws.state != 1) {
+            ws.open();
+            logger.info("尝试重连中...")
+        }
+    }, 5000);
+}
