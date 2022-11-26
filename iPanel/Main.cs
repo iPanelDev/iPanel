@@ -35,7 +35,7 @@ namespace iPanel
         /// </summary>
         /// <param name="args">启动参数</param>
         [STAThread]
-        private static void Main()
+        private static void Main(string[] args)
         {
             Init();
             if (!File.Exists("./setting.json"))
@@ -69,6 +69,8 @@ namespace iPanel
                     Console.ReadKey(true);
                 }
             }
+            if (args.Length != 0 && args[0] != null)
+                Setting.Password = args[0];
         }
 
         private static void Init()
@@ -99,11 +101,11 @@ namespace iPanel
                     Logger.Info($"当前有{WebSocket.Consoles.Count}个控制台和{WebSocket.Instances.Count}个面板在线");
                     WebSocket.Consoles.Keys.ToList().ForEach((Key) =>
                     {
-                        Logger.Normal($"控制台 {Key}({WebSocket.Consoles[Key].GUID.Substring(0, 6)})\t{WebSocket.Consoles[Key].CustomName}");
+                        Logger.Normal($"控制台\t{Key,-18}({WebSocket.Consoles[Key].GUID.Substring(0, 6)})\t{WebSocket.Consoles[Key].CustomName}");
                     });
                     WebSocket.Instances.Keys.ToList().ForEach((Key) =>
                     {
-                        Logger.Normal($"面板 {Key}({WebSocket.Instances[Key].GUID.Substring(0, 6)})\t{WebSocket.Instances[Key].CustomName}");
+                        Logger.Normal($"面板\t{Key,-18}({WebSocket.Instances[Key].GUID.Substring(0, 6)})\t{WebSocket.Instances[Key].CustomName}");
                     });
                     Logger.Normal("");
                 }

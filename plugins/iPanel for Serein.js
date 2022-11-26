@@ -42,18 +42,6 @@ function recieve(text) {
     var sub_type = json.sub_type;
     var data = json.data;
     switch (type) {
-        case "event":
-            switch (sub_type) {
-                case "verify_request":
-                    ws.send(JSON.stringify({
-                        "type": "api",
-                        "sub_type": "instance_verify",
-                        "data": getMD5(data + config.pwd),
-                        "custom_name": config.name
-                    }));
-                    break;
-            }
-            break;
         case "execute":
             switch (sub_type) {
                 case "input":
@@ -97,12 +85,21 @@ function recieve(text) {
             ));
             break;
         case "response":
-            if (sub_type == "verify_failed") {
-                // 验证失败，自动停止重连
-                logger.error(data);
-                clearInterval(reconnectTimer);
+            switch (sub_type) {
+                case "verify_request":
+                    ws.send(JSON.stringify({
+                        "type": "api",
+                        "sub_type": "instance_verify",
+                        "data": getMD5(data + config.pwd),
+                        "custom_name": config.name
+                    }));
+                    break;
+                case "verify_failed":
+                    // 验证失败，自动停止重连
+                    logger.error(data);
+                    clearInterval(reconnectTimer);
+                    break;
             }
-            break;
     }
 }
 

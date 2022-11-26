@@ -16,6 +16,7 @@ namespace iPanel
         public static readonly Dictionary<string, ConsoleSocket> Consoles = new Dictionary<string, ConsoleSocket>();
         public static readonly Dictionary<string, InstanceSocket> Instances = new Dictionary<string, InstanceSocket>();
         private static WebSocketServer Server;
+        private static readonly string InvalidResponse = new Packet("response", "invalid", "无效的的值或类型或操作，请参考wiki修改", "iPanel").ToString();
 
         public static void Start()
         {
@@ -49,10 +50,10 @@ namespace iPanel
                     string GUID = Guid.NewGuid().ToString().Replace("-", string.Empty);
                     Logger.Connect($"<{ClientUrl}> guid:{GUID}, excepted md5:{GetMD5(GUID + Program.Setting.Password)}");
                     socket.Send(new Packet(
-                        "event",
+                        "response",
                         "verify_request",
                         GUID,
-                        "host"
+                        "iPanel"
                         ).ToString());
                     GUIDs.Add(ClientUrl, GUID);
                     Console.Title = $"iPanel - 连接数：{GUIDs.Count}";
@@ -65,7 +66,7 @@ namespace iPanel
                     {
                         if (!Consoles.ContainsKey(ClientUrl) && !Instances.ContainsKey(ClientUrl))
                         {
-                            socket.Send(new Packet("response", "verify_timeout", "验证超时", "host").ToString());
+                            socket.Send(new Packet("response", "verify_timeout", "验证超时", "iPanel").ToString());
                             socket.Close();
                         }
                         VerifyTimer.Dispose();
@@ -103,7 +104,7 @@ namespace iPanel
                                 "event",
                                 "close",
                                 "状态异常",
-                                "host"
+                                "iPanel"
                                 ).ToString());
                         Logger.Notice($"<{TargetUrl}> 状态异常，已自动断开");
                         TargetSocket.WebSocketConnection.Close();
@@ -115,7 +116,7 @@ namespace iPanel
                             "heartbeat",
                             "info",
                             null,
-                            "host"
+                            "iPanel"
                             ).ToString());
                     }
                 }
@@ -138,129 +139,152 @@ namespace iPanel
             }
             catch (Exception e)
             {
-                Logger.Error($"序列化数据包时出现错误(From:{ClientUrl}):{e.Message}\x1b[0m");
+                Logger.Error($"序列化数据包时出现错误(<{ClientUrl}>):\r\n{e.Message}\x1b[0m");
                 if (ClientType < 0)
                     Socket.Close();
                 return;
             }
             string GUID = GUIDs[ClientUrl];
             string Type = (Packet["type"] ?? string.Empty).ToString();
-            string SubType = (Packet["sub_type"] ?? "").ToString();
+            string SubType = (Packet["sub_type"] ?? string.Empty).ToString();
             object Data = Packet["data"];
             string DataStr = (Packet["data"] ?? string.Empty).ToString();
             if (ClientType == -1 && Type != "api" && !SubType.Contains("verify"))
             {
-                Socket.Send(new Packet("response", "unverified", "需要通过验证", "host").ToString());
+                Socket.Send(new Packet("response", "unverified", "需要通过验证", "iPanel").ToString());
                 Socket.Close();
                 Logger.Notice($"<{ClientUrl}> 未通过验证，已自动断开");
+                return;
             }
-            else if (ClientType == 1 && Instances.ContainsKey(ClientUrl))
-                Instances[ClientUrl].LastTime = DateTime.Now;
-            if (Type == "api")
+            else if (ClientType == 1 && Instances.TryGetValue(ClientUrl, out InstanceSocket _Socket))
+                _Socket.LastTime = DateTime.Now;
+            switch (Type)
             {
-                switch (SubType)
-                {
-                    case "console_verify":
-                    case "instance_verify":
-                        if (ClientType == -1)
-                        {
-                            if (DataStr == GetMD5(GUID + Program.Setting.Password))
+                case "api":
+                    switch (SubType)
+                    {
+                        case "console_verify":
+                        case "instance_verify":
+                            if (ClientType == -1)
                             {
-                                string CustomName = (Packet["custom_name"] ?? "unknown").ToString();
-                                if (SubType == "console_verify")
+                                if (DataStr == GetMD5(GUID + Program.Setting.Password))
                                 {
-                                    Consoles.Add(ClientUrl, new ConsoleSocket()
+                                    string CustomName = (Packet["custom_name"] ?? "unknown").ToString();
+                                    if (SubType == "console_verify")
                                     {
-                                        CustomName = CustomName,
-                                        WebSocketConnection = Socket,
-                                        GUID = GUID
-                                    });
+                                        Consoles.Add(ClientUrl, new ConsoleSocket()
+                                        {
+                                            CustomName = CustomName,
+                                            WebSocketConnection = Socket,
+                                            GUID = GUID
+                                        });
+                                        Logger.Notice($"<{ClientUrl}> 验证成功:控制台");
+                                        Socket.Send(new Packet("response", "verify_success", "验证成功", "iPanel").ToString());
+                                    }
+                                    else if (SubType == "instance_verify")
+                                    {
+                                        Instances.Add(ClientUrl, new InstanceSocket()
+                                        {
+                                            CustomName = CustomName,
+                                            WebSocketConnection = Socket,
+                                            GUID = GUID
+                                        });
+                                        Logger.Notice($"<{ClientUrl}> 验证成功:实例");
+                                        Socket.Send(new Packet("response", "verify_success", "验证成功", "iPanel").ToString());
+                                    }
+                                    else
+                                        Socket.Send(InvalidResponse);
                                 }
                                 else
                                 {
-                                    Instances.Add(ClientUrl, new InstanceSocket()
-                                    {
-                                        CustomName = CustomName,
-                                        WebSocketConnection = Socket,
-                                        GUID = GUID
-                                    });
+                                    Logger.Notice($"<{ClientUrl}> 验证失败:错误的MD5值，已自动断开");
+                                    Socket.Send(new Packet("response", "verify_failed", "验证失败:错误的MD5值", "iPanel").ToString()).Wait();
+                                    Socket.Close();
                                 }
-                                Socket.Send(new Packet("response", "verify_success", "验证成功", "host").ToString());
-                                Logger.Notice($"<{ClientUrl}> 验证成功:{(SubType == "console_verify" ? "控制台" : "实例")}");
                             }
-                            else
+                            break;
+                        case "select":
+                            if (ClientType == 0 && Consoles.ContainsKey(ClientUrl))
                             {
-                                Logger.Notice($"<{ClientUrl}> 验证失败:错误的MD5值，已自动断开");
-                                Socket.Send(new Packet("response", "verify_failed", "验证失败:错误的MD5值", "host").ToString());
-                                Socket.Close();
+                                Consoles[ClientUrl].SelectTarget = DataStr;
                             }
-                        }
-                        break;
-                    case "select":
-                        if (ClientType == 0 && Consoles.ContainsKey(ClientUrl))
-                        {
-                            Consoles[ClientUrl].SelectTarget = DataStr;
-                        }
-                        break;
-                    case "list":
-                        Socket.Send(new Packet("response", "list", Instances.Values, "host").ToString());
-                        break;
-                    case "input":
-                    case "start":
-                    case "stop":
-                    case "kill":
-                        if (SubType != "input")
-                            Data = null;
-                        string Target = (Packet["target"] ?? (Consoles.TryGetValue(ClientUrl, out ConsoleSocket ConsoleSocket) ? ConsoleSocket.SelectTarget : string.Empty)).ToString();
-                        foreach (string TargetUrl in Instances.Keys.ToArray())
-                        {
-                            if (TargetUrl != ClientUrl && Instances.TryGetValue(TargetUrl, out InstanceSocket TargetSocket) && (ClientType == 1 || Target == "all" || Target == TargetSocket.GUID))
+                            break;
+                        case "list":
+                            Socket.Send(new Packet("response", "list", Instances.Values, "iPanel").ToString());
+                            break;
+                        default:
+                            Socket.Send(InvalidResponse);
+                            break;
+                    }
+                    break;
+                case "event":
+                    switch (SubType)
+                    {
+                        case "start":
+                        case "stop":
+                        case "exit":
+                        case "output":
+                        case "input":
+                        case "heartbeat":
+                            if (SubType == "start" || SubType == "exit")
+                                Data = null;
+                            foreach (string TargetUrl in Consoles.Keys.ToArray())
                             {
-                                TargetSocket.WebSocketConnection.Send(
-                                    new Packet(
-                                        "execute",
-                                        SubType,
-                                        Data,
-                                        new Dictionary<string, string>(){
-                                            {"guid",GUID },
-                                            {"type",ClientType == 1 ? "instance" : "console" }}
-                                        ).ToString());
-                                Logger.Send($"<{ClientUrl}> -> <{TargetUrl}>({SubType})");
-                            }
-                        }
-                        break;
-                }
-            }
-            else if (Type == "event")
-            {
-                switch (SubType)
-                {
-                    case "start":
-                    case "stop":
-                    case "exit":
-                    case "output":
-                    case "input":
-                    case "heartbeat":
-                        if (SubType == "start" || SubType == "exit")
-                            Data = null;
-                        foreach (string TargetUrl in Consoles.Keys.ToArray())
-                        {
-                            if (TargetUrl != ClientUrl && Consoles.TryGetValue(TargetUrl, out ConsoleSocket TargetSocket) && (TargetSocket.SelectTarget == "all" || TargetSocket.SelectTarget == GUID))
-                            {
-                                TargetSocket.WebSocketConnection.Send(
-                                    new Packet(
-                                        "event",
-                                        SubType,
-                                        Data,
-                                        new Dictionary<string, string>(){
+                                if (TargetUrl != ClientUrl && Consoles.TryGetValue(TargetUrl, out ConsoleSocket TargetSocket) && (TargetSocket.SelectTarget == "all" || TargetSocket.SelectTarget == GUID))
+                                {
+                                    TargetSocket.WebSocketConnection.Send(
+                                        new Packet(
+                                            "event",
+                                            SubType,
+                                            Data,
+                                            new Dictionary<string, string>(){
                                             {"guid",GUID },
                                             {"type","instance"}}
-                                        ).ToString());
-                                Logger.Send($"<{ClientUrl}> -> <{TargetUrl}>({SubType})");
+                                            ).ToString());
+                                    Logger.Send($"<{ClientUrl}> -> <{TargetUrl}>({SubType})");
+                                }
                             }
-                        }
-                        break;
-                }
+                            break;
+                        default:
+                            Socket.Send(InvalidResponse);
+                            break;
+                    }
+                    break;
+                case "execute":
+                    switch (SubType)
+                    {
+                        case "input":
+                        case "start":
+                        case "stop":
+                        case "kill":
+                            if (SubType != "input")
+                                Data = null;
+                            string Target = (Packet["target"] ?? (Consoles.TryGetValue(ClientUrl, out ConsoleSocket ConsoleSocket) ? ConsoleSocket.SelectTarget : string.Empty)).ToString();
+                            foreach (string TargetUrl in Instances.Keys.ToArray())
+                            {
+                                if (TargetUrl != ClientUrl && Instances.TryGetValue(TargetUrl, out InstanceSocket TargetSocket) && (ClientType == 1 || Target == "all" || Target == TargetSocket.GUID))
+                                {
+                                    TargetSocket.WebSocketConnection.Send(
+                                        new Packet(
+                                            "execute",
+                                            SubType,
+                                            Data,
+                                            new Dictionary<string, string>(){
+                                            {"guid",GUID },
+                                            {"type",ClientType == 1 ? "instance" : "console" }}
+                                            ).ToString());
+                                    Logger.Send($"<{ClientUrl}> -> <{TargetUrl}>({SubType})");
+                                }
+                            }
+                            break;
+                        default:
+                            Socket.Send(InvalidResponse);
+                            break;
+                    }
+                    break;
+                default:
+                    Socket.Send(InvalidResponse);
+                    break;
             }
         }
 

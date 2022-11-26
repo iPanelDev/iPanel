@@ -4,6 +4,17 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <ApplicationIcon>ico.ico</ApplicationIcon>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Copyright>Copyright (C) 2022 Zaitonn</Copyright>
+    <PackageProjectUrl>https://github.com/Zaitonn/iPanel</PackageProjectUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +28,13 @@
     </PackageReference>
     <PackageReference Include="Fleck" Version="1.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>
