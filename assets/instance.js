@@ -1,5 +1,6 @@
 var instance_dic = {};
 var input_lines = [];
+var waitingToRestart = false;
 
 class Instance {
     constructor(dic) {
@@ -55,7 +56,7 @@ function update_instance_dic(list) {
         }
         else if (instance_dic[key].added) {
             if ($("header select").find("option:selected").val() == key) {
-                alert(2, "所选的实例\"" + $("header select option:selected").text() + "\"已丢失");
+                notice(2, "所选的实例\"" + $("header select option:selected").text() + "\"已丢失");
                 $("header select option:selected").remove();
                 $("header select").get(0).selectedIndex = 0;
             } else {
@@ -75,12 +76,26 @@ function start_server() {
     ws_send("execute", "start");
 }
 
-function stop_server() {
+function restart_server() {
     ws_send("execute", "stop");
+    waitingToRestart = true;
+}
+
+function stop_server() {
+    if (waitingToRestart&&server_status) {
+        append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>重启已取消")
+        waitingToRestart = false;
+    }
+    else
+        ws_send("execute", "stop");
 }
 
 function kill_server() {
-    if (confirm("确定结束进程吗？\n此操作可能导致存档损坏等问题")) {
+    if (waitingToRestart&&server_status) {
+        append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>重启已取消")
+        waitingToRestart = false;
+    }
+    else if (confirm("确定结束进程吗？\n此操作可能导致存档损坏等问题")) {
         ws_send("execute", "kill");
     }
 }

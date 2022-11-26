@@ -94,6 +94,14 @@ function ws_receive(e) {
                     server_status = false;
                     update_info();
                     change_panel();
+                    if (waitingToRestart) {
+                        append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>你可以按下停止按钮来取消这次重启")
+                        setTimeout(() => {
+                            if (waitingToRestart)
+                                start_server();
+                            waitingToRestart = false;
+                        }, 5000);
+                    }
                     break;
                 case "heartbeat":
                     update_info(data);

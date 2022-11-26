@@ -33,7 +33,7 @@ function init() {
     $("#button_start").click(start_server);
     $("#button_stop").click(stop_server);
     $("#button_kill").click(kill_server);
-    $("#button_restart").click(start_server);
+    $("#button_restart").click(restart_server);
     $(".section#console").height(($(".child-container").height() - 90) + "px");
     $("header select").change(change_panel);
     $(window).resize(function () { $(".section#console").height(($(".child-container").height() - 90) + "px"); });

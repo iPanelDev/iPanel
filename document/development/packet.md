@@ -34,12 +34,30 @@
   - `select` 选择实例对象 *(仅控制台)*
 - `event` [事件](event.md)
 - `execute` 执行
-  - `input`
-  - `start`
-  - `stop`
-  - `kill`
+  - `input` 输入
+  - `start` 启动服务器
+  - `stop` 关闭服务器
+  - `kill` 强制结束服务器
+  - `restart` 重启服务器
 - `response`
   - `verify_request` 请求验证 *(仅iPanel)*
+  - `invalid` 请求出错
 - `heartbeat` [心跳事件](heartbeat.md)
 
 ### sender
+
+- `guid` 客户端的唯一识别码
+  - 32位16进制数字
+- `type` 类型
+  - `console` 网页控制台
+  - `instance` 实例
+  - `iPanel` *顾名思义*
+
+### time
+
+时间戳
+
+```csharp
+Time = (long)DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+// 一个整数，表示从1970.1.1 00:00 到此时刻的总秒数
+```
