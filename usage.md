@@ -1,6 +1,6 @@
 
-![登录界面](../assets/web_login.jpeg)
-![网页控制台](../assets/web.jpeg)
+![登录界面](assets/web_login.jpeg)
+![网页控制台](assets/web.jpeg)
 
 ## 太长不看版
 
@@ -30,7 +30,7 @@
 8. 将`iPanel for Serein.js`插件复制到Serein同目录的`plugins`文件夹下
 9. 右键编辑插件文件修改密码，使之与第6步中一致
    - 你可以选择使用记事本或Visual Studio等其他文本编辑器打开
-   ![插件配置](../assets/plugin_config.png)
+   ![插件配置](assets/plugin_config.png)
    >[!WARNING]此处密码仅供参考，建议设置6位以上大小写数字组合的密码。**切勿设置和上图一样简单的密码**，密码泄露造成的后果自负:)
 10. 在插件管理页面右键选择重新加载插件
 11. 再次双击运行iPanel.exe

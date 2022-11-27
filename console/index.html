@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="vanilla.css">
+    <link rel="stylesheet" href="head.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="theme.css">
+    <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script src="ws.js" defer></script>
+    <script src="base.js" defer></script>
+    <script src="console.js" defer></script>
+    <script src="instance.js" defer></script>
+    <script src="debug.js" defer></script>
+    <script src="color.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        iPanel
+    </title>
+    <link rel="shortcut icon" href="document/icon.png" type="image/x-icon" />
+</head>
+
+<body>
+    <div class="alert">
+    </div>
+    <div id="login-container">
+        <div id="login-main">
+            <img src="icon.png" width="30px" alt="logo">
+            <div class="title">
+                iPanel
+            </div>
+            <input placeholder="ws地址" type="text" class="underline addr" spellcheck="false" autocomplete="false">
+            <input placeholder="密码" type="password" class="underline pwd" spellcheck="false" autocomplete="false">
+            <button id="connect" class="underline" type="button">连 接</button>
+            <div id="state"></div>
+        </div>
+        <div id="login-bg"></div>
+    </div>
+    <header>
+        <div id="header-title">
+            <img src="icon.png" alt="logo">
+            iPanel
+        </div>
+        <div id="header-state">
+            <div id="header-select">
+                <select class="underline">
+                    <option value="" disabled selected>选择一个实例</option>
+                </select>
+            </div>
+            <button id="disconnect" class="underline">
+                断开连接
+            </button>
+        </div>
+    </header>
+    <div class="container">
+        <div class="section" id="console">
+            <div id="console-main">
+                <div id="console-child">
+                </div>
+            </div>
+            <div id="input-area">
+                <input placeholder="> 在此处输入命令..." class="underline" type="text" spellcheck="false" autocomplete="false">
+                <button class="underline">发送</button>
+            </div>
+        </div>
+        <div class="child-container">
+            <div class="section" id="info">
+                <div class="title">详细信息</div>
+                <div class="table text">
+                    <div class="row info-item" id="server_status">
+                        <span>
+                            状态
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row info-item" id="server_file">
+                        <span>
+                            启动文件
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row info-item" id="server_cpuperc">
+                        <span>
+                            进程占用
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row info-item" id="server_time">
+                        <span>
+                            运行时长
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row info-item" id="os">
+                        <span>
+                            系统名称
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row info-item" id="cpu">
+                        <span>
+                            CPU
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row info-item" id="cpu_perc">
+                        <span>
+                            CPU占用
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                    <div class="row info-item" id="ram">
+                        <span>
+                            内存使用
+                        </span>
+                        <span>
+                            -
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="section" id="panel">
+                <div class="title">控制面板</div>
+                <div class="text">
+                    <button class="button_normal" id="button_start">启动</button>
+                    <button class="button_normal" id="button_stop">关闭</button>
+                    <button class="button_normal" id="button_restart">重启</button>
+                    <button class="button_danger" id="button_kill">结束进程</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="text">
+        <div id="links">
+            <a class="underline" href="https://github.com/Zaitonn/iPanel/">
+                GITHUB仓库
+            </a>
+            /
+            <a class="underline" href="../#/development/">
+                开发文档
+            </a>
+            /
+            <a class="underline" href="../#/usage">
+                食用方法
+            </a>
+            /
+            <a class="underline" href="https://jq.qq.com/?_wv=1027&k=XNZqPSPv">
+                联系作者
+            </a>
+        </div>
+        <div id="copyright">
+            Copyright © 2022 Zaitonn. All Rights Reserved.
+        </div>
+    </footer>
+</body>
+
+</html>

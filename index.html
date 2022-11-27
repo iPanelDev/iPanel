@@ -1,175 +1,90 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="stylesheet" href="assets/style.css">
-    <link rel="stylesheet" href="assets/vanilla.css">
-    <link rel="stylesheet" href="assets/head.css">
-    <link rel="stylesheet" href="assets/base.css">
-    <link rel="stylesheet" href="assets/theme.css">
-    <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
-    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
-    <script src="assets/ws.js" defer></script>
-    <script src="assets/base.js" defer></script>
-    <script src="assets/console.js" defer></script>
-    <script src="assets/instance.js" defer></script>
-    <script src="assets/debug.js" defer></script>
-    <script src="assets/color.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        iPanel
-    </title>
-    <link rel="shortcut icon" href="document/icon.png" type="image/x-icon" />
+    <title>Serein</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="Description" content="iPanel">
+    <meta name="Keywords" content="iPanel" />
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css" />
+    <link rel="shortcut icon" href="icon.png" type="image/x-icon" />
 </head>
 
 <body>
-    <div class="alert">
-    </div>
-    <div id="login-container">
-        <div id="login-main">
-            <img src="assets/icon.png" width="30px" alt="logo">
-            <div class="title">
-                iPanel
-            </div>
-            <input placeholder="ws地址" type="text" class="underline addr" spellcheck="false" autocomplete="false">
-            <input placeholder="密码" type="password" class="underline pwd" spellcheck="false" autocomplete="false">
-            <button id="connect" class="underline" type="button">连 接</button>
-            <div id="state"></div>
-        </div>
-        <div id="login-bg"></div>
-    </div>
-    <header>
-        <div id="header-title">
-            <img src="assets/icon.png" alt="logo">
-            iPanel
-        </div>
-        <div id="header-state">
-            <div id="header-select">
-                <select class="underline">
-                    <option value="" disabled selected>选择一个实例</option>
-                </select>
-            </div>
-            <button id="disconnect" class="underline">
-                断开连接
-            </button>
-        </div>
-    </header>
-    <div class="container">
-        <div class="section" id="console">
-            <div id="console-main">
-                <div id="console-child">
-                </div>
-            </div>
-            <div id="input-area">
-                <input placeholder="> 在此处输入命令..." class="underline" type="text" spellcheck="false" autocomplete="false">
-                <button class="underline">发送</button>
-            </div>
-        </div>
-        <div class="child-container">
-            <div class="section" id="info">
-                <div class="title">详细信息</div>
-                <div class="table text">
-                    <div class="row info-item" id="server_status">
-                        <span>
-                            状态
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                    <div class="row info-item" id="server_file">
-                        <span>
-                            启动文件
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                    <div class="row info-item" id="server_cpuperc">
-                        <span>
-                            进程占用
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                    <div class="row info-item" id="server_time">
-                        <span>
-                            运行时长
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                    <div class="row info-item" id="os">
-                        <span>
-                            系统名称
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                    <div class="row info-item" id="cpu">
-                        <span>
-                            CPU
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                    <div class="row info-item" id="cpu_perc">
-                        <span>
-                            CPU占用
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                    <div class="row info-item" id="ram">
-                        <span>
-                            内存使用
-                        </span>
-                        <span>
-                            -
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="section" id="panel">
-                <div class="title">控制面板</div>
-                <div class="text">
-                    <button class="button_normal" id="button_start">启动</button>
-                    <button class="button_normal" id="button_stop">关闭</button>
-                    <button class="button_normal" id="button_restart">重启</button>
-                    <button class="button_danger" id="button_kill">结束进程</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <footer class="text">
-        <div id="links">
-            <a class="underline" href="https://github.com/Zaitonn/iPanel/">
-                GITHUB仓库
-            </a>
-            /
-            <a class="underline" href="./document/#/development/">
-                开发文档
-            </a>
-            /
-            <a class="underline" href="./document/#/usage">
-                食用方法
-            </a>
-            /
-            <a class="underline" href="https://jq.qq.com/?_wv=1027&k=XNZqPSPv">
-                联系作者
-            </a>
-        </div>
-        <div id="copyright">
-            Copyright © 2022 Zaitonn. All Rights Reserved.
-        </div>
-    </footer>
+    <div id="app">很快！等我一下！</div>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-regex.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-powershell.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-plugin-flexible-alerts/dist/docsify-plugin-flexible-alerts.min.js"
+        defer></script>
+    <script src="//cdn.jsdelivr.net/npm/@alertbox/docsify-footer/dist/docsify-footer.min.js" defer></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-progress@latest/dist/progress.min.js" defer></script>
+    <script>
+        window.$docsify = {
+            autoHeader: true,
+            auto2top: true,
+            coverpage: true,
+            externalLinkTarget: '_blank',
+            homePage: 'README.md',
+            loadFooter: true,
+            loadNavbar: true,
+            loadSidebar: true,
+            mergeNavbar: true,
+            name: 'iPanel',
+            nativeEmoji: true,
+            onlyCover: true,
+            relativePath: true,
+            repo: 'https://github.com/Zaitonn/iPanel',
+            subMaxLevel: 5,
+            search: {
+                placeholder: "🔍 搜我所想...",
+                namespace: 'iPanel',
+                noData: '👉👈没有找到你想要的内容呢'
+            },
+            pagination: {
+                previousText: '👈上一节',
+                nextText: '下一节👉',
+                crossChapter: true,
+                crossChapterText: true
+            },
+            'flexible-alerts': {
+                note: {
+                    label: "提示"
+                },
+                tip: {
+                    label: "小技巧"
+                },
+                warning: {
+                    label: "警告"
+                },
+                attention: {
+                    label: "注意"
+                }
+            },
+            copyCode: {
+                buttonText: '复制',
+                errorText: '复制失败',
+                successText: '复制成功'
+            },
+            progress: {
+                position: "top",
+                color: "#6ca7d1",
+                height: "3px",
+            }
+        }
+    </script>
+
+
 </body>
 
 </html>

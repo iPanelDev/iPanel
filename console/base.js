@@ -9,7 +9,7 @@ $(document).ready(init);
 function init() {
     $("footer").hide();
     if (!getParameter("addr")) {
-        notice(1, "如果是首次使用此控制台，你可以查看<a href='./document/'>食用方法</a>");
+        notice(1, "如果是首次使用此控制台，你可以查看<a href='../'>食用方法</a>");
         $('#login-main>input.addr').focus();
         $("#login-main input.addr").val('ws://');
     } else {
