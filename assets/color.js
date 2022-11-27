@@ -1,4 +1,7 @@
-var color_nums =
+/**
+ * @description 颜色数码
+ */
+const color_nums =
     [
         "30",
         "31",
@@ -33,24 +36,33 @@ var color_nums =
         "106",
         "107"
     ];
-var patten = /\[(.+?)m(.*)/;
 
-function color_escape(line = "") {
-    if (line.search("\x1b") < 0) {
+/**
+ * @description 正则表达式
+ */
+const patten = /\[(.+?)m(.*)/;
+
+/**
+ * @description 颜色代码转义
+ * @param {string} line 
+ * @returns html文本
+ */
+function colorEscape(line = "") {
+    if (!line || line.search("\x1b") < 0) {
         return line;
     }
-    var output = "";
-    var group = line.trimStart("\x1b").split("\x1b");
+    let output = "";
+    let group = line.trimStart("\x1b").split("\x1b");
     for (var i = 0; i < group.length; i++) {
-        var match = patten.exec(group[i]);
+        let match = patten.exec(group[i]);
         if (match == null) {
             continue;
         }
-        var arg_group = match[1].split(";");
-        var style = "";
-        var classes = "";
+        let arg_group = match[1].split(";");
+        let style = "";
+        let classes = "";
         for (var arg_index = 0; arg_index < arg_group.length; arg_index++) {
-            var child_arg = arg_group[arg_index];
+            let child_arg = arg_group[arg_index];
             if (child_arg == "1") {
                 style += "font-weight:bold;";
             }

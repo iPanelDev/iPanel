@@ -1,7 +1,10 @@
-var instance_dic = {};
-var input_lines = [];
-var waitingToRestart = false;
+let instanceDict = {};
+let inputLines = [];
+let waitingToRestart = false;
 
+/**
+ * @description 实例
+ */
 class Instance {
     constructor(dic) {
         this.name = dic.custom_name;
@@ -16,95 +19,116 @@ class Instance {
         this.ram_perc = "";
         this.cpu_perc = "";
         this.update_time = Date.now();
-        this.added = false;
     }
 }
 
-function send_command() {
+/**
+ * @description 发送命令
+ */
+function sendCommand() {
     if (!($("header select").find("option:selected").val() == null || $("header select").find("option:selected").val() == "")) {
-        var cmd = $("#input-area>input").val();
-        input_lines.push(cmd);
-        var tmp = input_lines;
+        let cmd = $("#input-area>input").val();
+        inputLines.push(cmd);
+        let tmp = inputLines;
         setTimeout(function () {
-            if (tmp == input_lines) {
-                ws_send("execute", "input", input_lines);
-                input_lines.splice(0, input_lines.length);
+            if (tmp == inputLines) {
+                send("execute", "input", inputLines);
+                inputLines.splice(0, inputLines.length);
             }
         }, 250);
     }
     $("#input-area>input").val("");
 }
 
-function update_instance_dic(list) {
-    // 更新字典
+/**
+ * @description 更新字典
+ * @param {Array<Instance>} list 
+ */
+function updateInstanceDic(list) {
     list.forEach(element => {
-        if (instance_dic.hasOwnProperty(element.guid)) {
-            var added = instance_dic[element.guid].added;
-            instance_dic[element.guid] = new Instance(element);
-            instance_dic[element.guid].added = added;
-        } else {
-            instance_dic[element.guid] = new Instance(element)
-        }
+        if (element.type == "instance")
+            instanceDict[element.guid] = new Instance(element);
     });
-
-    for (var key in instance_dic) {
-        if (Date.now() - instance_dic[key].update_time < 10) {
-            if (!instance_dic[key].added) {
-                $("header select").append("<option value='" + key + "'>" + instance_dic[key].name + "(" + key.substring(0, 6) + ")" + "</option>");
-                instance_dic[key].added = true;
+    let selectedKey = $("header select").find("option:selected").val();
+    let selectedName = $("header select option:selected").text();
+    let selectedIndex = 0;
+    $("header select option").remove();
+    $("header select").append('<option value="" disabled>选择一个实例</option>');
+    let i = 0;
+    for (var key in instanceDict) {
+        if (Date.now() - instanceDict[key].update_time > 15) {
+            if (selectedKey == key) {
+                notice(2, "所选的实例\"" + selectedName + "\"已丢失");
+                selectedKey = null;
             }
-        }
-        else if (instance_dic[key].added) {
-            if ($("header select").find("option:selected").val() == key) {
-                notice(2, "所选的实例\"" + $("header select option:selected").text() + "\"已丢失");
-                $("header select option:selected").remove();
-                $("header select").get(0).selectedIndex = 0;
-            } else {
-                $("header select option[value=" + key + "]").remove();
-                $("header select").get(0).selectedIndex = 0;
-            }
-            delete instance_dic[key];
+            delete instanceDict[key];
+        } else {
+            i++;
+            if (selectedKey == key)
+                selectedIndex = i;
+            $("header select").append("<option value='" + key + "'>" + instanceDict[key].name + "(" + key.substring(0, 6) + ")" + "</option>");
         }
     }
-    if (dic_count(instance_dic) > 0) {
+    if (count(instanceDict) > 0 && selectedIndex == 0) {
         $("header select").get(0).selectedIndex = 1;
-        change_panel();
+    } else {
+        $("header select").get(0).selectedIndex = selectedIndex;
     }
+    changeInstance();
 }
 
-function start_server() {
-    ws_send("execute", "start");
+/**
+ * @description 启动服务器
+ */
+function startServer() {
+    send("execute", "start");
 }
 
-function restart_server() {
-    ws_send("execute", "stop");
+/**
+ * @description 重启服务器
+ */
+function restartServer() {
+    send("execute", "stop");
     waitingToRestart = true;
 }
 
-function stop_server() {
-    if (waitingToRestart&&server_status) {
-        append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>重启已取消")
+/**
+ * @description 关闭服务器
+ */
+function stopServer() {
+    if (waitingToRestart && server_status) {
+        appendText("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>重启已取消")
         waitingToRestart = false;
     }
     else
-        ws_send("execute", "stop");
+        send("execute", "stop");
 }
 
-function kill_server() {
-    if (waitingToRestart&&server_status) {
-        append_text("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>重启已取消")
+/**
+ * @description 强制结束服务器
+ */
+function killServer() {
+    if (waitingToRestart && server_status) {
+        appendText("<span style=\"color:#4B738D;font-weight: bold;\">[Serein]</span>重启已取消")
         waitingToRestart = false;
     }
     else if (confirm("确定结束进程吗？\n此操作可能导致存档损坏等问题")) {
-        ws_send("execute", "kill");
+        send("execute", "kill");
     }
 }
 
-function change_panel() {
-    ws_send("api", "select", $("header select").find("option:selected").val());
+/**
+ * @description 更改实例
+ */
+function changeInstance() {
+    send("api", "select", $("header select").find("option:selected").val());
 }
 
-function update_info(data = null) {
+/**
+ * @description 更新详细信息
+ * @param {Instance} data 
+ */
+function updateInfo(data = null) {
     if (data) {
         server_status = data.server_status;
         $(".section#info .table .row :last-child").text("-");
@@ -113,16 +137,26 @@ function update_info(data = null) {
             $(".section#info .table .row#server_file :last-child").text(data.server_file);
             $(".section#info .table .row#server_cpuperc :last-child").text(data.server_cpuperc + "%");
             $(".section#info .table .row#server_time :last-child").text(data.server_time);
+        } else {
+            $(".section#info .table .row#server_status :last-child").text("未启动");
+            $(".section#info .table .row#server_file :last-child").text("-");
+            $(".section#info .table .row#server_cpuperc :last-child").text("-");
+            $(".section#info .table .row#server_time :last-child").text("-");
         }
         $(".section#info .table .row#os :last-child").text(data.os);
         $(".section#info .table .row#cpu :last-child").text(data.cpu);
         $(".section#info .table .row#cpu_perc :last-child").text(data.cpu_perc + "%");
         $(".section#info .table .row#ram :last-child").text(data.ram_used + "MB/" + data.ram_total + "MB(" + data.ram_perc + "%)");
-    } else if (!server_status) {
-        $(".section#info .table .row#server_status :last-child").text("未启动");
+    } else {
+        $(".section#info .table .row :last-child").text("-");
+        $(".section#info .table .row#server_status :last-child").text("-");
         $(".section#info .table .row#server_file :last-child").text("-");
         $(".section#info .table .row#server_cpuperc :last-child").text("-");
         $(".section#info .table .row#server_time :last-child").text("-");
+        $(".section#info .table .row#os :last-child").text("-");
+        $(".section#info .table .row#cpu :last-child").text("-");
+        $(".section#info .table .row#cpu_perc :last-child").text("-");
+        $(".section#info .table .row#ram :last-child").text("-");
     }
     $(".section#console").height(($(".child-container").height() - 90) + "px");
 }
