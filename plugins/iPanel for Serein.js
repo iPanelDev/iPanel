@@ -4,7 +4,7 @@ var config = {
     pwd: "123",         // 密码
     name: "",           // 自定义面板名称，为空则为"Serein (版本号)"
     coolingTime: 200,   // 发送冷却，设置为0则立即发送
-    debug: false,        // 调试模式
+    debug: false,       // 调试模式
 };
 
 
@@ -124,7 +124,7 @@ serein.setListener("onServerOriginalOutput", function (line) {
         output_lines.push(line);
         var tmp = output_lines;
         setTimeout(function () { // 发送冷却，防止发送数据包过快引起卡顿
-            if (tmp == output_lines) {
+            if (tmp == output_lines && output_lines.length != 0) {
                 ws.send(JSON.stringify({
                     "type": "event",
                     "sub_type": "output",
@@ -142,7 +142,7 @@ serein.setListener("onServerSendCommand", function (line) {
         input_lines.push(line);
         var tmp = input_lines;
         setTimeout(function () { // 发送冷却，防止发送数据包过快引起卡顿
-            if (tmp == input_lines) {
+            if (tmp == input_lines && input_lines.length != 0) {
                 ws.send(JSON.stringify({
                     "type": "event",
                     "sub_type": "input",
@@ -154,9 +154,10 @@ serein.setListener("onServerSendCommand", function (line) {
     }
 });
 
-if (!config.pwd)
+if (!config.pwd) {
     logger.error("密码为空");
-else {
+    logger.error("请使用文本编辑器打开此插件，按照注释说明修改配置");
+} else {
     if (!config.name) {
         config.name = "Serein " + serein.version;
     }

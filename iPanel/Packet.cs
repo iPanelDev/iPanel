@@ -35,7 +35,8 @@ namespace iPanel
             Sender = (sender ?? string.Empty).ToString() == "iPanel" ?
                 new Dictionary<string, string>(){
                     {"guid",string.Empty },
-                    {"type","iPanel" }} :
+                    {"type","iPanel" },
+                    {"version",Program.VERSION } } :
                     sender;
             Time = (long)DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
         }

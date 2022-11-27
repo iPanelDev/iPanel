@@ -12,11 +12,11 @@ namespace iPanel
 {
     internal static class WebSocket
     {
+        private static WebSocketServer Server;
+        private static readonly string InvalidResponse = new Packet("response", "invalid", "无效的的值或类型或操作，请参考wiki修改", "iPanel").ToString();
         private static readonly Dictionary<string, string> GUIDs = new Dictionary<string, string>();
         public static readonly Dictionary<string, ConsoleSocket> Consoles = new Dictionary<string, ConsoleSocket>();
         public static readonly Dictionary<string, InstanceSocket> Instances = new Dictionary<string, InstanceSocket>();
-        private static WebSocketServer Server;
-        private static readonly string InvalidResponse = new Packet("response", "invalid", "无效的的值或类型或操作，请参考wiki修改", "iPanel").ToString();
 
         public static void Start()
         {
@@ -106,8 +106,8 @@ namespace iPanel
                                 "状态异常",
                                 "iPanel"
                                 ).ToString());
+                        TargetSocket.WebSocketConnection.Close(-1);
                         Logger.Notice($"<{TargetUrl}> 状态异常，已自动断开");
-                        TargetSocket.WebSocketConnection.Close();
                     }
                     else
                     {
@@ -128,9 +128,7 @@ namespace iPanel
             Console.Title = $"iPanel - 连接数：{GUIDs.Count}";
             string ClientUrl = Socket.ConnectionInfo.ClientIpAddress + ":" + Socket.ConnectionInfo.ClientPort;
             if (!Message.Contains("\"sub_type\":\"heartbeat\""))
-            {
                 Logger.Recieve($"<{ClientUrl}> {Message}");
-            }
             int ClientType = Instances.ContainsKey(ClientUrl) ? 1 : Consoles.ContainsKey(ClientUrl) ? 0 : -1;
             JObject Packet;
             try
@@ -144,6 +142,9 @@ namespace iPanel
                     Socket.Close();
                 return;
             }
+            Dictionary<string, Socket> AllSockets = new Dictionary<string, Socket>();
+            Consoles.Keys.ToList().ForEach((Key) => AllSockets.Add(Key, Consoles[Key]));
+            Instances.Keys.ToList().ForEach((Key) => AllSockets.Add(Key, Instances[Key]));
             string GUID = GUIDs[ClientUrl];
             string Type = (Packet["type"] ?? string.Empty).ToString();
             string SubType = (Packet["sub_type"] ?? string.Empty).ToString();
@@ -160,6 +161,7 @@ namespace iPanel
                 _Socket.LastTime = DateTime.Now;
             switch (Type)
             {
+                #region 接口
                 case "api":
                     switch (SubType)
                     {
@@ -210,13 +212,16 @@ namespace iPanel
                             }
                             break;
                         case "list":
-                            Socket.Send(new Packet("response", "list", Instances.Values, "iPanel").ToString());
+                            Socket.Send(new Packet("response", "list", AllSockets.Values, "iPanel").ToString());
                             break;
                         default:
                             Socket.Send(InvalidResponse);
                             break;
                     }
                     break;
+                #endregion
+
+                #region 事件
                 case "event":
                     switch (SubType)
                     {
@@ -226,11 +231,15 @@ namespace iPanel
                         case "output":
                         case "input":
                         case "heartbeat":
-                            if (SubType == "start" || SubType == "exit")
+                            if(SubType== "heartbeat")
+                                Data = JObject.FromObject(JsonConvert.DeserializeObject<Info>(DataStr));
+                            else if (SubType == "start" || SubType == "exit")
                                 Data = null;
-                            foreach (string TargetUrl in Consoles.Keys.ToArray())
+                            foreach (string TargetUrl in AllSockets.Keys.ToArray())
                             {
-                                if (TargetUrl != ClientUrl && Consoles.TryGetValue(TargetUrl, out ConsoleSocket TargetSocket) && (TargetSocket.SelectTarget == "all" || TargetSocket.SelectTarget == GUID))
+                                if (TargetUrl != ClientUrl &&
+                                    AllSockets.TryGetValue(TargetUrl, out Socket TargetSocket) &&
+                                    (TargetSocket.SelectTarget == "all" || TargetSocket.SelectTarget == GUID))
                                 {
                                     TargetSocket.WebSocketConnection.Send(
                                         new Packet(
@@ -245,11 +254,15 @@ namespace iPanel
                                 }
                             }
                             break;
+                        #endregion
+
                         default:
                             Socket.Send(InvalidResponse);
                             break;
                     }
                     break;
+
+                #region 执行
                 case "execute":
                     switch (SubType)
                     {
@@ -257,12 +270,12 @@ namespace iPanel
                         case "start":
                         case "stop":
                         case "kill":
-                            if (SubType != "input")
+                        case "customize":
+                            if (SubType != "input" && SubType != "customize")
                                 Data = null;
-                            string Target = (Packet["target"] ?? (Consoles.TryGetValue(ClientUrl, out ConsoleSocket ConsoleSocket) ? ConsoleSocket.SelectTarget : string.Empty)).ToString();
                             foreach (string TargetUrl in Instances.Keys.ToArray())
                             {
-                                if (TargetUrl != ClientUrl && Instances.TryGetValue(TargetUrl, out InstanceSocket TargetSocket) && (ClientType == 1 || Target == "all" || Target == TargetSocket.GUID))
+                                if (TargetUrl != ClientUrl && Instances.TryGetValue(TargetUrl, out InstanceSocket TargetSocket) && TargetSocket.GUID == AllSockets[ClientUrl].SelectTarget)
                                 {
                                     TargetSocket.WebSocketConnection.Send(
                                         new Packet(
@@ -282,6 +295,8 @@ namespace iPanel
                             break;
                     }
                     break;
+                #endregion
+
                 default:
                     Socket.Send(InvalidResponse);
                     break;

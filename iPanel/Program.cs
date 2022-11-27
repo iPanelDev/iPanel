@@ -9,6 +9,7 @@ namespace iPanel
 {
     static class Program
     {
+        public const string VERSION = "1.2";
         const int STD_INPUT_HANDLE = -10;
         const int STD_OUTPUT_HANDLE = -11;
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
@@ -89,7 +90,7 @@ namespace iPanel
             uint SC_CLOSE = 0xF060;
             RemoveMenu(closeMenu, SC_CLOSE, 0x0);
             Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "iPanel";
+            Console.Title = "iPanel " + VERSION;
         }
 
         private static void ReadLine()
