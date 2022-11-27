@@ -53,7 +53,7 @@ function notice(level, text) {
     let id = noticeCounter;
     noticeCounter++;
     if (level == 1) {
-        $(".alert").append("<div class='info'><span>!</span>" + text + "</div>");
+        $(".alert").append("<div class='info' id='alert" + id + "'><span>!</span>" + text + "</div>");
         setTimeout(() => { $(".alert div.warn#alert" + id + ",.alert div.error#alert" + id).remove(); }, 5500);
         setTimeout(() => { $(".alert div.warn#alert" + id + ",.alert div.error#alert" + id).css("transform", ""); }, 5000);
     }
