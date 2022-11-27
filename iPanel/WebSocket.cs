@@ -231,7 +231,7 @@ namespace iPanel
                         case "output":
                         case "input":
                         case "heartbeat":
-                            if(SubType== "heartbeat")
+                            if (SubType == "heartbeat")
                                 Data = JObject.FromObject(JsonConvert.DeserializeObject<Info>(DataStr));
                             else if (SubType == "start" || SubType == "exit")
                                 Data = null;
