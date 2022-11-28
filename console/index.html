@@ -18,7 +18,7 @@
     <script src="debug.js" defer></script>
     <script src="color.js"></script>
     <script defer>
-        if (window.location.protocol.split(':')[0] == 'https' && !getParameter('addr')) {
+        if (window.location.protocol.split(':')[0] == 'https' && window.location.href.indexOf('addr') < 0) {
             window.location.href = location.href.replace('https', 'http');
         }
     </script>
