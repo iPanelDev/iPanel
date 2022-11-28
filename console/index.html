@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="head.css">
     <link rel="stylesheet" href="base.css">
     <link rel="stylesheet" href="theme.css">
+    <script defer>
+        if (window.location.protocol.split(':')[0] == 'https' && !getParameter('addr')) {
+            window.location.href = location.href.replace('https', 'http');
+        }
+    </script>
     <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <script src="ws.js" defer></script>
