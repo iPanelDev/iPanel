@@ -9,11 +9,6 @@
     <link rel="stylesheet" href="head.css">
     <link rel="stylesheet" href="base.css">
     <link rel="stylesheet" href="theme.css">
-    <script defer>
-        if (window.location.protocol.split(':')[0] == 'https' && !getParameter('addr')) {
-            window.location.href = location.href.replace('https', 'http');
-        }
-    </script>
     <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <script src="ws.js" defer></script>
@@ -22,11 +17,16 @@
     <script src="instance.js" defer></script>
     <script src="debug.js" defer></script>
     <script src="color.js"></script>
+    <script defer>
+        if (window.location.protocol.split(':')[0] == 'https' && !getParameter('addr')) {
+            window.location.href = location.href.replace('https', 'http');
+        }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         iPanel
     </title>
-    <link rel="shortcut icon" href="document/icon.png" type="image/x-icon" />
+    <link rel="shortcut icon" href="icon.png" type="image/x-icon" />
 </head>
 
 <body>
