@@ -231,6 +231,8 @@ namespace iPanel
                         case "output":
                         case "input":
                         case "heartbeat":
+                        case "not_support":
+                        case "execute_failed":
                             if (SubType == "heartbeat")
                                 Data = JObject.FromObject(JsonConvert.DeserializeObject<Info>(DataStr));
                             else if (SubType == "start" || SubType == "exit")

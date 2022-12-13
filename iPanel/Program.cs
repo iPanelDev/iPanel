@@ -9,7 +9,8 @@ namespace iPanel
 {
     static class Program
     {
-        public const string VERSION = "1.2";
+        public const string VERSION = "1.3";
+
         const int STD_INPUT_HANDLE = -10;
         const int STD_OUTPUT_HANDLE = -11;
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
