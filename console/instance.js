@@ -1,6 +1,7 @@
 let instanceDict = {};
 let inputLines = [];
 let waitingToRestart = false;
+let currentSelectedKey = "";
 
 /**
  * @description 实例
@@ -50,6 +51,7 @@ function updateInstanceDic(list) {
             instanceDict[element.guid] = new Instance(element);
     });
     let selectedKey = $("header select").find("option:selected").val();
+    currentSelectedKey = selectedKey;
     let selectedName = $("header select option:selected").text();
     let selectedIndex = 0;
     $("header select option").remove();
@@ -121,6 +123,9 @@ function killServer() {
  * @description 更改实例
  */
 function changeInstance() {
+    if (currentSelectedKey != $("header select").find("option:selected").val())
+        appendText("#clear");
+
     send("api", "select", $("header select").find("option:selected").val());
 }
 
@@ -129,24 +134,29 @@ function changeInstance() {
  * @param {Instance} data 
  */
 function updateInfo(data = null) {
-    if (data) {
-        server_status = data.server_status;
-        $(".section#info .table .row :last-child").text("-");
-        $(".section#info .table .row#server_status :last-child").text(data.server_status ? "已启动" : "未启动");
-        if (server_status) {
-            $(".section#info .table .row#server_file :last-child").text(data.server_file);
-            $(".section#info .table .row#server_cpuperc :last-child").text(data.server_cpuperc + "%");
-            $(".section#info .table .row#server_time :last-child").text(data.server_time);
-        } else {
-            $(".section#info .table .row#server_status :last-child").text("未启动");
-            $(".section#info .table .row#server_file :last-child").text("-");
-            $(".section#info .table .row#server_cpuperc :last-child").text("-");
-            $(".section#info .table .row#server_time :last-child").text("-");
-        }
-        $(".section#info .table .row#os :last-child").text(data.os);
-        $(".section#info .table .row#cpu :last-child").text(data.cpu);
-        $(".section#info .table .row#cpu_perc :last-child").text(data.cpu_perc + "%");
-        $(".section#info .table .row#ram :last-child").text(data.ram_used + "MB/" + data.ram_total + "MB(" + data.ram_perc + "%)");
+    $(".section#info .table .row :last-child").text("-");
+    if (!data)
+        return;
+    server_status = data.server_status;
+    $(".section#info .table .row#server_status :last-child").text(data.server_status ? "已启动" : "未启动");
+    if (server_status) {
+        $(".section#info .table .row#server_file :last-child").text(data.server_file);
+        $(".section#info .table .row#server_cpuperc :last-child").text(data.server_cpuperc ? data.server_cpuperc + "%" : "-");
+        $(".section#info .table .row#server_time :last-child").text(data.server_time);
+    } else {
+        $(".section#info .table .row#server_status :last-child").text("未启动");
+        $(".section#info .table .row#server_file :last-child").text("-");
+        $(".section#info .table .row#server_cpuperc :last-child").text("-");
+        $(".section#info .table .row#server_time :last-child").text("-");
+    }
+    $(".section#info .table .row#os :last-child").text(data.os);
+    $(".section#info .table .row#cpu :last-child").text(data.cpu);
+    $(".section#info .table .row#cpu_perc :last-child").text(data.cpu_perc ? data.cpu_perc + "%" : "-");
+    $(".section#info .table .row#ram :last-child").text(
+        data.ram_used && data.ram_total && data.ram_perc ?
+            data.ram_used + "MB/" + data.ram_total + "MB(" + data.ram_perc + "%)" : "-");
+    if (data != null) {
+
     } else {
         $(".section#info .table .row :last-child").text("-");
         $(".section#info .table .row#server_status :last-child").text("-");
@@ -159,4 +169,8 @@ function updateInfo(data = null) {
         $(".section#info .table .row#ram :last-child").text("-");
     }
     $(".section#console").height(($(".child-container").height() - 90) + "px");
+}
+
+function update(target, content) {
+    $(target).text(content);
 }

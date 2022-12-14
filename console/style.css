@@ -51,6 +51,10 @@ body::-webkit-scrollbar {
     color: #2a5b98;
 }
 
+.alert>div.warn>span {
+    color: #e88d1e;
+}
+
 .alert>div.error>span {
     color: #a44;
 }

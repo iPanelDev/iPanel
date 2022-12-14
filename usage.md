@@ -2,6 +2,21 @@
 ![登录界面](assets/web_login.jpeg)
 ![网页控制台](assets/web.jpeg)
 
+>[!ATTENTION]
+>使用前，请务必确保Serein版本为`v1.3.2`，且**编译的Action ID为#220或更高**或**编译时间晚于2022/11/27**，
+>否则可能造成`Serein`卡死
+>
+>查看方法：
+>
+>- 控制台
+>   - 在控制台输入`version`或`serein version`查询
+>- Winform
+>   - 单击`设置>Serein栏`的版本号，在弹出的窗口中查看详细信息
+>- WPF
+>   - 单击`设置>Serein`页面的版本号显示详细信息
+>
+>[最新测试版下载](https://github.com/Zaitonn/Serein/actions/workflows/Build.yml)；[稳定版下载](https://github.com/Zaitonn/Serein/releases/latest)
+
 ## 太长不看版
 
 1. 从[Releases](https://github.com/Zaitonn/iPanel/releases/latest)页面下载最新版

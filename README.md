@@ -24,8 +24,12 @@ iPanel，一款适用于[Serein](https://serein.cc)的JavaScript插件，提供�
 - 安全
   - 自动拒绝无效的会话，防止发送异常数据包导致崩溃
 
----
 
-![网页控制台](assets/web.jpeg)
+<details>
+<summary>
+图骗欣赏
+</summary>
 
+![网页控制台](assets/web.jpeg)  
 ![iPanel](assets/console.png)
+</details>

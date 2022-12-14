@@ -53,7 +53,7 @@ function tryConnect() {
             };
             wsclient.onclose = function () {
                 if (connected && verifid) {
-                    notice(2, "连接断开，请刷新页面重试");
+                    notice(3, "连接断开，请刷新页面重试");
                 } else if (connected) {
                     $("#login-main>#state").text("密码验证失败");
                 } else {
@@ -116,6 +116,9 @@ function receive(e) {
                     updateInfo(data);
                     changeInstance();
                     break;
+                case "execute_failed":
+                    notice(2, data);
+                    break;
             }
             break;
         case "response":
@@ -138,7 +141,7 @@ function receive(e) {
                     $("body").css("overflow", "auto");
                     setInterval(() => { // 连接异常（心跳包超过10s未收到）
                         if (connected && lastHeartbeatTime - Date.now() > 10) {
-                            notice(2, "连接可能异常，请检查网络状态");
+                            notice(3, "连接可能异常，请检查网络状态");
                         } else {
                             send("api", "list");
                         }
@@ -159,7 +162,7 @@ function receive(e) {
         console.error("[↓]\n" + JSON.stringify(json, null, 4));
     if (!checkedVersion && json.sender.type == "iPanel") {
         if (json.sender.version != VERSION)
-            notice(2, "控制台和iPanel版本不符，可能导致部分功能无法使用，请即时更新")
+            notice(3, "控制台和iPanel版本不符，可能导致部分功能无法使用，请即时更新")
         checkedVersion = true;
     }
 }

@@ -1,4 +1,4 @@
-const VERSION = "1.2";
+const VERSION = "1.3";
 var checkedVersion = false;
 
 $(document).ready(init);
@@ -30,9 +30,7 @@ function init() {
     $("#button_restart").click(restartServer);
     $(".section#console").height(($(".child-container").height() - 90) + "px");
     $("header select").change(changeInstance);
-    $("header select").change(() => {
-        updateInfo();
-    });
+    $("header select").change(() => updateInfo());
     $(window).resize(function () { $(".section#console").height(($(".child-container").height() - 90) + "px"); });
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
@@ -52,10 +50,10 @@ function notice(level, text) {
     setTimeout(() => { $(".alert div").css("transform", "none"); }, 200);
     let id = noticeCounter;
     noticeCounter++;
-    if (level == 1) {
-        $(".alert").append("<div class='info' id='alert" + id + "'><span>!</span>" + text + "</div>");
-        setTimeout(() => { $(".alert div.warn#alert" + id + ",.alert div.error#alert" + id).remove(); }, 5500);
-        setTimeout(() => { $(".alert div.warn#alert" + id + ",.alert div.error#alert" + id).css("transform", ""); }, 5000);
+    if (level == 1 || level == 2) {
+        $(".alert").append("<div class='" + (level == 1 ? "info" : "warn") + "' id='alert" + id + "'><span>!</span>" + text + "</div>");
+        setTimeout(() => $(".alert div#alert" + id).remove(), 5500);
+        setTimeout(() => $(".alert div#alert" + id).css("transform", ""), (level == 1 ? 5000 : 2500));
     }
     else {
         $(".alert").append("<div id='alert" + id + "' class='error'><span>!</span>" + text + "<span class='close' onclick='$(\".alert div.warn#alert" + id + ",.alert div.error#alert" + id + "\").remove()'>×</span></div>");

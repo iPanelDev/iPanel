@@ -31,7 +31,7 @@
   - `instance_verify` 客户端验证 *(仅实例)*
   - `console_verify` 客户端验证 *(仅控制台)*
   - `list` 获取当前在线的所有客户端
-  - `select` 选择实例对象 *(仅控制台)*
+  - `select` 选择实例对象
 - `event` [事件](event.md)
 - `execute` 执行
   - `input` 输入
