@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <ApplicationIcon>ico.ico</ApplicationIcon>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Copyright>Copyright (C) 2022 Zaitonn</Copyright>

@@ -307,9 +307,8 @@ namespace iPanel
 
         public static string GetMD5(string myString)
         {
-            MD5 md5 = new MD5CryptoServiceProvider();
             byte[] fromData = Encoding.UTF8.GetBytes(myString);
-            byte[] targetData = md5.ComputeHash(fromData);
+            byte[] targetData = MD5.Create().ComputeHash(fromData);
             string Result = string.Empty;
             for (int i = 0; i < targetData.Length; i++)
             {

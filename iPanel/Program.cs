@@ -77,21 +77,24 @@ namespace iPanel
 
         private static void Init()
         {
-            var Handle = GetStdHandle(STD_OUTPUT_HANDLE);
-            GetConsoleMode(Handle, out uint OutputMode);
-            OutputMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            SetConsoleMode(Handle, OutputMode);
-            Handle = GetStdHandle(STD_INPUT_HANDLE);
-            GetConsoleMode(Handle, out uint InputMode);
-            InputMode &= ~ENABLE_QUICK_EDIT_MODE;
-            InputMode &= ~ENABLE_INSERT_MODE;
-            SetConsoleMode(Handle, InputMode);
-            IntPtr windowHandle = FindWindow(null, Console.Title);
-            IntPtr closeMenu = GetSystemMenu(windowHandle, IntPtr.Zero);
-            uint SC_CLOSE = 0xF060;
-            RemoveMenu(closeMenu, SC_CLOSE, 0x0);
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                var Handle = GetStdHandle(STD_OUTPUT_HANDLE);
+                GetConsoleMode(Handle, out uint OutputMode);
+                OutputMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                SetConsoleMode(Handle, OutputMode);
+                Handle = GetStdHandle(STD_INPUT_HANDLE);
+                GetConsoleMode(Handle, out uint InputMode);
+                InputMode &= ~ENABLE_QUICK_EDIT_MODE;
+                InputMode &= ~ENABLE_INSERT_MODE;
+                SetConsoleMode(Handle, InputMode);
+                IntPtr windowHandle = FindWindow(null, Console.Title);
+                IntPtr closeMenu = GetSystemMenu(windowHandle, IntPtr.Zero);
+                uint SC_CLOSE = 0xF060;
+                RemoveMenu(closeMenu, SC_CLOSE, 0x0);
+                Console.Title = "iPanel " + VERSION;
+            }
             Console.OutputEncoding = Encoding.UTF8;
-            Console.Title = "iPanel " + VERSION;
         }
 
         private static void ReadLine()
