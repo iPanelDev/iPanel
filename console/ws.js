@@ -117,6 +117,7 @@ function receive(e) {
                     changeInstance();
                     break;
                 case "execute_failed":
+                case "not_support":
                     notice(2, data);
                     break;
             }
@@ -162,7 +163,7 @@ function receive(e) {
         console.error("[↓]\n" + JSON.stringify(json, null, 4));
     if (!checkedVersion && json.sender.type == "iPanel") {
         if (json.sender.version != VERSION)
-            notice(3, "控制台和iPanel版本不符，可能导致部分功能无法使用，请即时更新")
+            notice(3, "网页控制台和iPanel版本不符，可能导致部分功能无法使用，请即时更新")
         checkedVersion = true;
     }
 }

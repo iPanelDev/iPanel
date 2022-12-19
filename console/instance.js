@@ -134,43 +134,33 @@ function changeInstance() {
  * @param {Instance} data 
  */
 function updateInfo(data = null) {
-    $(".section#info .table .row :last-child").text("-");
+    update(".section#info .table .row :last-child", "-");
     if (!data)
         return;
     server_status = data.server_status;
-    $(".section#info .table .row#server_status :last-child").text(data.server_status ? "已启动" : "未启动");
+    update(".section#info .table .row#server_status :last-child", data.server_status ? "已启动" : "未启动");
     if (server_status) {
-        $(".section#info .table .row#server_file :last-child").text(data.server_file);
-        $(".section#info .table .row#server_cpuperc :last-child").text(data.server_cpuperc ? data.server_cpuperc + "%" : "-");
-        $(".section#info .table .row#server_time :last-child").text(data.server_time);
+        update(".section#info .table .row#server_file :last-child", data.server_file);
+        update(".section#info .table .row#server_cpuperc :last-child", data.server_cpuperc ? data.server_cpuperc + "%" : "-");
+        update(".section#info .table .row#server_time :last-child", data.server_time);
     } else {
-        $(".section#info .table .row#server_status :last-child").text("未启动");
-        $(".section#info .table .row#server_file :last-child").text("-");
-        $(".section#info .table .row#server_cpuperc :last-child").text("-");
-        $(".section#info .table .row#server_time :last-child").text("-");
+        update(".section#info .table .row#server_status :last-child", "未启动");
+        update(".section#info .table .row#server_file :last-child", "-");
+        update(".section#info .table .row#server_cpuperc :last-child", "-");
+        update(".section#info .table .row#server_time :last-child", "-");
     }
-    $(".section#info .table .row#os :last-child").text(data.os);
-    $(".section#info .table .row#cpu :last-child").text(data.cpu);
-    $(".section#info .table .row#cpu_perc :last-child").text(data.cpu_perc ? data.cpu_perc + "%" : "-");
-    $(".section#info .table .row#ram :last-child").text(
+    update(".section#info .table .row#os :last-child", data.os);
+    update(".section#info .table .row#cpu :last-child", data.cpu);
+    update(".section#info .table .row#cpu_perc :last-child", data.cpu_perc ? data.cpu_perc + "%" : "-");
+    update(".section#info .table .row#ram :last-child",
         data.ram_used && data.ram_total && data.ram_perc ?
             data.ram_used + "MB/" + data.ram_total + "MB(" + data.ram_perc + "%)" : "-");
-    if (data != null) {
-
-    } else {
-        $(".section#info .table .row :last-child").text("-");
-        $(".section#info .table .row#server_status :last-child").text("-");
-        $(".section#info .table .row#server_file :last-child").text("-");
-        $(".section#info .table .row#server_cpuperc :last-child").text("-");
-        $(".section#info .table .row#server_time :last-child").text("-");
-        $(".section#info .table .row#os :last-child").text("-");
-        $(".section#info .table .row#cpu :last-child").text("-");
-        $(".section#info .table .row#cpu_perc :last-child").text("-");
-        $(".section#info .table .row#ram :last-child").text("-");
-    }
     $(".section#console").height(($(".child-container").height() - 90) + "px");
 }
 
 function update(target, content) {
-    $(target).text(content);
+    if (content)
+        $(target).text(content);
+    else
+        $(target).text("-");
 }
