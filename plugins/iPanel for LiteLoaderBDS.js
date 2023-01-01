@@ -151,7 +151,7 @@ function onRecieve(line) {
                         "type": "api",
                         "sub_type": "instance_verify",
                         "data": data.toMD5(jsonData + config.get('pwd')),
-                        "custom_name": (Boolean)(config.get('name')) ? config.get('name') : `BDS ${mc.getBDSVersion()}`
+                        "custom_name": config.get('name') ? config.get('name') : `BDS ${mc.getBDSVersion()}`
                     }));
                     break;
                 case "verify_failed":
