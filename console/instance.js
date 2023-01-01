@@ -11,14 +11,14 @@ class Instance {
         this.name = dic.custom_name;
         this.server_status = false;
         this.server_file = "";
-        this.server_cpuperc = "";
+        this.server_cpuusage = "";
         this.server_time = "";
         this.os = "";
         this.cpu = "";
         this.ram_total = "";
         this.ram_used = "";
-        this.ram_perc = "";
-        this.cpu_perc = "";
+        this.ram_usage = "";
+        this.cpu_usage = "";
         this.update_time = Date.now();
     }
 }
@@ -125,8 +125,8 @@ function killServer() {
 function changeInstance() {
     if (currentSelectedKey != $("header select").find("option:selected").val())
         appendText("#clear");
-
     send("api", "select", $("header select").find("option:selected").val());
+    $(".section#console").height(($(".child-container").height() - 90) + "px");
 }
 
 /**
@@ -141,20 +141,20 @@ function updateInfo(data = null) {
     update(".section#info .table .row#server_status :last-child", data.server_status ? "已启动" : "未启动");
     if (server_status) {
         update(".section#info .table .row#server_file :last-child", data.server_file);
-        update(".section#info .table .row#server_cpuperc :last-child", data.server_cpuperc ? data.server_cpuperc + "%" : "-");
+        update(".section#info .table .row#server_cpuusage :last-child", data.server_cpuusage ? data.server_cpuusage + "%" : "-");
         update(".section#info .table .row#server_time :last-child", data.server_time);
     } else {
         update(".section#info .table .row#server_status :last-child", "未启动");
         update(".section#info .table .row#server_file :last-child", "-");
-        update(".section#info .table .row#server_cpuperc :last-child", "-");
+        update(".section#info .table .row#server_cpuusage :last-child", "-");
         update(".section#info .table .row#server_time :last-child", "-");
     }
     update(".section#info .table .row#os :last-child", data.os);
     update(".section#info .table .row#cpu :last-child", data.cpu);
-    update(".section#info .table .row#cpu_perc :last-child", data.cpu_perc ? data.cpu_perc + "%" : "-");
+    update(".section#info .table .row#cpu_usage :last-child", data.cpu_usage ? data.cpu_usage + "%" : "-");
     update(".section#info .table .row#ram :last-child",
-        data.ram_used && data.ram_total && data.ram_perc ?
-            data.ram_used + "MB/" + data.ram_total + "MB(" + data.ram_perc + "%)" : "-");
+        data.ram_used && data.ram_total && data.ram_usage ?
+            data.ram_used + "MB/" + data.ram_total + "MB(" + data.ram_usage + "%)" : "-");
     $(".section#console").height(($(".child-container").height() - 90) + "px");
 }
 
