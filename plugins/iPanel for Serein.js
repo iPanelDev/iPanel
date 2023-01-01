@@ -1,3 +1,10 @@
+/**
+ * iPanel for Serein.js by Zaitonn
+ * GitHub: https://github.com/Zaitonn/iPanel
+ */
+
+
+// 声明全局变量
 var config = {
     addr: "ws://127.0.0.1:30000",
     debug: false,
@@ -6,21 +13,20 @@ var config = {
     pwd: "123",
     reconnectCount: 10,
 };
-
-var namespace = serein.registerPlugin("iPanel", "v1.3", "Zaitonn", "提供网页版控制台交互");
-serein.log(namespace)
+const version = "1.3"
+const namespace = serein.registerPlugin("iPanel", version, "Zaitonn", "提供网页版控制台交互");
+var PerformanceCounter = importNamespace('System.Diagnostics').PerformanceCounter;
 var IO = importNamespace('System.IO');
 var File = IO.File;
 var Directory = IO.Directory;
-
 var ws = new WebSocket(config.addr, namespace);
 var logger = new Logger("iPanel");
-
+var counter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
 var outputLines = [];
 var inputLines = [];
 var reconnectTimer;
 var reconnectCount = 0;
-
+counter.NextValue(); // 初始化性能计数器
 
 /**
  * @description 发送数据包
@@ -35,11 +41,12 @@ function send(type, sub_type, data = null) {
             "sub_type": sub_type,
             "data": data
         }));
-    else
+    else {
         ws.send(JSON.stringify({
             "type": type,
             "sub_type": sub_type
         }));
+    }
 }
 
 /**
@@ -56,6 +63,7 @@ function report() {
     outputLines.splice(0, outputLines.length);
 }
 
+// 设置监听
 serein.setListener("onServerStart", () => send("event", "start"));
 serein.setListener("onServerStop", (exitcode) => send("event", "stop", exitcode));
 
@@ -79,10 +87,13 @@ if (Directory.Exists('plugins/iPanel') && File.Exists('plugins/iPanel/config.jso
         logger.error("密码为空");
         logger.error("请使用文本编辑器打开 plugins/iPanel/config.json 修改相应配置");
     } else {
-        if (!config.name)
+        if (!config.name) {
             config.name = "Serein " + serein.version;
-        ws.open();
-        reconnectTimer = setInterval( ()=> {
+        }
+        setTimeout(() => {
+            ws.open();
+        }, 200);
+        reconnectTimer = setInterval(() => {
             if (ws.state != 0 && ws.state != 1) {
                 if (config.reconnectCount != undefined && config.reconnectCount > reconnectCount) {
                     reconnectCount++;
@@ -112,14 +123,13 @@ ws.onopen = () => {
     reconnectCount = 0;
 };
 
-ws.onclose = () => {
-    logger.warn("连接已断开");
-};
+ws.onclose = () => logger.warn("连接已断开");
 
 ws.onmessage = (text) => {
-    if (config.debug)
-        logger.info(text);
     var json = JSON.parse(text);
+    if (config.debug) {
+        logger.info(JSON.stringify(json, undefined, 2));
+    }
     var type = json.type;
     var sub_type = json.sub_type;
     var data = json.data;
@@ -130,8 +140,9 @@ ws.onmessage = (text) => {
         case "execute":
             switch (sub_type) {
                 case "input":
-                    if (!serein.getServerStatus())
+                    if (!serein.getServerStatus()) {
                         send("response", "execute_failed", "服务器不在运行中");
+                    }
                     else if (typeof (data) != "string") {
                         for (let i = 0; i < data.length; i++) {
                             serein.sendCmd(data[i]);
@@ -141,39 +152,45 @@ ws.onmessage = (text) => {
                     }
                     break;
                 case "start":
-                    if (!serein.getServerStatus())
+                    if (!serein.getServerStatus()) {
                         serein.startServer();
-                    else
+                    } else {
                         send("event", "execute_failed", "服务器正在运行中");
-                    break;
+                    } break;
                 case "stop":
-                    if (serein.getServerStatus())
+                    if (serein.getServerStatus()) {
                         serein.stopServer();
-                    else
+                    }
+                    else {
                         send("event", "execute_failed", "服务器不在运行中");
+                    }
                     break;
                 case "kill":
-                    if (serein.getServerStatus())
+                    if (serein.getServerStatus()) {
                         serein.killServer();
-                    else
+                    }
+                    else {
                         send("event", "execute_failed", "服务器不在运行中");
+                    }
                     break;
             }
             break;
         case "event":
-            if (sub_type == "heartbeat")
+            if (sub_type == "heartbeat") {
+                let sysInfo = serein.getSysInfo();
                 send("event", "heartbeat", {
                     "server_status": serein.getServerStatus(),
                     "server_file": serein.getServerFile(),
-                    "server_cpuperc": serein.getServerCPUPersent(),
+                    "server_cpuusage": serein.getServerCPUPersent(),
                     "server_time": serein.getServerTime(),
-                    "os": serein.getSysInfo("os"),
-                    "cpu": serein.getSysInfo("CPUName"),
-                    "cpu_perc": serein.getSysInfo("CPUPercentage"),
-                    "ram_total": serein.getSysInfo("TotalRAM"),
-                    "ram_used": serein.getSysInfo("UsedRAM"),
-                    "ram_perc": serein.getSysInfo("RAMPercentage")
+                    "os": sysInfo.Name,
+                    "cpu": sysInfo.Hardware.CPUs[0].Name,
+                    "ram_total": (sysInfo.Hardware.RAM.Total / 1024).toFixed(0),
+                    "ram_used": (sysInfo.Hardware.RAM.Total / 1024 - sysInfo.Hardware.RAM.Free / 1024).toFixed(0),
+                    "ram_usage": (100 - sysInfo.Hardware.RAM.Free / sysInfo.Hardware.RAM.Total * 100).toFixed(1),
+                    "cpu_usage": counter.NextValue().toFixed(1)
                 });
+            }
             break;
         case "response":
             switch (sub_type) {
@@ -184,13 +201,17 @@ ws.onmessage = (text) => {
                         "data": getMD5(data + config.pwd),
                         "custom_name": config.name
                     }));
+                    if (json.sender.version != version) {
+                        logger.warn(`本插件版本与iPanel版本不符，可能导致部分功能无法使用！`);
+                    }
                     break;
                 case "verify_failed":
-                    // 验证失败，自动停止重连
                     logger.error(data);
-                    clearInterval(reconnectTimer);
+                    clearInterval(reconnectTimer); // 验证失败，自动停止重连
                     break;
             }
             break;
     }
 };
+
+logger.info(`iPanel for Serein ${version}加载成功！Repo: https://github.com/Zaitonn/iPanel`);

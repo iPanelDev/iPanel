@@ -1,3 +1,6 @@
+ll.registerPlugin('iPanel for LiteLoaderBDS', '提供网页版控制台交互', [1, 3], {
+    "Author": "Zaitonn"
+});
 let config = new JsonConfigFile('plugins/iPanel/config.json');
 config.init('addr', "ws://127.0.0.1:30000");
 config.init('name', '');
@@ -53,8 +56,9 @@ function onConsoleOutput(line) {
     line = line.trimEnd();
     if (line.indexOf('\n') > 0) {
         line.split('\n').forEach((value) => outputLines.push("\u001b[38;2;173;216;230m" + time + "\u001b[0m " + value));
-    } else
+    } else {
         outputLines.push("\u001b[38;2;173;216;230m" + time + "\u001b[0m " + line);
+    }
 }
 
 function onLostConnection(code) {
@@ -84,8 +88,9 @@ function onRecieve(line) {
     let type = json.type;
     let sub_type = json.sub_type;
     let jsonData = json.data;
-    if (sub_type != "heartbeat" && json.sender != undefined)
+    if (sub_type != "heartbeat" && json.sender != undefined) {
         logger.info("来自" + json.sender.type + ": " + type + "-" + sub_type);
+    }
     switch (type) {
         case "execute":
             switch (sub_type) {
@@ -125,13 +130,13 @@ function onRecieve(line) {
                             "server_status": true,
                             "server_file": 'bedrock_server_mod.exe ' + mc.getBDSVersion(),
                             "server_time": getSpan(),
-                            "server_cpuperc": '',
+                            "server_cpuusage": '',
                             "os": '',
                             "cpu": '',
-                            "cpu_perc": '',
+                            "cpu_usage": '',
                             "ram_total": '',
                             "ram_used": '',
-                            "ram_perc": ''
+                            "ram_usage": ''
                         },
                     }
                 ));
@@ -146,7 +151,7 @@ function onRecieve(line) {
                         "type": "api",
                         "sub_type": "instance_verify",
                         "data": data.toMD5(jsonData + config.get('pwd')),
-                        "custom_name": config.get('name')
+                        "custom_name": (Boolean)(config.get('name')) ? config.get('name') : `BDS ${mc.getBDSVersion()}`
                     }));
                     break;
                 case "verify_failed":
@@ -157,7 +162,6 @@ function onRecieve(line) {
             break;
     }
 }
-
 
 /**
  * @returns 时间差

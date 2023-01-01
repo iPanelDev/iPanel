@@ -10,8 +10,8 @@ namespace iPanel
         [JsonProperty(PropertyName = "server_file")]
         public string Filename { get; set; } = string.Empty;
 
-        [JsonProperty(PropertyName = "server_cpuperc")]
-        public string ProcessCPUPercentage { get; set; } = string.Empty;
+        [JsonProperty(PropertyName = "server_cpuusage")]
+        public string ProcessCPUUsage { get; set; } = string.Empty;
 
         [JsonProperty(PropertyName = "server_time")]
         public string Time { get; set; } = string.Empty;
@@ -28,10 +28,10 @@ namespace iPanel
         [JsonProperty(PropertyName = "ram_used")]
         public string UsedRAM { get; set; } = string.Empty;
 
-        [JsonProperty(PropertyName = "ram_perc")]
-        public string RAMPercentage { get; set; } = string.Empty;
+        [JsonProperty(PropertyName = "ram_usage")]
+        public string RAMUsage { get; set; } = string.Empty;
 
-        [JsonProperty(PropertyName = "cpu_perc")]
-        public string CPUPercentage { get; set; } = string.Empty;
+        [JsonProperty(PropertyName = "cpu_usage")]
+        public string CPUUsage { get; set; } = string.Empty;
     }
 }
