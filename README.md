@@ -27,7 +27,7 @@ iPanel，一款适用于[Serein](https://serein.cc)的JavaScript插件，提供�
 
 <details>
 <summary>
-图骗欣赏
+图片欣赏
 </summary>
 
 ![网页控制台](assets/web.jpeg)  
