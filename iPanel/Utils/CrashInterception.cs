@@ -11,16 +11,14 @@ namespace iPanel.Utils
         /// </summary>
         public static void Init()
         {
-            AppDomain.CurrentDomain.UnhandledException += (_, e) => PrintException(e.ExceptionObject);
-            AppDomain.CurrentDomain.UnhandledException += (_, e) => Console.ReadLine();
-            TaskScheduler.UnobservedTaskException += (_, e) => PrintException(e.Exception);
+            AppDomain.CurrentDomain.UnhandledException += PrintException;
+            TaskScheduler.UnobservedTaskException += (_, e) => Logger.Error(e.Exception.ToString() ?? string.Empty);
         }
 
         /// <summary>
         /// 打印错误消息
         /// </summary>
-        /// <param name="e">错误消息</param>
-        private static void PrintException(object e)
+        private static void PrintException(object sender, UnhandledExceptionEventArgs e)
         {
             Logger.Error(e.ToString() ?? string.Empty);
             Directory.CreateDirectory("log/crash");
@@ -29,7 +27,12 @@ namespace iPanel.Utils
                 $"{DateTime.Now:T} | iPanel@{Program.VERSION} | NET@{Environment.Version}{Environment.NewLine}{e.ToString() ?? string.Empty}{Environment.NewLine}"
                 );
             Logger.Error($"崩溃日志已保存在 {Path.GetFullPath(Path.Combine("logs", "crash", $"{DateTime.Now:yyyy-MM-dd}.txt"))}");
-            Task.Delay(1500).Await();
+
+            if (e.IsTerminating)
+            {
+                Task.Delay(1500).Await();
+                Console.ReadLine();
+            }
         }
     }
 }

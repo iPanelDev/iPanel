@@ -1,4 +1,4 @@
-using iPanel.Core.Service;
+using iPanel.Core.Connection;
 using System;
 using System.IO;
 using System.Linq;
@@ -80,14 +80,14 @@ namespace iPanel.Utils
             switch (line)
             {
                 case "list":
-                    Logger.Info($"当前有{Connections.Consoles.Count}个控制台和{Connections.Instances.Count}个面板在线");
-                    Connections.Consoles.Keys.ToList().ForEach((key) =>
+                    Logger.Info($"当前有{Handler.Consoles.Count}个控制台和{Handler.Instances.Count}个面板在线");
+                    Handler.Consoles.Keys.ToList().ForEach((key) =>
                     {
-                        Logger.Info($"控制台\t{key,-18}\t{Connections.Consoles[key].CustomName}");
+                        Logger.Info($"控制台\t{key,-18}\t{Handler.Consoles[key].CustomName}");
                     });
-                    Connections.Instances.Keys.ToList().ForEach((key) =>
+                    Handler.Instances.Keys.ToList().ForEach((key) =>
                     {
-                        Logger.Info($"面板\t{key,-18}\t{Connections.Instances[key].CustomName}");
+                        Logger.Info($"面板\t{key,-18}\t{Handler.Instances[key].CustomName}");
                     });
                     Logger.Info("");
                     break;

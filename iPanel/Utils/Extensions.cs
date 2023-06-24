@@ -1,7 +1,7 @@
 using Fleck;
 using System.Threading.Tasks;
-using iPanel.Core.Service;
 using iPanel.Core.Client;
+using iPanel.Core.Connection;
 
 namespace iPanel.Utils
 {
@@ -20,7 +20,7 @@ namespace iPanel.Utils
         /// </summary>
         public static Console? AsConsole(this IWebSocketConnection client)
         {
-            Connections.Consoles.TryGetValue(client.GetFullAddr(), out Console? iPanel);
+            Handler.Consoles.TryGetValue(client.GetFullAddr(), out Console? iPanel);
             return iPanel;
         }
 
@@ -29,7 +29,7 @@ namespace iPanel.Utils
         /// </summary>
         public static Instance? AsInstance(this IWebSocketConnection client)
         {
-            Connections.Instances.TryGetValue(client.GetFullAddr(), out Instance? instance);
+            Handler.Instances.TryGetValue(client.GetFullAddr(), out Instance? instance);
             return instance;
         }
 

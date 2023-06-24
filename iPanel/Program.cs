@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using iPanel.Base;
-using iPanel.Core.Service;
+using iPanel.Core.Connection;
 using iPanel.Utils;
 using System;
 using System.IO;
@@ -46,7 +46,7 @@ namespace iPanel
             {
                 throw new LocalException("读取文件时出现错误", e);
             }
-            Connections.Start();
+            WebSocket.Start();
             RunTime.StartHandleInput();
         }
     }

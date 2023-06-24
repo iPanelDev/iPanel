@@ -4,6 +4,9 @@ namespace iPanel.Core.Packets.DataBody
 {
     internal struct Reason
     {
+        /// <summary>
+        /// 详细原因
+        /// </summary>
         [JsonProperty(PropertyName = "reason")]
         public string DetailReason;
 

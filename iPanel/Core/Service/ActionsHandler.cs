@@ -1,13 +1,14 @@
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using iPanel.Core.Client;
+using iPanel.Core.Connection;
 using iPanel.Core.Packets;
 using iPanel.Core.Packets.DataBody;
 using iPanel.Utils;
 
 namespace iPanel.Core.Service
 {
-    internal static class Actions
+    internal static class ActionsHandler
     {
         public static void Handle(Instance instance, ReceivedPacket packet)
         {
@@ -78,7 +79,7 @@ namespace iPanel.Core.Service
                 console.Send(new SentPacket("event", "invalid_param", new Reason("未选择目标")).ToString()).Await();
                 return false;
             }
-            if ((!Connections.Instances.TryGetValue(console.SubscribedTarget!, out instance) || instance is null) && !subAll)
+            if ((!Handler.Instances.TryGetValue(console.SubscribedTarget!, out instance) || instance is null) && !subAll)
             {
                 console.Send(new SentPacket("event", "invalid_param", new Reason("所选目标无效")).ToString()).Await();
                 return false;
@@ -99,9 +100,9 @@ namespace iPanel.Core.Service
         {
             if (subAll)
             {
-                lock (Connections.Instances)
+                lock (Handler.Instances)
                 {
-                    Connections.Instances.Values.ToList().ForEach((enumeredInstance) => enumeredInstance?.Send(new SentPacket("action", subType, data, Sender.From(console)).ToString()));
+                    Handler.Instances.Values.ToList().ForEach((enumeredInstance) => enumeredInstance?.Send(new SentPacket("action", subType, data, Sender.From(console)).ToString()));
                 }
             }
             else

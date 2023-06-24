@@ -1,13 +1,14 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using iPanel.Core.Client;
+using iPanel.Core.Connection;
 using iPanel.Core.Packets;
 using iPanel.Core.Packets.DataBody;
 using iPanel.Utils;
 
 namespace iPanel.Core.Service
 {
-    internal static class Events
+    internal static class EventsHandler
     {
         public static void Handle(Instance instance, ReceivedPacket packet)
         {
@@ -49,9 +50,9 @@ namespace iPanel.Core.Service
         private static void Send(Instance instance, string subType, object? data)
         {
             string address = instance.Address ?? throw new System.ArgumentNullException();
-            lock (Connections.Consoles)
+            lock (Handler.Consoles)
             {
-                foreach (Console console in Connections.Consoles.Values)
+                foreach (Console console in Handler.Consoles.Values)
                 {
                     if (console.Address == address || console.Address == "*")
                     {

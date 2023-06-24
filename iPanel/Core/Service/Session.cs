@@ -6,11 +6,11 @@ namespace iPanel.Core.Service
     {
         public Session()
         {
-            ExpirationTime = DateTime.Now.AddHours(1);
+            CreateTime = DateTime.Now;
             ID = Guid.NewGuid().ToString("N");
         }
 
-        public readonly DateTime ExpirationTime;
+        public readonly DateTime CreateTime;
 
         public readonly string ID;
     }

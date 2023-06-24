@@ -2,5 +2,4 @@ bin/
 obj/
 .vs/
 packages/
-debug.js
 FodyWeavers.xsd
