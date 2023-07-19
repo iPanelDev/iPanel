@@ -12,7 +12,7 @@ namespace iPanel
         /// <summary>
         /// 版本
         /// </summary>
-        public const string VERSION = "2.0";
+        public static readonly string VERSION = new Version(2, 0, 7, 19).ToString();
 
         /// <summary>
         /// 设置
@@ -27,7 +27,7 @@ namespace iPanel
         private static void Main(string[] args)
         {
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            RunTime.SetConsole();
+            Runtime.SetConsole();
             CrashInterception.Init();
             if (!File.Exists("setting.json"))
             {
@@ -47,7 +47,7 @@ namespace iPanel
                 throw new LocalException("读取文件时出现错误", e);
             }
             WebSocket.Start();
-            RunTime.StartHandleInput();
+            Runtime.StartHandleInput();
         }
     }
 }

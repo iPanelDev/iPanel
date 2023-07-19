@@ -57,6 +57,15 @@ namespace iPanel.Core.Client
             }
         }
 
+        /// <summary>
+        /// 发送文本
+        /// </summary>
+        /// <param name="text">发送内容</param>
+        public async Task Send(object obj)
+        {
+            await Send(JsonConvert.SerializeObject(obj));
+        }
+
         internal enum ClientType
         {
             Unknown,

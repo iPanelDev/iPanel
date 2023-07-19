@@ -3,3 +3,5 @@ obj/
 .vs/
 packages/
 FodyWeavers.xsd
+dist
+node_modules

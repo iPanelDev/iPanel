@@ -7,7 +7,7 @@ using System.Text;
 
 namespace iPanel.Utils
 {
-    internal static class RunTime
+    internal static class Runtime
     {
         const int STD_INPUT_HANDLE = -10;
         const int STD_OUTPUT_HANDLE = -11;
@@ -55,10 +55,11 @@ namespace iPanel.Utils
                 RemoveMenu(closeMenu, SC_CLOSE, 0x0);
                 Console.Title = "iPanel " + Program.VERSION;
             }
+
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.OutputEncoding = Encoding.UTF8;
-            Console.CancelKeyPress += OnPressCancel;
+            Console.CancelKeyPress += OnCancel;
         }
 
         /// <summary>
@@ -91,6 +92,19 @@ namespace iPanel.Utils
                     });
                     Logger.Info("");
                     break;
+
+                case "cls":
+                case "clear":
+                    Console.Clear();
+                    break;
+
+                case "exit":
+                    Exit();
+                    break;
+
+                case null:
+                    break;
+
                 default:
                     Logger.Warn("未知的命令。");
                     break;
@@ -105,14 +119,26 @@ namespace iPanel.Utils
         /// <summary>
         /// 按下取消键时触发
         /// </summary>
-        private static void OnPressCancel(object? sender, ConsoleCancelEventArgs e)
+        private static void OnCancel(object? sender, ConsoleCancelEventArgs e)
         {
-            if ((DateTime.Now - _lastTime).TotalSeconds < 2)
+            e.Cancel = true;
+            if ((DateTime.Now - _lastTime).TotalSeconds > 1)
             {
-                e.Cancel = true;
-                Logger.Warn("请在2s内再次按下`Ctrl`+`C`以退出。");
+                Logger.Warn("请在1s内再次按下`Ctrl`+`C`以退出。");
                 _lastTime = DateTime.Now;
             }
+            Exit();
+        }
+
+        /// <summary>
+        /// 退出
+        /// </summary>
+        /// <param name="code">退出代码</param>
+        public static void Exit(int code = 0)
+        {
+            Handler.Instances.Values.ToList().ForEach((instance) => instance.Close());
+            Handler.Consoles.Values.ToList().ForEach((console) => console.Close());
+            Environment.Exit(code);
         }
     }
 }

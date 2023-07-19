@@ -38,11 +38,15 @@ namespace iPanel.Utils
 
         public static void Debug(string line, string? methodName = null)
         {
+            if (Program.Setting?.Debug != true)
+            {
+                return;
+            }
+
             if (string.IsNullOrEmpty(methodName))
             {
                 StackTrace stackTrace = new(true);
                 methodName = $"{stackTrace.GetFrame(1)!.GetMethod()!.DeclaringType}.{stackTrace.GetFrame(1)!.GetMethod()!.Name}";
-
             }
             if (line.Contains('\n'))
             {

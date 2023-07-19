@@ -9,6 +9,6 @@ namespace iPanel.Core.Client
         [JsonIgnore]
         public new ClientType Type => ClientType.Console;
 
-        public string? SubscribedTarget;
+        public string? SubscribingTarget;
     }
 }
