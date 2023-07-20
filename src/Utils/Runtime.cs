@@ -53,7 +53,7 @@ namespace iPanel.Utils
                 IntPtr closeMenu = GetSystemMenu(windowHandle, IntPtr.Zero);
                 uint SC_CLOSE = 0xF060;
                 RemoveMenu(closeMenu, SC_CLOSE, 0x0);
-                Console.Title = "iPanel " + Program.VERSION;
+                Console.Title = $"iPanel Host {Program.VERSION}";
             }
 
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
@@ -127,7 +127,10 @@ namespace iPanel.Utils
                 Logger.Warn("请在1s内再次按下`Ctrl`+`C`以退出。");
                 _lastTime = DateTime.Now;
             }
-            Exit();
+            else
+            {
+                Exit();
+            }
         }
 
         /// <summary>
@@ -136,6 +139,7 @@ namespace iPanel.Utils
         /// <param name="code">退出代码</param>
         public static void Exit(int code = 0)
         {
+            Logger.Warn("退出中...");
             Handler.Instances.Values.ToList().ForEach((instance) => instance.Close());
             Handler.Consoles.Values.ToList().ForEach((console) => console.Close());
             Environment.Exit(code);

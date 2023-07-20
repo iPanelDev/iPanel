@@ -147,6 +147,9 @@ namespace iPanel.Core.Connection
             instance.LastTime = Sys.DateTime.Now;
             switch (packet.Type)
             {
+                case "action":
+                    ActionsHandler.Handle(instance, packet);
+                    break;
                 case "event":
                     EventsHandler.Handle(instance, packet);
                     break;
@@ -156,11 +159,14 @@ namespace iPanel.Core.Connection
             }
         }
 
+        /// <summary>
+        /// 更新窗口标题
+        /// </summary>
         private static void UpdateTitle()
         {
             if (Sys.Environment.OSVersion.Platform == Sys.PlatformID.Win32NT)
             {
-                Sys.Console.Title = $"iPanel - 连接数：{Clients.Count}";
+                Sys.Console.Title = $"iPanel Host {Program.VERSION} 连接数:{Clients.Count}";
             }
         }
     }

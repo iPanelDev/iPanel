@@ -1,18 +1,14 @@
 using Fleck;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using iPanel.Base;
 using iPanel.Core.Connection;
 using iPanel.Core.Packets;
 using iPanel.Core.Packets.DataBody;
-using iPanel.Core.Service;
+using iPanel.Core.Packets.Event;
 using iPanel.Utils;
 using Sys = System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Timers;
 
-namespace iPanel.Core.Connection
+namespace iPanel.Core.Service
 {
     internal static class Verification
     {
@@ -23,11 +19,10 @@ namespace iPanel.Core.Connection
                 return;
             }
             string clientUrl = client.GetFullAddr();
-            string guid = Sys.Guid.NewGuid().ToString("N").Substring(0, 10);
-            Handler.Clients.Add(clientUrl, General.GetMD5(guid + Program.Setting.Password));
-            client.Send(new SentPacket("action", "verify_request", new VerifyRequest(5000, guid)).ToString()).Await();
-            Logger.Info($"<{clientUrl}> 尝试连接，预期MD5值：{General.GetMD5(guid + Program.Setting.Password)}");
-
+            string randomKey = Sys.Guid.NewGuid().ToString("N").Substring(0, 10);
+            Handler.Clients.Add(clientUrl, General.GetMD5(randomKey + Program.Setting.Password));
+            client.Send(new SentPacket("action", "verify_request", new VerifyRequest(5000, randomKey)).ToString()).Await();
+            Logger.Info($"<{clientUrl}> 尝试连接，预期MD5值：{General.GetMD5(randomKey + Program.Setting.Password)}");
 
             Timer verifyTimer = new(5000) { AutoReset = false };
             verifyTimer.Start();
@@ -35,10 +30,10 @@ namespace iPanel.Core.Connection
             {
                 if (!Handler.Consoles.ContainsKey(clientUrl) && !Handler.Instances.ContainsKey(clientUrl))
                 {
-                    verifyTimer.Stop();
                     client.Send(new SentPacket("event", "disconnection", new Reason("验证超时")).ToString()).Await();
                     client.Close();
                 }
+                verifyTimer.Stop();
                 verifyTimer.Dispose();
             };
         }
@@ -75,7 +70,7 @@ namespace iPanel.Core.Connection
         {
             if (data is null || !Handler.Clients.TryGetValue(client.GetFullAddr(), out string? token) || string.IsNullOrEmpty(token))
             {
-                client.Send(new SentPacket("event", "verify_result", new Result(false, "数据异常")).ToString()).Await();
+                client.Send(new VerifyResultPacket(false, "数据异常").ToString()).Await();
                 Logger.Warn($"<{client.GetFullAddr()}> 验证失败：数据异常");
                 return false;
             }
@@ -83,7 +78,7 @@ namespace iPanel.Core.Connection
             VerifyBody verifyBody;
             try
             {
-                verifyBody = data.ToObject<VerifyBody>();
+                verifyBody = data.ToObject<VerifyBody?>() ?? throw new Sys.ArgumentNullException();
             }
             catch (Sys.Exception e)
             {
@@ -93,7 +88,7 @@ namespace iPanel.Core.Connection
 
             if (verifyBody.Token != token)
             {
-                client.Send(new SentPacket("event", "verify_result", new Result(false, "MD5校验失败")).ToString()).Await();
+                client.Send(new VerifyResultPacket(false, "MD5校验失败").ToString()).Await();
                 Logger.Warn($"<{client.GetFullAddr()}> 验证失败：MD5校验失败");
                 return false;
             }
@@ -103,10 +98,10 @@ namespace iPanel.Core.Connection
                 Handler.Instances.Add(client.GetFullAddr(), new()
                 {
                     WebSocketConnection = client,
-                    CustomName = verifyBody.CustomName ?? "Unknown",
+                    CustomName = verifyBody.CustomName,
                 });
-                client.Send(new SentPacket("event", "verify_result", new Result(true, null)).ToString()).Await();
-                Logger.Info($"<{client.GetFullAddr()}> 验证成功（实例），自定义名称为：{verifyBody.CustomName ?? "Unknown"}");
+                client.Send(new VerifyResultPacket(true).ToString()).Await();
+                Logger.Info($"<{client.GetFullAddr()}> 验证成功（实例），自定义名称为：{verifyBody.CustomName ?? "null"}");
                 return true;
             }
 
@@ -115,10 +110,10 @@ namespace iPanel.Core.Connection
                 Handler.Consoles.Add(client.GetFullAddr(), new()
                 {
                     WebSocketConnection = client,
-                    CustomName = verifyBody.CustomName ?? "Unknown",
+                    CustomName = verifyBody.CustomName,
                 });
-                client.Send(new SentPacket("event", "verify_result", new Result(true, null)).ToString()).Await();
-                Logger.Info($"<{client.GetFullAddr()}> 验证成功（控制台），自定义名称为：{verifyBody.CustomName ?? "Unknown"}");
+                client.Send(new VerifyResultPacket(true).ToString()).Await();
+                Logger.Info($"<{client.GetFullAddr()}> 验证成功（控制台），自定义名称为：{verifyBody.CustomName ?? "null"}");
                 return true;
             }
             return false;

@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using iPanel.Core.Client;
 using iPanel.Core.Connection;
 using iPanel.Core.Packets;
-using iPanel.Core.Packets.DataBody;
+using iPanel.Core.Packets.Event;
 using iPanel.Utils;
 
 namespace iPanel.Core.Service
@@ -19,7 +19,7 @@ namespace iPanel.Core.Service
                 case "server_output":
                     if (packet.Data is null || packet.Data.Type != JTokenType.Array)
                     {
-                        instance.Send(new SentPacket("event", "invalid_param", new Reason("“data”字段类型错误")).ToString());
+                        instance.Send(new InvalidDataPacket("“data”字段类型错误"));
                         break;
                     }
                     Send(instance, packet.SubType, packet.Data.Type == JTokenType.String ? new[] { packet.Data } : packet.Data);
@@ -30,13 +30,13 @@ namespace iPanel.Core.Service
                 case "server_stop":
                     if (packet.SubType == "server_stop" && (packet.Data is null || packet.Data?.Type != JTokenType.Integer))
                     {
-                        instance.Send(new SentPacket("event", "invalid_param", new Reason("“data”字段类型错误")).ToString());
+                        instance.Send(new InvalidParamPacket("“data”字段类型错误"));
                         break;
                     }
                     Send(instance, packet.SubType, new[] { packet.Data });
                     break;
                 default:
-                    instance.Send(new SentPacket("event", "invalid_param", new Reason($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString()).Await();
+                    instance.Send(new InvalidParamPacket($"所请求的“{packet.Type}”类型不存在或无法调用")).Await();
                     break;
             }
         }

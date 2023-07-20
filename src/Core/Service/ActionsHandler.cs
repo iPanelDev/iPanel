@@ -1,32 +1,41 @@
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using iPanel.Core.Client;
+using iPanel.Core.Client.Info;
 using iPanel.Core.Connection;
 using iPanel.Core.Packets;
 using iPanel.Core.Packets.DataBody;
+using iPanel.Core.Packets.Event;
 using iPanel.Utils;
 
 namespace iPanel.Core.Service
 {
     internal static class ActionsHandler
     {
+        /// <summary>
+        /// 处理来自实例的动作数据
+        /// </summary>
+        /// <param name="console">实例客户端</param>
+        /// <param name="packet">数据包</param>
         public static void Handle(Instance instance, ReceivedPacket packet)
         {
             switch (packet.SubType)
             {
                 case "heartbeat":
-                    Info? info = packet.Data?.ToObject<Info?>();
+                    FullInfo? info = packet.Data?.ToObject<FullInfo>();
                     if (info is null)
                     {
-                        instance.Send(new SentPacket("event", "invalid_data", new Reason($"“data”字段为空")).ToString());
+                        instance.Send(new InvalidDataPacket("“data”字段为null"));
                     }
                     else
                     {
-                        instance.Info = info;
+                        instance.FullInfo = info.Value;
                     }
                     break;
+
                 default:
-                    instance.Send(new SentPacket("event", "invalid_param", new Reason($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
+                    instance.Send(new InvalidParamPacket($"所请求的“{packet.Type}”类型不存在或无法调用"));
                     break;
             }
         }
@@ -47,7 +56,7 @@ namespace iPanel.Core.Service
                 case "server_kill":
                     if (!CheckTarget(console, packet, out subAll, out instance) || instance is null)
                     {
-                        console.Send(new SentPacket("event", "invalid_target", new Reason("订阅目标无效")).ToString());
+                        console.Send(new InvalidTargetPacket());
                         break;
                     }
                     Send(console, packet.SubType, null, subAll, instance);
@@ -57,32 +66,32 @@ namespace iPanel.Core.Service
                 case "server_input":
                     if (!CheckTarget(console, packet, out subAll, out instance) || instance is null)
                     {
-                        console.Send(new SentPacket("event", "invalid_target", new Reason("订阅目标无效")).ToString());
+                        console.Send(new InvalidTargetPacket());
                         break;
                     }
                     if (packet.Data is null || packet.Data.Type != JTokenType.Array && packet.Data.Type != JTokenType.String)
                     {
-                        console.Send(new SentPacket("event", "invalid_param", new Reason("“data”字段类型错误")).ToString());
+                        console.Send(new InvalidDataPacket("“data”字段类型错误"));
                         break;
                     }
                     Send(console, packet.SubType, packet.Data.Type == JTokenType.String ? new[] { packet.Data } : packet.Data, subAll, instance);
                     break;
 
-                case "instance_list":
+                case "list_instance":
                     console.Send(
                         new SentPacket(
                             "event",
-                            "list_reply",
+                            "list",
                             new JObject() { { "type", "instance" }, { "list", JArray.FromObject(Handler.Instances.Values) } }
                             ).ToString()
                         );
                     break;
 
-                case "console_list":
+                case "list_console":
                     console.Send(
                         new SentPacket(
                             "event",
-                            "list_reply",
+                            "list",
                             new JObject() { { "type", "console" }, { "list", JArray.FromObject(Handler.Consoles.Values) } }
                             ).ToString()
                         );
@@ -90,19 +99,40 @@ namespace iPanel.Core.Service
 
                 case "subscribe":
                     string? target = packet.Data?.ToString();
-                    if (!string.IsNullOrEmpty(target) && Handler.Instances.TryGetValue(target!, out Instance? targetInstance))
+                    if (!string.IsNullOrEmpty(target) && Handler.Instances.TryGetValue(target!, out instance))
                     {
                         console.SubscribingTarget = target;
-                        console.Send(new SentPacket("event", "target_info", targetInstance.Info, Sender.From(targetInstance)));
+                        console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance)));
                     }
                     else if (target == "*")
                     {
                         console.SubscribingTarget = target;
                     }
-
+                    else
+                    {
+                        console.Send(new InvalidTargetPacket());
+                    }
                     break;
+
+                case "get_info":
+                    if (!string.IsNullOrEmpty(console.SubscribingTarget) && Handler.Instances.TryGetValue(console.SubscribingTarget, out instance))
+                    {
+                        console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance)));
+                    }
+                    else if (console.SubscribingTarget == "*")
+                    {
+                        Dictionary<string, FullInfo> fullInfos = new();
+                        Handler.Instances.Values.ToList().ForEach((i) => fullInfos.Add(i.GUID, i.FullInfo));
+                        console.Send(new SentPacket("event", "targets_info", fullInfos));
+                    }
+                    else
+                    {
+                        console.Send(new InvalidTargetPacket());
+                    }
+                    break;
+
                 default:
-                    console.Send(new SentPacket("event", "invalid_param", new Reason($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
+                    console.Send(new InvalidParamPacket($"所请求的“{packet.Type}”类型不存在或无法调用"));
                     break;
             }
         }
@@ -121,18 +151,7 @@ namespace iPanel.Core.Service
             {
                 return true;
             }
-            if (string.IsNullOrEmpty(console.SubscribingTarget))
-            {
-                console.Send(new SentPacket("event", "invalid_param", new Reason("未选择目标")).ToString()).Await();
-                return false;
-            }
-            if ((!Handler.Instances.TryGetValue(console.SubscribingTarget!, out instance) || instance is null) && !subAll)
-            {
-                console.Send(new SentPacket("event", "invalid_param", new Reason("所选目标无效")).ToString()).Await();
-                return false;
-            }
-
-            return true;
+            return string.IsNullOrEmpty(console.SubscribingTarget) || !Handler.Instances.TryGetValue(console.SubscribingTarget!, out instance) || instance is null;
         }
 
         /// <summary>

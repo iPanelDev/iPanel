@@ -15,10 +15,7 @@ namespace iPanel.Core.Connection
         /// <summary>
         /// 心跳计时器
         /// </summary>
-        private static readonly Timer _heartbeatTimer = new(10000)
-        {
-            AutoReset = true
-        };
+        private static readonly Timer _heartbeatTimer = new(10000);
 
         /// <summary>
         /// 启动

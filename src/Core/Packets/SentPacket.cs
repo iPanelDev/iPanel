@@ -5,7 +5,7 @@ using System;
 namespace iPanel.Core.Packets
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal sealed class SentPacket : Packet
+    internal class SentPacket : Packet
     {
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 1)]
         public readonly object? Data;
@@ -13,6 +13,8 @@ namespace iPanel.Core.Packets
         public long Time { init; get; }
 
         private static readonly Sender SelfSender = new($"iPanel_{Program.VERSION}", "host", null);
+
+        protected SentPacket() { }
 
         public SentPacket(string type, string sub_type, object? data = null) : this(type, sub_type, data, SelfSender)
         { }

@@ -32,7 +32,7 @@ namespace iPanel.Core.Client
         /// <summary>
         /// 唯一标识符
         /// </summary>
-        public string? GUID;
+        public string GUID { init; get; } = Guid.NewGuid().ToString("N");
 
         /// <summary>
         /// 类型
