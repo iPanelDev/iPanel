@@ -82,15 +82,15 @@ namespace iPanel.Utils
             {
                 case "list":
                     Logger.Info($"当前有{Handler.Consoles.Count}个控制台和{Handler.Instances.Count}个面板在线");
-                    Handler.Consoles.Keys.ToList().ForEach((key) =>
+                    lock (Handler.Consoles)
                     {
-                        Logger.Info($"控制台\t{key,-18}\t{Handler.Consoles[key].CustomName}");
-                    });
-                    Handler.Instances.Keys.ToList().ForEach((key) =>
+                        Handler.Consoles.Keys.ToList().ForEach((key) => Logger.Info($"控制台\t{Handler.Consoles[key].Address,-18}\t{Handler.Consoles[key].CustomName}"));
+                    }
+                    lock (Handler.Instances)
                     {
-                        Logger.Info($"面板\t{key,-18}\t{Handler.Instances[key].CustomName}");
-                    });
-                    Logger.Info("");
+                        Handler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"面板\t{Handler.Instances[key].Address,-18}\t{Handler.Instances[key].CustomName}"));
+                    }
+                    Logger.Info();
                     break;
 
                 case "cls":

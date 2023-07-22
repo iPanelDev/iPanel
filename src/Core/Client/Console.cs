@@ -10,5 +10,8 @@ namespace iPanel.Core.Client
         public new ClientType Type => ClientType.Console;
 
         public string? SubscribingTarget;
+
+        public Console(string? guid) : base(guid)
+        { }
     }
 }

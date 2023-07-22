@@ -1,7 +1,8 @@
 <p align="center">
-  <img src="iPanel/Sources/logo.png" style="width:30%;min-width:150px; margin:-40px">
+  <img src="src/Sources/logo.png" style="width:30%;min-width:150px; margin:-40px">
   <br>
-  <span style="font-size: 2.2em; font-weight: bolder">iPanel</span>
+  <b>iPanel</b>
+  <br>
   <br>
   适用于<a href="https://serein.cc/">Serein</a>的网页版控制台插件
   <br>

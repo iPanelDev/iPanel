@@ -15,7 +15,7 @@ namespace iPanel.Core.Connection
         /// <summary>
         /// 心跳计时器
         /// </summary>
-        private static readonly Timer _heartbeatTimer = new(10000);
+        private static readonly Timer _heartbeatTimer = new(5000);
 
         /// <summary>
         /// 启动
@@ -43,7 +43,7 @@ namespace iPanel.Core.Connection
                 }
             };
 
-            _server = new(Program.Setting?.WsAddr)
+            _server = new(Program.Setting.WebSocket.Addr)
             {
                 RestartAfterListenError = true
             };

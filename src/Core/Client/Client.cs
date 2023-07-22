@@ -32,7 +32,7 @@ namespace iPanel.Core.Client
         /// <summary>
         /// 唯一标识符
         /// </summary>
-        public string GUID { init; get; } = Guid.NewGuid().ToString("N");
+        public string GUID { init; get; }
 
         /// <summary>
         /// 类型
@@ -51,7 +51,7 @@ namespace iPanel.Core.Client
         /// <param name="text">发送内容</param>
         public async Task Send(string text)
         {
-            if (WebSocketConnection is not null)
+            if (WebSocketConnection is not null && WebSocketConnection.IsAvailable)
             {
                 await WebSocketConnection.Send(text);
             }
@@ -71,6 +71,19 @@ namespace iPanel.Core.Client
             Unknown,
             Instance,
             Console
+        }
+
+        protected Client()
+        {
+            if (GUID is null)
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        protected Client(string? guid)
+        {
+            GUID = guid ?? throw new System.ArgumentNullException(nameof(guid));
         }
     }
 }

@@ -1,13 +1,13 @@
-using System.Collections.Generic;
-using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using iPanel.Core.Client;
 using iPanel.Core.Client.Info;
 using iPanel.Core.Connection;
 using iPanel.Core.Packets;
-using iPanel.Core.Packets.DataBody;
 using iPanel.Core.Packets.Event;
 using iPanel.Utils;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace iPanel.Core.Service
 {
@@ -20,6 +20,7 @@ namespace iPanel.Core.Service
         /// <param name="packet">数据包</param>
         public static void Handle(Instance instance, ReceivedPacket packet)
         {
+            Logger.Info($"<{instance.Address}> 收到动作：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}");
             switch (packet.SubType)
             {
                 case "heartbeat":
@@ -31,6 +32,12 @@ namespace iPanel.Core.Service
                     else
                     {
                         instance.FullInfo = info.Value;
+                        lock (Handler.Consoles)
+                            Handler.Consoles
+                                .Where((kv) => kv.Value.SubscribingTarget == "*" || kv.Value.SubscribingTarget == instance.GUID)
+                                .Select((kv) => kv.Value)
+                                .ToList()
+                                .ForEach((console) => console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance))));
                     }
                     break;
 
@@ -47,6 +54,7 @@ namespace iPanel.Core.Service
         /// <param name="packet">数据包</param>
         public static void Handle(Console console, ReceivedPacket packet)
         {
+            Logger.Info($"<{console.Address}> 收到动作：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}");
             bool subAll;
             Instance? instance;
             switch (packet.SubType)
@@ -54,7 +62,7 @@ namespace iPanel.Core.Service
                 case "server_start":
                 case "server_stop":
                 case "server_kill":
-                    if (!CheckTarget(console, packet, out subAll, out instance) || instance is null)
+                    if (!CheckTarget(console, packet, out subAll, out instance) && instance is null)
                     {
                         console.Send(new InvalidTargetPacket());
                         break;
@@ -64,7 +72,7 @@ namespace iPanel.Core.Service
 
                 case "customize":
                 case "server_input":
-                    if (!CheckTarget(console, packet, out subAll, out instance) || instance is null)
+                    if (!CheckTarget(console, packet, out subAll, out instance) && instance is null)
                     {
                         console.Send(new InvalidTargetPacket());
                         break;
@@ -99,14 +107,16 @@ namespace iPanel.Core.Service
 
                 case "subscribe":
                     string? target = packet.Data?.ToString();
-                    if (!string.IsNullOrEmpty(target) && Handler.Instances.TryGetValue(target!, out instance))
+                    if (target == "*")
+                    {
+                        console.SubscribingTarget = target;
+                    }
+                    else if (
+                        !string.IsNullOrEmpty(target) &&
+                        Handler.Instances.TryGetValue(target!, out instance))
                     {
                         console.SubscribingTarget = target;
                         console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance)));
-                    }
-                    else if (target == "*")
-                    {
-                        console.SubscribingTarget = target;
                     }
                     else
                     {
@@ -115,7 +125,7 @@ namespace iPanel.Core.Service
                     break;
 
                 case "get_info":
-                    if (!string.IsNullOrEmpty(console.SubscribingTarget) && Handler.Instances.TryGetValue(console.SubscribingTarget, out instance))
+                    if (!string.IsNullOrEmpty(console.SubscribingTarget) && Handler.Instances.TryGetValue(console.SubscribingTarget!, out instance))
                     {
                         console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance)));
                     }
@@ -151,7 +161,10 @@ namespace iPanel.Core.Service
             {
                 return true;
             }
-            return string.IsNullOrEmpty(console.SubscribingTarget) || !Handler.Instances.TryGetValue(console.SubscribingTarget!, out instance) || instance is null;
+            return
+                !string.IsNullOrEmpty(console.SubscribingTarget) &&
+                Handler.Instances.TryGetValue(console.SubscribingTarget!, out instance) &&
+                instance is null;
         }
 
         /// <summary>

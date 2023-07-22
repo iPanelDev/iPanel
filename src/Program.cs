@@ -17,7 +17,9 @@ namespace iPanel
         /// <summary>
         /// 设置
         /// </summary>
-        public static Setting? Setting { get; private set; }
+        public static Setting Setting => _setting!;
+
+        private static Setting? _setting;
 
         /// <summary>
         /// 应用程序的主入口点
@@ -36,8 +38,8 @@ namespace iPanel
             }
             try
             {
-                Setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
-                if (string.IsNullOrEmpty(Setting.Password))
+                _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
+                if (string.IsNullOrEmpty(Setting.WebSocket.Password))
                 {
                     throw new SettingsException("密码不可为空，请修改后重试。");
                 }

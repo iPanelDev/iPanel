@@ -1,5 +1,6 @@
 using iPanel.Core.Client.Info;
 using Newtonsoft.Json;
+using System;
 
 namespace iPanel.Core.Client
 {
@@ -12,5 +13,8 @@ namespace iPanel.Core.Client
 
         [JsonIgnore]
         public new ClientType Type => ClientType.Instance;
+
+        public Instance(string? guid) : base(guid)
+        { }
     }
 }

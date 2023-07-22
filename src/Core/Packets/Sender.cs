@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using iPanel.Core.Client;
 
 namespace iPanel.Core.Packets
 {
@@ -23,12 +24,23 @@ namespace iPanel.Core.Packets
         /// <summary>
         /// 作为发送者
         /// </summary>
-        public static Sender From(Client.Client client)
+        public static Sender From(Instance instance)
             => new Sender()
             {
-                Name = client.CustomName,
-                Type = client.Type.ToString().ToLowerInvariant(),
-                Address = client.Address
+                Name = instance.CustomName,
+                Type = instance.Type.ToString().ToLowerInvariant(),
+                Address = instance.Address
+            };
+
+        /// <summary>
+        /// 作为发送者
+        /// </summary>
+        public static Sender From(Console console)
+            => new Sender()
+            {
+                Name = console.CustomName,
+                Type = console.Type.ToString().ToLowerInvariant(),
+                Address = console.Address
             };
     }
 }

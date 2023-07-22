@@ -16,11 +16,6 @@ namespace iPanel.Core.Connection
     internal static class Handler
     {
         /// <summary>
-        /// 客户端字典
-        /// </summary>
-        public static readonly Dictionary<string, string> Clients = new();
-
-        /// <summary>
         /// 控制台字典
         /// </summary>
         public static readonly Dictionary<string, Console> Consoles = new();
@@ -37,58 +32,65 @@ namespace iPanel.Core.Connection
         {
             lock (Instances)
             {
+                Instances.ToList().Where((kv) => kv.Value.WebSocketConnection?.IsAvailable != true).ToList().ForEach((kv) => Instances.Remove(kv.Key));
                 Instances.Values.ToList().ForEach((instance) => instance?.Send(new SentPacket("action", "heartbeat").ToString()).Await());
+            }
+
+            lock (Consoles)
+            {
+                Consoles.ToList().Where((kv) => kv.Value.WebSocketConnection?.IsAvailable != true).ToList().ForEach((kv) => Consoles.Remove(kv.Key));
             }
         }
 
         /// <summary>
         /// 连接处理
         /// </summary>
-        /// <param name="client">客户端</param>
-        public static void OnOpen(IWebSocketConnection client)
+        /// <param name="connection">客户端</param>
+        public static void OnOpen(IWebSocketConnection connection)
         {
-            if (client is null)
+            if (connection is null)
             {
                 return;
             }
-            Verification.Request(client);
+            Verification.Request(connection);
             UpdateTitle();
         }
 
         /// <summary>
         /// 关闭处理
         /// </summary>
-        /// <param name="client">客户端</param>
-        public static void OnClose(IWebSocketConnection client)
+        /// <param name="connection">客户端</param>
+        public static void OnClose(IWebSocketConnection connection)
         {
-            if (client is null)
+            if (connection is null)
             {
                 return;
             }
-            string clientUrl = client.GetFullAddr();
+            string clientUrl = connection.GetFullAddr();
+            string guid = connection.ConnectionInfo.Id.ToString("N");
             Logger.Info($"<{clientUrl}> 断开了连接");
-            Clients.Remove(clientUrl);
-            Instances.Remove(clientUrl);
-            Consoles.Remove(clientUrl);
+            Instances.Remove(guid);
+            Consoles.Remove(guid);
             UpdateTitle();
         }
 
         /// <summary>
         /// 接收处理
         /// </summary>
-        /// <param name="client">客户端</param>
+        /// <param name="connection">客户端</param>
         /// <param name="message">接收信息</param>
-        public static void OnReceive(IWebSocketConnection client, string message)
+        public static void OnReceive(IWebSocketConnection connection, string message)
         {
             UpdateTitle();
 
-            if (client is null)
+            if (connection is null)
             {
                 return;
             }
-            string clientUrl = client.GetFullAddr();
-            bool isConsole = Consoles.TryGetValue(clientUrl, out Console? console) && console is not null,
-                 isInstance = Instances.TryGetValue(clientUrl, out Instance? instance) && instance is not null;
+            string clientUrl = connection.GetFullAddr();
+            string guid = connection.ConnectionInfo.Id.ToString("N");
+            bool isConsole = Consoles.TryGetValue(guid, out Console? console) && console is not null,
+                 isInstance = Instances.TryGetValue(guid, out Instance? instance) && instance is not null;
             ReceivedPacket? packet = null;
             try
             {
@@ -97,17 +99,17 @@ namespace iPanel.Core.Connection
             catch (Sys.Exception e)
             {
                 Logger.Warn($"<{clientUrl}>处理数据包异常\n{e}");
-                client.Send(new SentPacket("event", (isConsole || isInstance) ? "invalid_packet" : "disconnection", new Reason($"发送的数据包存在问题：{e.Message}")).ToString()).Await();
+                connection.Send(new SentPacket("event", (isConsole || isInstance) ? "invalid_packet" : "disconnection", new Reason($"发送的数据包存在问题：{e.Message}")).ToString()).Await();
                 if (!isConsole && !isInstance)
                 {
-                    client.Close();
+                    connection.Close();
                 }
                 return;
             }
 
             if (!isConsole && !isInstance) // 对未记录的的客户端进行校验
             {
-                Verification.PreCheck(client, packet);
+                Verification.PreCheck(connection, packet);
             }
             else if (isConsole)
             {
@@ -166,7 +168,7 @@ namespace iPanel.Core.Connection
         {
             if (Sys.Environment.OSVersion.Platform == Sys.PlatformID.Win32NT)
             {
-                Sys.Console.Title = $"iPanel Host {Program.VERSION} 连接数:{Clients.Count}";
+                Sys.Console.Title = $"iPanel Host {Program.VERSION} 连接数:{Consoles.Count + Instances.Count}";
             }
         }
     }

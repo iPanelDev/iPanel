@@ -2,6 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": ".NET Framework Attach",
+            "type": "clr",
+            "request": "attach"
+        },
+        {
             "name": ".NET Core Launch",
             "type": "coreclr",
             "request": "launch",
@@ -22,6 +27,6 @@
             "stopAtEntry": false,
             "console": "integratedTerminal",
             "requireExactSource": false
-        }
+        },
     ]
 }

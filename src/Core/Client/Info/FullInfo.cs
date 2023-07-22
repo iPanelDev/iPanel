@@ -19,9 +19,9 @@ namespace iPanel.Core.Client.Info
 
             public long TotalRAM;
 
-            public long UsedRAM;
+            public long FreeRAM;
 
-            public double RAMUsage => 100 * (1 - (double)UsedRAM / TotalRAM);
+            public double RAMUsage => (1 - (double)FreeRAM / TotalRAM) * 100;
 
             public double CPUUsage;
         }
@@ -34,6 +34,8 @@ namespace iPanel.Core.Client.Info
             public bool Status;
 
             public string? RunTime;
+
+            public double Usage;
         }
     }
 }

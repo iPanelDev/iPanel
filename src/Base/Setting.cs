@@ -6,8 +6,16 @@ namespace iPanel.Base
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     internal class Setting
     {
-        public string WsAddr { get; set; } = "ws://0.0.0.0:30000";
-        public string Password { get; set; } = string.Empty;
-        public bool Debug { get; set; }
+        public WSSetting WebSocket = new();
+        public bool Debug;
+
+        [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+        internal struct WSSetting
+        {
+            public string Addr = "ws://0.0.0.0:30000";
+            public string Password = string.Empty;
+
+            public WSSetting() { }
+        }
     }
 }

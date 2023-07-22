@@ -16,24 +16,6 @@ namespace iPanel.Utils
             => $"{client.ConnectionInfo.ClientIpAddress}:{client.ConnectionInfo.ClientPort}";
 
         /// <summary>
-        /// 作为控制台
-        /// </summary>
-        public static Console? AsConsole(this IWebSocketConnection client)
-        {
-            Handler.Consoles.TryGetValue(client.GetFullAddr(), out Console? iPanel);
-            return iPanel;
-        }
-
-        /// <summary>
-        /// 作为实例
-        /// </summary>
-        public static Instance? AsInstance(this IWebSocketConnection client)
-        {
-            Handler.Instances.TryGetValue(client.GetFullAddr(), out Instance? instance);
-            return instance;
-        }
-
-        /// <summary>
         /// 等待
         /// </summary>
         public static void Await(this Task task) => task.GetAwaiter().GetResult();

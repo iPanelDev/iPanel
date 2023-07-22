@@ -6,6 +6,8 @@ namespace iPanel.Utils
 {
     internal static class Logger
     {
+        public static void Info() => Info(string.Empty);
+
         public static void Info(string line)
         {
             if (line.Contains('\n'))
@@ -38,7 +40,7 @@ namespace iPanel.Utils
 
         public static void Debug(string line, string? methodName = null)
         {
-            if (Program.Setting?.Debug != true)
+            if (Program.Setting.Debug != true)
             {
                 return;
             }
