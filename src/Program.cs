@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
 using iPanel.Base;
 using iPanel.Core.Connection;
+using iPanel.HttpServer;
 using iPanel.Utils;
+using Swan.Logging;
 using System;
 using System.IO;
 
@@ -26,30 +28,29 @@ namespace iPanel
         /// </summary>
         /// <param name="args">启动参数</param>
         [STAThread]
-        private static void Main(string[] args)
+        public static void Main()
         {
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            Runtime.SetConsole();
             CrashInterception.Init();
+            Runtime.SetConsole();
+            Logger.UnregisterLogger<ConsoleLogger>();
+            Logger.RegisterLogger<iPanelLogger>();
+            ReadSetting();
+            Logger.Info($"iPanel Host {VERSION} 已启动");
+            WebSocket.Start();
+            Server.Start();
+            Runtime.StartHandleInput();
+        }
+
+        private static void ReadSetting()
+        {
             if (!File.Exists("setting.json"))
             {
                 File.WriteAllText("setting.json", JsonConvert.SerializeObject(new Setting(), Formatting.Indented));
                 throw new SettingsException("配置文件已生成，请修改后重新启动");
             }
-            try
-            {
-                _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
-                if (string.IsNullOrEmpty(Setting.WebSocket.Password))
-                {
-                    throw new SettingsException("密码不可为空，请修改后重试。");
-                }
-            }
-            catch (Exception e)
-            {
-                throw new LocalException("读取文件时出现错误", e);
-            }
-            WebSocket.Start();
-            Runtime.StartHandleInput();
+            _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
+            _setting.Check();
         }
     }
 }

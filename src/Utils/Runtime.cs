@@ -1,9 +1,11 @@
 using iPanel.Core.Connection;
+using iPanel.HttpServer;
 using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Swan.Logging;
 
 namespace iPanel.Utils
 {
@@ -59,7 +61,7 @@ namespace iPanel.Utils
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.OutputEncoding = Encoding.UTF8;
-            Console.CancelKeyPress += OnCancel;
+            Console.CancelKeyPress += HandleCancelEvent;
         }
 
         /// <summary>
@@ -80,7 +82,8 @@ namespace iPanel.Utils
         {
             switch (line)
             {
-                case "list":
+                case "i":
+                case "info":
                     Logger.Info($"当前有{Handler.Consoles.Count}个控制台和{Handler.Instances.Count}个面板在线");
                     lock (Handler.Consoles)
                     {
@@ -90,7 +93,6 @@ namespace iPanel.Utils
                     {
                         Handler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"面板\t{Handler.Instances[key].Address,-18}\t{Handler.Instances[key].CustomName}"));
                     }
-                    Logger.Info();
                     break;
 
                 case "cls":
@@ -114,18 +116,18 @@ namespace iPanel.Utils
         /// <summary>
         /// 上一次触发时间
         /// </summary>
-        private static DateTime _lastTime = new(1, 1, 1);
+        private static DateTime _lastTime;
 
         /// <summary>
         /// 按下取消键时触发
         /// </summary>
-        private static void OnCancel(object? sender, ConsoleCancelEventArgs e)
+        private static void HandleCancelEvent(object? sender, ConsoleCancelEventArgs e)
         {
-            e.Cancel = true;
             if ((DateTime.Now - _lastTime).TotalSeconds > 1)
             {
                 Logger.Warn("请在1s内再次按下`Ctrl`+`C`以退出。");
                 _lastTime = DateTime.Now;
+                e.Cancel = true;
             }
             else
             {
@@ -140,6 +142,7 @@ namespace iPanel.Utils
         public static void Exit(int code = 0)
         {
             Logger.Warn("退出中...");
+            Server.Stop();
             Handler.Instances.Values.ToList().ForEach((instance) => instance.Close());
             Handler.Consoles.Values.ToList().ForEach((console) => console.Close());
             Environment.Exit(code);

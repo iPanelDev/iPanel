@@ -28,10 +28,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: net472
-          path: ${{ github.workspace }}\iPanel\bin\debug\net472
+          path: ${{ github.workspace }}\src\iPanel\bin\debug\net472
 
       - name: Upload `net6.0`
         uses: actions/upload-artifact@v3
         with:
           name: net6.0
-          path: ${{ github.workspace }}\iPanel\bin\debug\net6.0
+          path: ${{ github.workspace }}\src\iPanel\bin\debug\net6.0

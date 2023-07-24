@@ -10,6 +10,7 @@ using Sys = System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
+using Swan.Logging;
 
 namespace iPanel.Core.Connection
 {
@@ -168,7 +169,7 @@ namespace iPanel.Core.Connection
         {
             if (Sys.Environment.OSVersion.Platform == Sys.PlatformID.Win32NT)
             {
-                Sys.Console.Title = $"iPanel Host {Program.VERSION} 连接数:{Consoles.Count + Instances.Count}";
+                Sys.Console.Title = $"iPanel Host {Program.VERSION} [{Consoles.Count + Instances.Count} 连接]";
             }
         }
     }

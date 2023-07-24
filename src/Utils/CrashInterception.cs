@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Swan.Logging;
 
 namespace iPanel.Utils
 {
@@ -11,8 +12,11 @@ namespace iPanel.Utils
         /// </summary>
         public static void Init()
         {
+#if !NET
+            AppDomain.CurrentDomain.UnhandledException += (_, e) => Console.WriteLine(e.ExceptionObject);
+#endif
             AppDomain.CurrentDomain.UnhandledException += PrintException;
-            TaskScheduler.UnobservedTaskException += (_, e) => Logger.Error(e.Exception.ToString() ?? string.Empty);
+            TaskScheduler.UnobservedTaskException += (_, e) => Logger.Fatal(e.Exception.ToString() ?? string.Empty);
         }
 
         /// <summary>
@@ -20,16 +24,21 @@ namespace iPanel.Utils
         /// </summary>
         private static void PrintException(object sender, UnhandledExceptionEventArgs e)
         {
-            Logger.Error(e.ExceptionObject.ToString() ?? string.Empty);
+            string exceptionMsg = (e.ExceptionObject as Exception)?.ToString() ?? string.Empty;
+            Logger.Fatal(exceptionMsg);
             Directory.CreateDirectory("logs/crash");
             File.AppendAllText(
                 $"log/crash/{DateTime.Now:yyyy-MM-dd}.txt",
-                $"{DateTime.Now:T} | iPanel@{Program.VERSION} | NET@{Environment.Version}{Environment.NewLine}{e.ExceptionObject.ToString() ?? string.Empty}{Environment.NewLine}"
+                $"{DateTime.Now:T} | iPanel@{Program.VERSION} | NET@{Environment.Version}{Environment.NewLine}{exceptionMsg}{Environment.NewLine}"
                 );
-            Logger.Error($"崩溃日志已保存在 {Path.GetFullPath(Path.Combine("logs", "crash", $"{DateTime.Now:yyyy-MM-dd}.txt"))}");
+            Logger.Fatal($"崩溃日志已保存在 {Path.GetFullPath(Path.Combine("logs", "crash", $"{DateTime.Now:yyyy-MM-dd}.txt"))}");
 
             if (e.IsTerminating)
             {
+                if (!Console.IsInputRedirected)
+                {
+                    Console.ReadKey(true);
+                }
                 Runtime.Exit(-1);
             }
         }

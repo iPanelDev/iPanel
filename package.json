@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "echo :)",
-    "build": "echo :)",
-    "preview": "echo :)",
-    "build-only": "echo :)",
-    "type-check": "echo :)"
+    "dev": "echo \"hello\"",
+    "build": "echo \"hello\"",
+    "preview": "echo \"hello\"",
+    "build-only": "echo \"hello\"",
+    "type-check": "echo \"hello\""
   }
 }

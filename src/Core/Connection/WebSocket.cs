@@ -1,5 +1,5 @@
 ﻿using Fleck;
-using iPanel.Utils;
+using Swan.Logging;
 using Sys = System;
 using System.Timers;
 
@@ -26,16 +26,16 @@ namespace iPanel.Core.Connection
             {
                 switch (level)
                 {
-                    case LogLevel.Debug:
+                    case Fleck.LogLevel.Debug:
                         Logger.Debug($"{message} {e}");
                         break;
-                    case LogLevel.Info:
+                    case Fleck.LogLevel.Info:
                         Logger.Info($"{message} {e}");
                         break;
-                    case LogLevel.Warn:
+                    case Fleck.LogLevel.Warn:
                         Logger.Warn($"{message} {e}");
                         break;
-                    case LogLevel.Error:
+                    case Fleck.LogLevel.Error:
                         Logger.Error($"{message} {e}");
                         break;
                     default:
