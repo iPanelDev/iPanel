@@ -1,5 +1,6 @@
 using iPanel.Core.Connection;
 using iPanel.HttpServer;
+using iPanel.InputProcess;
 using System;
 using System.IO;
 using System.Linq;
@@ -71,45 +72,7 @@ namespace iPanel.Utils
         {
             while (true)
             {
-                HandleInput(Console.ReadLine());
-            }
-        }
-
-        /// <summary>
-        /// 处理输入
-        /// </summary>
-        private static void HandleInput(string? line)
-        {
-            switch (line)
-            {
-                case "i":
-                case "info":
-                    Logger.Info($"当前有{Handler.Consoles.Count}个控制台和{Handler.Instances.Count}个面板在线");
-                    lock (Handler.Consoles)
-                    {
-                        Handler.Consoles.Keys.ToList().ForEach((key) => Logger.Info($"控制台\t{Handler.Consoles[key].Address,-18}\t{Handler.Consoles[key].CustomName}"));
-                    }
-                    lock (Handler.Instances)
-                    {
-                        Handler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"面板\t{Handler.Instances[key].Address,-18}\t{Handler.Instances[key].CustomName}"));
-                    }
-                    break;
-
-                case "cls":
-                case "clear":
-                    Console.Clear();
-                    break;
-
-                case "exit":
-                    Exit();
-                    break;
-
-                case null:
-                    break;
-
-                default:
-                    Logger.Warn("未知的命令。");
-                    break;
+                InputLine.Input(Console.ReadLine());
             }
         }
 
@@ -125,7 +88,7 @@ namespace iPanel.Utils
         {
             if ((DateTime.Now - _lastTime).TotalSeconds > 1)
             {
-                Logger.Warn("请在1s内再次按下`Ctrl`+`C`以退出。");
+                Logger.Warn("请在1s内再次按下`Ctrl+C`以退出。");
                 _lastTime = DateTime.Now;
                 e.Cancel = true;
             }

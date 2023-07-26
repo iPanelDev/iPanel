@@ -16,12 +16,6 @@ namespace iPanel.Core.Packets
         /// </summary>
         public string SubType = string.Empty;
 
-        /// <summary>
-        /// 发送者
-        /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public object? Sender;
-
         public override string ToString() => JsonConvert.SerializeObject(this);
     }
 }

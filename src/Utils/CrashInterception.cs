@@ -12,9 +12,6 @@ namespace iPanel.Utils
         /// </summary>
         public static void Init()
         {
-#if !NET
-            AppDomain.CurrentDomain.UnhandledException += (_, e) => Console.WriteLine(e.ExceptionObject);
-#endif
             AppDomain.CurrentDomain.UnhandledException += PrintException;
             TaskScheduler.UnobservedTaskException += (_, e) => Logger.Fatal(e.Exception.ToString() ?? string.Empty);
         }
@@ -33,13 +30,9 @@ namespace iPanel.Utils
                 );
             Logger.Fatal($"崩溃日志已保存在 {Path.GetFullPath(Path.Combine("logs", "crash", $"{DateTime.Now:yyyy-MM-dd}.txt"))}");
 
-            if (e.IsTerminating)
+            if (e.IsTerminating && !Console.IsInputRedirected)
             {
-                if (!Console.IsInputRedirected)
-                {
-                    Console.ReadKey(true);
-                }
-                Runtime.Exit(-1);
+                Console.ReadKey(true);
             }
         }
     }

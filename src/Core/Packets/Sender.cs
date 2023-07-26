@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using iPanel.Core.Client;
@@ -14,11 +15,15 @@ namespace iPanel.Core.Packets
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Address;
 
-        public Sender(string name, string type, string? address)
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, object>? Metadata;
+
+        public Sender(string name, string type, string? address, Dictionary<string, object> metadata)
         {
             Name = name;
             Type = type;
             Address = address;
+            Metadata = metadata;
         }
 
         /// <summary>

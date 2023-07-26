@@ -12,11 +12,17 @@ namespace iPanel.Core.Packets
 
         public long Time { init; get; }
 
-        private static readonly Sender SelfSender = new($"iPanel_{Program.VERSION}", "host", null);
+        private static readonly Sender _selfSender = new($"iPanel Host", "host", null, new() { { "version", Program.VERSION } });
+
+        /// <summary>
+        /// 发送者
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Sender? Sender;
 
         protected SentPacket() { }
 
-        public SentPacket(string type, string sub_type, object? data = null) : this(type, sub_type, data, SelfSender)
+        public SentPacket(string type, string sub_type, object? data = null) : this(type, sub_type, data, _selfSender)
         { }
 
         public SentPacket(string type, string sub_type, object? data, Sender sender)
