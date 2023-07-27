@@ -34,4 +34,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: net6.0
-          path: ${{ github.workspace }}\src、bin\debug\net6.0
+          path: ${{ github.workspace }}\src\bin\debug\net6.0
