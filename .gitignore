@@ -5,3 +5,6 @@ packages/
 FodyWeavers.xsd
 dist
 node_modules
+*.mcdr
+__pycache__/**
+*.pyc

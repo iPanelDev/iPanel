@@ -25,7 +25,7 @@
 ## 支持的软件
 
 - [x] [Serein](https://serein.cc/)
-- [ ] [MCDReforged](https://github.com/Fallen-Breath/MCDReforged)
+- [x] [MCDReforged](https://github.com/Fallen-Breath/MCDReforged)
 - [ ] ...
 
 ## 快速上手&使用方法

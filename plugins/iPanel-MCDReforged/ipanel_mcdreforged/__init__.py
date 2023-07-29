@@ -13,7 +13,7 @@ from websocket import WebSocketApp
 from mcdreforged.api.all import *
 
 PLUGIN_METADATA = {
-    'id': 'ipanel',
+    'id': 'ipanel_mcdreforged',
     'version': '2.1.7.29',
     'name': 'iPanel-MCDReforged',
     'description': '适用于MCDReforged的iPanel实例插件',
@@ -104,7 +104,7 @@ class Config():
         if not self.custom_name or len(self.custom_name) == 0:
             self.custom_name = 'MCDReforged#{}'.format(
                 PLUGIN_METADATA['version'])
-            logger.warn(
+            logger.warning(
                 '"config.customName"为空，将使用默认名称"{}"'.format(self.custom_name))
 
         self.reconnect = self.Reconnect(config.get('reconnect'))
@@ -191,15 +191,15 @@ class iPanelWsConnnection():
     def _on_close(self, this: WebSocketApp, code: int = 0, _: str = None):
         '''关闭事件'''
         if code is not None:
-            logger.warn('连接已断开(Code: {})'.format(code))
+            logger.warning('连接已断开(Code: {})'.format(code))
         else:
-            logger.warn('连接已断开')
+            logger.warning('连接已断开')
 
         if self.reason:
-            logger.warn('原因：{}'.format(self.reason))
+            logger.warning('原因：{}'.format(self.reason))
 
         if not self.verified:
-            logger.warn('貌似没有成功连接过，自动重连已关闭。请检查地址是否配置正确')
+            logger.warning('貌似没有成功连接过，自动重连已关闭。请检查地址是否配置正确')
         elif 0 < self.restart_times < self.config.reconnect.maxTimes and self.config.reconnect.enable:
             self.restart_times += 1
             self.wait_for_reconnect()
@@ -219,7 +219,7 @@ class iPanelWsConnnection():
                 self.actions_handle(packet)
 
             case _:
-                logger.warn('接收到不支持的数据包类型：{}'.format(packet.type))
+                logger.warning('接收到不支持的数据包类型：{}'.format(packet.type))
 
     def actions_handle(self, packet: Packet):
         '''处理action数据包'''
