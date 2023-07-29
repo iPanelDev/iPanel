@@ -26,8 +26,8 @@ declare interface IInfo {
     trialTimes: number
 }
 
-const VERSION = '2.1.7.26';
-serein.registerPlugin('iPanel-Serein', VERSION, 'Zaitonn', '网页版控制台-Serein插件');
+const VERSION = '2.1.7.29';
+serein.registerPlugin('iPanel-Serein', VERSION, 'Zaitonn', '适用于Serein的iPanel实例插件');
 serein.setListener('onPluginsLoaded', connect);
 serein.setListener('onServerStart', onServerStart);
 serein.setListener('onServerStop', onServerStop);
@@ -133,7 +133,7 @@ function handleAction({ sub_type, data, sender }: Packet) {
                 sub_type: 'verify',
                 data: {
                     token: getMD5(data.random_key + config.websocket.password),
-                    custom_name: config.customName || null,
+                    custom_name: config.customName || 'Serein@' + VERSION,
                     client_type: 'instance'
                 },
             });

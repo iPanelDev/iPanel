@@ -16,7 +16,7 @@ namespace iPanel.InputProcess
         private const string _help =
 @"
 连接
-  i/info        查看当前连接信息
+  ls/list       查看当前连接列表
   d/disconnect  强制断开实例
   cn/changename 修改实例名称
   
@@ -36,16 +36,16 @@ namespace iPanel.InputProcess
 #endif
             switch (args.FirstOrDefault()?.ToLowerInvariant())
             {
-                case "i":
-                case "info":
+                case "ls":
+                case "list":
                     Logger.Info($"当前有{Handler.Consoles.Count}个控制台和{Handler.Instances.Count}个面板在线");
                     lock (Handler.Consoles)
                     {
-                        Handler.Consoles.Keys.ToList().ForEach((key) => Logger.Info($"控制台\t{Handler.Consoles[key].Address,-18}\t{Handler.Consoles[key].CustomName}"));
+                        Handler.Consoles.Keys.ToList().ForEach((key) => Logger.Info($"{"[控制台]",-5}{Handler.Consoles[key].Address,-20}{Handler.Consoles[key].CustomName}"));
                     }
                     lock (Handler.Instances)
                     {
-                        Handler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"面板\t{Handler.Instances[key].Address,-18}\t{Handler.Instances[key].CustomName}"));
+                        Handler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"{"[实例]",-5}{Handler.Instances[key].Address,-20}{Handler.Instances[key].CustomName}"));
                     }
                     break;
 
@@ -93,11 +93,18 @@ namespace iPanel.InputProcess
                 Logger.Warn("当前没有实例在线");
                 return;
             }
-            KeyValuePair<string, Instance> keyValuePair = Prompt.Select<KeyValuePair<string, Instance>>("请选择要断开的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t{kv.Value.CustomName ?? "未知名称"}");
-            if (keyValuePair.Value?.WebSocketConnection?.IsAvailable == true)
+            try
             {
-                keyValuePair.Value?.Send(new SentPacket("event", "disconnection", new Reason("被用户手动断开"))).Await();
-                keyValuePair.Value?.Close();
+                KeyValuePair<string, Instance> keyValuePair = Prompt.Select<KeyValuePair<string, Instance>>("请选择要断开的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
+                if (keyValuePair.Value?.WebSocketConnection?.IsAvailable == true)
+                {
+                    keyValuePair.Value?.Send(new SentPacket("event", "disconnection", new Reason("被用户手动断开"))).Await();
+                    keyValuePair.Value?.Close();
+                    return;
+                }
+            }
+            catch
+            {
                 return;
             }
             Logger.Warn("所选实例无效");
@@ -110,16 +117,25 @@ namespace iPanel.InputProcess
                 Logger.Warn("当前没有实例在线");
                 return;
             }
-            KeyValuePair<string, Instance> keyValuePair = Prompt.Select<KeyValuePair<string, Instance>>("请选择要修改名称的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t{kv.Value.CustomName ?? "未知名称"}");
-            if (Handler.Instances.ContainsKey(keyValuePair.Key))
+            try
             {
-                string? newName = Prompt.Input<string>("请输入新的名称", null, Handler.Instances[keyValuePair.Key].CustomName);
+                KeyValuePair<string, Instance> keyValuePair = Prompt.Select<KeyValuePair<string, Instance>>("请选择要修改名称的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
                 if (Handler.Instances.ContainsKey(keyValuePair.Key))
                 {
-                    Handler.Instances[keyValuePair.Key].CustomName = newName;
-                    Logger.Info("实例修改成功");
-                    return;
+
+                    string? newName = Prompt.Input<string>("请输入新的名称", null, Handler.Instances[keyValuePair.Key].CustomName);
+                    if (Handler.Instances.ContainsKey(keyValuePair.Key))
+                    {
+                        Handler.Instances[keyValuePair.Key].CustomName = newName;
+                        Logger.Info("实例修改成功");
+                        return;
+                    }
+
                 }
+            }
+            catch
+            {
+                return;
             }
             Logger.Warn("所选实例无效");
         }

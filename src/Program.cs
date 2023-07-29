@@ -16,7 +16,7 @@ namespace iPanel
         /// <summary>
         /// 版本
         /// </summary>
-        public static readonly string VERSION = new Version(2, 1, 7, 26).ToString();
+        public static readonly string VERSION = new Version(2, 1, 7, 29).ToString();
 
         /// <summary>
         /// 设置
@@ -43,7 +43,7 @@ namespace iPanel
         private static void EntryPoint()
         {
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            Prompt.ThrowExceptionOnCancel = false;
+            InitSharprompt();
             CrashInterception.Init();
             Runtime.SetConsole();
             Logger.UnregisterLogger<ConsoleLogger>();
@@ -53,6 +53,12 @@ namespace iPanel
             WebSocket.Start();
             Server.Start();
             Runtime.StartHandleInput();
+        }
+
+        private static void InitSharprompt()
+        {
+            Prompt.ThrowExceptionOnCancel = true;
+            Prompt.Symbols.Done = new("V", "V");
         }
 
         private static void ReadSetting()
