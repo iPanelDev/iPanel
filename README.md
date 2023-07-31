@@ -1,7 +1,7 @@
 <p align="center">
-  <img src="src/Sources/logo.png" style="width:30%;min-width:150px; margin:-40px">
+  <img src="src/Sources/logo.png" style="width:50%;min-width:150px; margin:-40px">
   <br>
-  <b>iPanel</b>
+  <b style="font-size:30px">iPanel</b>
   <br>
   <br>
   适用于<a href="https://serein.cc/">Serein</a>等软件的网页版控制台插件
@@ -16,56 +16,25 @@
   <a href="https://github.com/Zaitonn/iPanel">
     <img alt="GitHub repo file count" src="https://img.shields.io/github/languages/code-size/Zaitonn/iPanel">
   </a>
+  <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/6.0">
+    <img src="https://img.shields.io/badge/NET-Framework_472-512BD4">
+    <img src="https://img.shields.io/badge/NET-6.0-512BD4">
+  </a>
+  <hr>
+  <img src="https://ipanel.serein.cc/img/webconsole.gif">
+  <br>
 </p>
 
-## 演示
+## 编译
 
-![网页版控制台](https://ipanel.serein.cc/assets/imgs/webconsole.gif)
+- NET SDK 6.0+
 
-## 支持的软件
-
-- [x] [Serein](https://serein.cc/)
-- [x] [MCDReforged](https://github.com/Fallen-Breath/MCDReforged)
-- [ ] ...
-
-## 快速上手&使用方法
-
-<https://ipanel.serein.cc/>
-
-## 项目原理
-
-```mermaid
-flowchart TB
-    subgraph iPanel Host
-    ws(["WebSocket服务器"])
-    web(["网页服务器"])
-    end
-    
-    subgraph 实例插件
-    i1["Serein"]
-    i2["MCDReforged"]
-    i3["..."]
-    end
-    
-    i1 ---> ws
-    i2 ---> ws
-    i3 ---> ws
-
-    subgraph 网页控制台
-    u1["用户1"]
-    u2["用户2"]
-    u3["..."]
-    website("网页")
-    end
-    
-    web ---> website
-    website --- u1
-    website --- u2
-    website --- u3
-
-    ws --->|"提供实例数据/控制实例"| website
+```sh
+dotnet build
 ```
 
-## Stars记录
+## 运行
 
-![starchart](https://starchart.cc/Zaitonn/iPanel.svg)
+```sh
+dotnet run
+```

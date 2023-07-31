@@ -1,8 +1,0 @@
-{
-  "name": "blank",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "build-only": "mkdir dist && echo \"hello\" > dist/index.html"
-  }
-}
