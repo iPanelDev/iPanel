@@ -1,22 +1,29 @@
 ﻿using Newtonsoft.Json;
-using iPanel.Base;
-using iPanel.Core.Connection;
-using iPanel.HttpServer;
-using iPanel.Utils;
+using iPanelHost.Base;
+using iPanelHost.WebSocket;
+using iPanelHost.Http;
+using iPanelHost.Utils;
 using Sharprompt;
-using Swan.Logging;
 using System;
 using System.IO;
 using System.Linq;
 
-namespace iPanel
+namespace iPanelHost
 {
     internal static class Program
     {
         /// <summary>
         /// 版本
         /// </summary>
-        public static readonly string VERSION = new Version(2, 1, 7, 29).ToString();
+        public static readonly string VERSION = new Version(2, 2, 0).ToString();
+
+        public static string Logo = @"
+  _ ____                  _   _   _           _   
+ (_)  _ \ __ _ _ __   ___| | | | | | ___  ___| |_ 
+ | | |_) / _` | '_ \ / _ \ | | |_| |/ _ \/ __| __|
+ | |  __/ (_| | | | |  __/ | |  _  | (_) \__ \ |_ 
+ |_|_|   \__,_|_| |_|\___|_| |_| |_|\___/|___/\__|
+ ";
 
         /// <summary>
         /// 设置
@@ -42,36 +49,19 @@ namespace iPanel
 
         private static void EntryPoint()
         {
-            Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            InitSharprompt();
-            CrashInterception.Init();
-            Runtime.SetConsole();
-            Logger.UnregisterLogger<ConsoleLogger>();
-            Logger.RegisterLogger<iPanelLogger>();
+            Initialization.InitEnv();
             ReadSetting();
-            Logger.Info($"iPanel Host {VERSION} 已启动");
-            WebSocket.Start();
-            Server.Start();
+            Logger.Info(Logo);
+            WsServer.Start();
+            HttpServer.Start();
             Runtime.StartHandleInput();
-        }
-
-        private static void InitSharprompt()
-        {
-            Prompt.ThrowExceptionOnCancel = true;
-            Prompt.Symbols.Done = new("V", "V");
         }
 
         private static void ReadSetting()
         {
-            if (!File.Exists("setting.json"))
+            if (!File.Exists("setting.json") || Environment.GetCommandLineArgs().Contains("-i") || Environment.GetCommandLineArgs().Contains("--init"))
             {
-                File.WriteAllText("setting.json", JsonConvert.SerializeObject(new Setting(), Formatting.Indented));
-                Console.WriteLine($"{DateTime.Now:T} [Warn] 配置文件已生成，请修改后重新启动");
-                if (!Console.IsInputRedirected)
-                {
-                    Console.ReadKey(true);
-                }
-                Environment.Exit(1);
+                Initialization.InitSetting();
             }
             _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
             _setting.Check();

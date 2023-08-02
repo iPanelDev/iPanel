@@ -1,14 +1,17 @@
-using iPanel.Core.Connection;
-using iPanel.HttpServer;
-using iPanel.InputProcess;
+using iPanelHost.Base;
+using iPanelHost.WebSocket;
+using iPanelHost.Http;
+using iPanelHost.Inputs;
+using Newtonsoft.Json;
+using Sharprompt;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Swan.Logging;
 
-namespace iPanel.Utils
+namespace iPanelHost.Utils
 {
     internal static class Runtime
     {
@@ -39,7 +42,7 @@ namespace iPanel.Utils
         /// <summary>
         /// 设置控制台
         /// </summary>
-        public static void SetConsole()
+        public static void SetConsoleMode()
         {
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
@@ -56,11 +59,13 @@ namespace iPanel.Utils
                 IntPtr closeMenu = GetSystemMenu(windowHandle, IntPtr.Zero);
                 uint SC_CLOSE = 0xF060;
                 RemoveMenu(closeMenu, SC_CLOSE, 0x0);
+
                 Console.Title = $"iPanel Host {Program.VERSION}";
             }
 
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
             Console.OutputEncoding = Encoding.UTF8;
             Console.CancelKeyPress += HandleCancelEvent;
         }
@@ -72,7 +77,13 @@ namespace iPanel.Utils
         {
             while (true)
             {
-                InputLine.Input(Console.ReadLine());
+                string? line = Console.ReadLine()?.Trim();
+                if (line is null)
+                {
+                    return;
+                }
+
+                Processor.Process(line);
             }
         }
 
@@ -86,11 +97,11 @@ namespace iPanel.Utils
         /// </summary>
         private static void HandleCancelEvent(object? sender, ConsoleCancelEventArgs e)
         {
+            e.Cancel = true;
             if ((DateTime.Now - _lastTime).TotalSeconds > 1)
             {
                 Logger.Warn("请在1s内再次按下`Ctrl+C`以退出。");
                 _lastTime = DateTime.Now;
-                e.Cancel = true;
             }
             else
             {
@@ -105,7 +116,17 @@ namespace iPanel.Utils
         public static void Exit(int code = 0)
         {
             Logger.Warn("退出中...");
-            Server.Stop();
+            ExitQuietly(code);
+        }
+
+
+        /// <summary>
+        /// 安静退出
+        /// </summary>
+        /// <param name="code">退出代码</param>
+        public static void ExitQuietly(int code = 0)
+        {
+            HttpServer.Stop();
             Handler.Instances.Values.ToList().ForEach((instance) => instance.Close());
             Handler.Consoles.Values.ToList().ForEach((console) => console.Close());
             Environment.Exit(code);

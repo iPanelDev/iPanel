@@ -1,6 +1,6 @@
 using System;
 
-namespace iPanel.Base
+namespace iPanelHost.Base
 {
     internal class PacketException : Exception
     {

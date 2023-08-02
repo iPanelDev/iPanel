@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace iPanel.Utils
+namespace iPanelHost.Utils
 {
     internal static class General
     {

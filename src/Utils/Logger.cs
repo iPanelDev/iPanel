@@ -2,9 +2,9 @@
 using Swan.Logging;
 using System.Linq;
 
-namespace iPanel.Utils
+namespace iPanelHost.Utils
 {
-    internal class iPanelLogger : ILogger
+    internal class Logger : ILogger
     {
         public LogLevel LogLevel => LogLevel.Info;
 
@@ -43,7 +43,7 @@ namespace iPanel.Utils
             }
         }
 
-        public void Info(string line)
+        public static void Info(string line)
         {
             if (line.Contains('\n'))
             {
@@ -53,7 +53,7 @@ namespace iPanel.Utils
             Console.WriteLine($"{DateTime.Now:T} \x1b[96m[Info]\x1b[0m {line}");
         }
 
-        public void Warn(string line)
+        public static void Warn(string line)
         {
             if (line.Contains('\n'))
             {
@@ -63,7 +63,7 @@ namespace iPanel.Utils
             Console.WriteLine($"{DateTime.Now:T} \x1b[33m[Warn] {line}\x1b[0m");
         }
 
-        public void Error(string line)
+        public static void Error(string line)
         {
             if (line.Contains('\n'))
             {
@@ -73,7 +73,7 @@ namespace iPanel.Utils
             Console.WriteLine($"{DateTime.Now:T} \x1b[91m[Error]{line}\x1b[0m");
         }
 
-        public void Fatal(string line)
+        public static void Fatal(string line)
         {
             if (line.Contains('\n'))
             {
@@ -83,7 +83,7 @@ namespace iPanel.Utils
             Console.WriteLine($"{DateTime.Now:T} \x1b[31m[Fatal]{line}\x1b[0m");
         }
 
-        public void Debug(string line)
+        public static void Debug(string line)
         {
             if (!Program.Setting.Debug)
             {

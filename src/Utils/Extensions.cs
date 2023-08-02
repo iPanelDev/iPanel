@@ -1,9 +1,8 @@
 using Fleck;
 using System.Threading.Tasks;
-using iPanel.Core.Client;
-using iPanel.Core.Connection;
+using iPanelHost.WebSocket.Client;
 
-namespace iPanel.Utils
+namespace iPanelHost.Utils
 {
     internal static class Extensions
     {

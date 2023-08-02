@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace iPanel.Base
+namespace iPanelHost.Base
 {
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     internal class Setting
