@@ -16,7 +16,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Fleck" Version="1.2.0" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
     <PackageReference Include="Sharprompt" Version="2.4.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

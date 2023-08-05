@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 
-namespace iPanelHost.WebSocket.Packets
+namespace iPanelHost.Base.Packets
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     internal class SentPacket : Packet
@@ -12,7 +12,7 @@ namespace iPanelHost.WebSocket.Packets
 
         public long Time { init; get; }
 
-        private static readonly Sender _selfSender = new($"iPanel Host", "host", null, new() { { "version", Program.VERSION } });
+        private static readonly Sender _selfSender = new($"iPanel Host", "host", null, new() { { "version", Constant.VERSION } });
 
         /// <summary>
         /// 发送者

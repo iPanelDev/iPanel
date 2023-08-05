@@ -1,10 +1,10 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace iPanelHost.WebSocket.Packets.DataBody
+namespace iPanelHost.Base.Packets.DataBody
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal struct VerifyBody
+    internal class VerifyBody
     {
         public string? Token;
 
@@ -14,7 +14,7 @@ namespace iPanelHost.WebSocket.Packets.DataBody
         public string? CustomName;
 
         /// <summary>
-        /// 账号
+        /// 帐号
         /// </summary>
         public string? Account;
 

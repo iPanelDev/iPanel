@@ -1,30 +1,53 @@
-﻿using System.IO;
+﻿using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.IO;
 
 namespace iPanelHost.Base
 {
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     internal class Setting
     {
-        public WSSetting WebSocket = new();
         public WebServerSetting WebServer = new();
-        public OutputSetting Output = new();
+
+        public Win32ConsoleSetting Win32Console = new();
+
         public bool Debug;
+
+        public string InstancePassword = string.Empty;
+
+        [JsonProperty("_internalVersion")]
+        public int? InternalVersion = Constant.InternalVersion;
 
         public void Check()
         {
-            if (string.IsNullOrEmpty(WebSocket.Addr))
+            if (!(InternalVersion > Constant.InternalVersion))
             {
-                throw new SettingsException($"{nameof(WebSocket.Addr)}为空");
+                Logger.Warn("设置文件setting.json版本过低，建议删除后重新生成");
             }
-            if (string.IsNullOrEmpty(WebSocket.Password))
+            if (WebServer is null)
             {
-                throw new SettingsException($"{nameof(WebSocket.Password)}为空");
+                throw new SettingsException($"{nameof(WebServer)}数据异常");
+            }
+            if (Win32Console is null)
+            {
+                throw new SettingsException($"{nameof(Win32Console)}数据异常");
+            }
+            if (string.IsNullOrEmpty(InstancePassword))
+            {
+                throw new SettingsException($"{nameof(InstancePassword)}为空");
+            }
+            if (string.IsNullOrEmpty(InstancePassword))
+            {
+                throw new SettingsException($"{nameof(InstancePassword)}为空");
             }
             if (WebServer.UrlPrefixes is null)
             {
                 throw new SettingsException($"{nameof(WebServer.UrlPrefixes)}为null");
+            }
+            if (WebServer.UrlPrefixes.Length == 0)
+            {
+                throw new SettingsException($"{nameof(WebServer.UrlPrefixes)}为空。你至少应该设置一个");
             }
             if (string.IsNullOrEmpty(WebServer.Directory))
             {
@@ -41,28 +64,35 @@ namespace iPanelHost.Base
         }
 
         [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        internal struct WSSetting
+        internal class WebServerSetting
         {
-            public string Addr = "ws://0.0.0.0:30000";
-            public string Password = string.Empty;
-
-            public WSSetting() { }
-        }
-
-        [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        internal struct WebServerSetting
-        {
+            /// <summary>
+            /// URL前缀
+            /// </summary>
             public string[] UrlPrefixes = { "http://127.0.0.1:30001" };
+
+            /// <summary>
+            /// 本地网页文件夹
+            /// </summary>
             public string Directory = "dist";
+
+            /// <summary>
+            /// 禁用热更新文件
+            /// </summary>
             public bool DisableFilesHotUpdate = true;
+
+            /// <summary>
+            /// 404网页
+            /// </summary>
             public string Page404 = "index.html";
-            public WebServerSetting() { }
         }
 
         [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        internal struct OutputSetting
+        internal class Win32ConsoleSetting
         {
-            public bool DisplayCallerMemberName;
+            public bool
+                AllowWindowClosing,
+                AllowQuickEditAndInsert;
         }
     }
 }

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using iPanelHost.WebSocket.Client;
 
-namespace iPanelHost.WebSocket.Packets
+namespace iPanelHost.Base.Packets
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     internal struct Sender
@@ -30,7 +30,7 @@ namespace iPanelHost.WebSocket.Packets
         /// 作为发送者
         /// </summary>
         public static Sender From(Instance instance)
-            => new Sender()
+            => new()
             {
                 Name = instance.CustomName,
                 Type = instance.Type.ToString().ToLowerInvariant(),
@@ -41,9 +41,8 @@ namespace iPanelHost.WebSocket.Packets
         /// 作为发送者
         /// </summary>
         public static Sender From(Console console)
-            => new Sender()
+            => new()
             {
-                Name = console.CustomName,
                 Type = console.Type.ToString().ToLowerInvariant(),
                 Address = console.Address
             };

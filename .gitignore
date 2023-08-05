@@ -8,3 +8,4 @@ node_modules
 *.mcdr
 __pycache__/**
 *.pyc
+LocalTest/**

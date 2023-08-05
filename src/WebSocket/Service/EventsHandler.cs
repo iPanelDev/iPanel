@@ -1,9 +1,9 @@
+using iPanelHost.WebSocket.Client;
+using iPanelHost.Base.Packets;
+using iPanelHost.Base.Packets.Event;
+using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using iPanelHost.WebSocket.Client;
-using iPanelHost.WebSocket.Packets;
-using iPanelHost.WebSocket.Packets.Event;
-using iPanelHost.Utils;
 
 namespace iPanelHost.WebSocket.Service
 {
@@ -21,7 +21,7 @@ namespace iPanelHost.WebSocket.Service
                         instance.Send(new InvalidDataPacket("“data”字段类型错误"));
                         break;
                     }
-                    Send(instance, packet.SubType, packet.Data.Type == JTokenType.String ? new[] { packet.Data } : packet.Data);
+                    Send(instance, packet.SubType, packet.Data);
                     break;
 
                 case "server_start":
@@ -38,7 +38,7 @@ namespace iPanelHost.WebSocket.Service
                     break;
                     
                 default:
-                    instance.Send(new InvalidParamPacket($"所请求的“{packet.Type}”类型不存在或无法调用")).Await();
+                    instance.Send(new InvalidParamPacket($"所请求的“{packet.Type}”类型不存在或无法调用"));
                     break;
             }
         }
@@ -58,7 +58,7 @@ namespace iPanelHost.WebSocket.Service
                 {
                     if (console.SubscribingTarget == guid || console.SubscribingTarget == "*")
                     {
-                        console.Send(new SentPacket("event", subType, data, Sender.From(instance)).ToString()).Await();
+                        console.Send(new SentPacket("broadcast", subType, data, Sender.From(instance)).ToString());
                     }
                 }
             }

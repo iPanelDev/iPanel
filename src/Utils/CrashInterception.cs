@@ -26,7 +26,7 @@ namespace iPanelHost.Utils
             Directory.CreateDirectory("logs/crash");
             File.AppendAllText(
                 $"log/crash/{DateTime.Now:yyyy-MM-dd}.txt",
-                $"{DateTime.Now:T} | iPanel@{Program.VERSION} | NET@{Environment.Version}{Environment.NewLine}{exceptionMsg}{Environment.NewLine}"
+                $"{DateTime.Now:T} | iPanel@{Constant.VERSION} | NET@{Environment.Version}{Environment.NewLine}{exceptionMsg}{Environment.NewLine}"
                 );
             Logger.Fatal($"崩溃日志已保存在 {(Path.GetFullPath(Path.Combine("logs", "crash", $"{DateTime.Now:yyyy-MM-dd}.txt")))}");
 

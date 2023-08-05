@@ -1,9 +1,7 @@
-﻿using Fleck;
-using iPanelHost.Utils;
+﻿using EmbedIO.WebSockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Threading.Tasks;
 
 namespace iPanelHost.WebSocket.Client
 {
@@ -14,20 +12,15 @@ namespace iPanelHost.WebSocket.Client
         /// 连接对象
         /// </summary>
         [JsonIgnore]
-        public IWebSocketConnection? WebSocketConnection;
+        public IWebSocketContext? Context;
 
         /// <summary>
         /// 地址
         /// </summary>
-        public string? Address => WebSocketConnection?.GetFullAddr();
+        public string? Address => Context?.RemoteEndPoint.ToString();
 
         [JsonIgnore]
         public DateTime LastTime;
-
-        /// <summary>
-        /// 自定义名称
-        /// </summary>
-        public string? CustomName;
 
         /// <summary>
         /// 唯一标识符
@@ -43,17 +36,17 @@ namespace iPanelHost.WebSocket.Client
         /// <summary>
         /// 关闭连接
         /// </summary>
-        public void Close() => WebSocketConnection?.Close();
+        public void Close() => Context?.Close();
 
         /// <summary>
         /// 发送文本
         /// </summary>
         /// <param name="text">发送内容</param>
-        public async Task Send(string text)
+        public void Send(string text)
         {
-            if (WebSocketConnection is not null && WebSocketConnection.IsAvailable)
+            if (Context is not null)
             {
-                await WebSocketConnection.Send(text);
+                Context.Send(text);
             }
         }
 
@@ -61,9 +54,9 @@ namespace iPanelHost.WebSocket.Client
         /// 发送文本
         /// </summary>
         /// <param name="text">发送内容</param>
-        public async Task Send(object obj)
+        public void Send(object obj)
         {
-            await Send(JsonConvert.SerializeObject(obj));
+            Send(JsonConvert.SerializeObject(obj));
         }
 
         internal enum ClientType
@@ -77,13 +70,13 @@ namespace iPanelHost.WebSocket.Client
         {
             if (GUID is null)
             {
-                throw new NotSupportedException();
+                throw new InvalidOperationException();
             }
         }
 
         protected Client(string? guid)
         {
-            GUID = guid ?? throw new System.ArgumentNullException(nameof(guid));
+            GUID = guid ?? throw new ArgumentNullException(nameof(guid));
         }
     }
 }

@@ -1,9 +1,9 @@
-using Fleck;
+using EmbedIO.WebSockets;
 using Newtonsoft.Json;
 using iPanelHost.Base;
 using iPanelHost.WebSocket.Client;
-using iPanelHost.WebSocket.Packets;
-using iPanelHost.WebSocket.Packets.DataBody;
+using iPanelHost.Base.Packets;
+using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.WebSocket.Service;
 using iPanelHost.Utils;
 using Sys = System;
@@ -25,6 +25,8 @@ namespace iPanelHost.WebSocket
         /// </summary>
         public static readonly Dictionary<string, Instance> Instances = new();
 
+        public static readonly Dictionary<string, string> Guids = new();
+
         /// <summary>
         /// 发送心跳
         /// </summary>
@@ -32,63 +34,64 @@ namespace iPanelHost.WebSocket
         {
             lock (Instances)
             {
-                Instances.ToList().Where((kv) => kv.Value.WebSocketConnection?.IsAvailable != true).ToList().ForEach((kv) => Instances.Remove(kv.Key));
-                Instances.Values.ToList().ForEach((instance) => instance?.Send(new SentPacket("action", "heartbeat").ToString()).Await());
-            }
-
-            lock (Consoles)
-            {
-                Consoles.ToList().Where((kv) => kv.Value.WebSocketConnection?.IsAvailable != true).ToList().ForEach((kv) => Consoles.Remove(kv.Key));
+                Instances.Values.ToList().ForEach((instance) => instance?.Send(new SentPacket("action", "heartbeat").ToString()));
             }
         }
 
         /// <summary>
         /// 连接处理
         /// </summary>
-        /// <param name="connection">客户端</param>
-        public static void OnOpen(IWebSocketConnection connection)
+        /// <param name="context">上下文</param>
+        public static void OnOpen(IWebSocketContext context)
         {
-            if (connection is null)
+            if (context is null)
             {
                 return;
             }
-            Verification.Request(connection);
+            Verification.Request(context);
             UpdateTitle();
         }
 
         /// <summary>
         /// 关闭处理
         /// </summary>
-        /// <param name="connection">客户端</param>
-        public static void OnClose(IWebSocketConnection connection)
+        /// <param name="context">上下文</param>
+        public static void OnClose(IWebSocketContext context)
         {
-            if (connection is null)
+            if (context is null)
             {
                 return;
             }
-            string clientUrl = connection.GetFullAddr();
-            string guid = connection.ConnectionInfo.Id.ToString("N");
+            string clientUrl = context.RemoteEndPoint.ToString();
+            if (!Guids.TryGetValue(clientUrl, out string? guid))
+            {
+                return;
+            }
             Logger.Info($"<{clientUrl}> 断开了连接");
             Instances.Remove(guid);
             Consoles.Remove(guid);
+            Guids.Remove(clientUrl);
             UpdateTitle();
         }
 
         /// <summary>
         /// 接收处理
         /// </summary>
-        /// <param name="connection">客户端</param>
+        /// <param name="context">上下文</param>
         /// <param name="message">接收信息</param>
-        public static void OnReceive(IWebSocketConnection connection, string message)
+        public static void OnReceive(IWebSocketContext context, string message)
         {
             UpdateTitle();
 
-            if (connection is null)
+            if (context is null)
             {
                 return;
             }
-            string clientUrl = connection.GetFullAddr();
-            string guid = connection.ConnectionInfo.Id.ToString("N");
+            string clientUrl = context.RemoteEndPoint.ToString();
+            if (!Guids.TryGetValue(clientUrl, out string? guid))
+            {
+                return;
+            }
             bool isConsole = Consoles.TryGetValue(guid, out Console? console) && console is not null,
                  isInstance = Instances.TryGetValue(guid, out Instance? instance) && instance is not null;
             ReceivedPacket? packet = null;
@@ -99,17 +102,17 @@ namespace iPanelHost.WebSocket
             catch (Sys.Exception e)
             {
                 Logger.Warn($"<{clientUrl}>处理数据包异常\n{e}");
-                connection.Send(new SentPacket("event", (isConsole || isInstance) ? "invalid_packet" : "disconnection", new Reason($"发送的数据包存在问题：{e.Message}")).ToString()).Await();
+                context.Send(new SentPacket("event", (isConsole || isInstance) ? "invalid_packet" : "disconnection", new Result($"发送的数据包存在问题：{e.Message}")).ToString());
                 if (!isConsole && !isInstance)
                 {
-                    connection.Close();
+                    context.Close();
                 }
                 return;
             }
 
-            if (!isConsole && !isInstance) // 对未记录的的客户端进行校验
+            if (!isConsole && !isInstance) // 对未记录的的上下文进行校验
             {
-                Verification.PreCheck(connection, packet);
+                Verification.PreCheck(context, packet);
             }
             else if (isConsole)
             {
@@ -124,7 +127,7 @@ namespace iPanelHost.WebSocket
         /// <summary>
         /// 处理数据包（控制台）
         /// </summary>
-        /// <param name="console">控制台客户端</param>
+        /// <param name="console">控制台上下文</param>
         /// <param name="packet">数据包</param>
         private static void Handle(Console console, ReceivedPacket packet)
         {
@@ -134,7 +137,7 @@ namespace iPanelHost.WebSocket
                     ActionsHandler.Handle(console, packet);
                     break;
                 default:
-                    console.Send(new SentPacket("event", "invalid_param", new Reason($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
+                    console.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
                     break;
             }
         }
@@ -142,7 +145,7 @@ namespace iPanelHost.WebSocket
         /// <summary>
         /// 处理数据包（实例）
         /// </summary>
-        /// <param name="console">实例客户端</param>
+        /// <param name="console">实例上下文</param>
         /// <param name="packet">数据包</param>
         private static void Handle(Instance instance, ReceivedPacket packet)
         {
@@ -156,7 +159,7 @@ namespace iPanelHost.WebSocket
                     EventsHandler.Handle(instance, packet);
                     break;
                 default:
-                    instance.Send(new SentPacket("event", "invalid_param", new Reason($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
+                    instance.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
                     break;
             }
         }
@@ -168,7 +171,7 @@ namespace iPanelHost.WebSocket
         {
             if (Sys.Environment.OSVersion.Platform == Sys.PlatformID.Win32NT)
             {
-                Sys.Console.Title = $"iPanel Host {Program.VERSION} [{Consoles.Count + Instances.Count} 连接]";
+                Sys.Console.Title = $"iPanel Host {Constant.VERSION} [{Consoles.Count + Instances.Count} 连接]";
             }
         }
     }

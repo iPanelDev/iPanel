@@ -8,7 +8,15 @@ namespace iPanelHost.WebSocket.Client
         [JsonIgnore]
         public FullInfo FullInfo;
 
+        /// <summary>
+        /// 短信息
+        /// </summary>
         public ShortInfo ShortInfo => new(FullInfo);
+
+        /// <summary>
+        /// 自定义名称
+        /// </summary>
+        public string? CustomName;
 
         [JsonIgnore]
         public new ClientType Type => ClientType.Instance;

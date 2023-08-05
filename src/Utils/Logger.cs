@@ -13,12 +13,8 @@ namespace iPanelHost.Utils
         public void Log(LogMessageReceivedEventArgs e)
         {
             string line = string.Empty;
-            if (Program.Setting.Output.DisplayCallerMemberName)
-            {
-                line += $"[{e.CallerMemberName}] ";
-            }
             line += e.Message;
-            Log(e.MessageType, e.Exception is null ? line : $"[{e.CallerMemberName}] {e.Exception.InnerException?.Message ?? e.Exception.Message}\n  at {e.CallerFilePath}");
+            Log(e.MessageType, e.Exception is null ? line : $"{e.Exception.InnerException?.Message ?? e.Exception.Message}\n  at {e.CallerFilePath}");
         }
 
         private void Log(LogLevel type, string line)
@@ -28,18 +24,25 @@ namespace iPanelHost.Utils
                 case LogLevel.Debug:
                     Debug(line);
                     break;
+
                 case LogLevel.Info:
                     Info(line);
                     break;
+                    
                 case LogLevel.Warning:
                     Warn(line);
                     break;
+
                 case LogLevel.Fatal:
                     Fatal(line);
                     break;
+
                 case LogLevel.Error:
                     Error(line);
                     break;
+
+                default:
+                    return;
             }
         }
 

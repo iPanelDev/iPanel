@@ -1,9 +1,8 @@
 ﻿using Newtonsoft.Json;
 using iPanelHost.Base;
-using iPanelHost.WebSocket;
 using iPanelHost.Http;
+using iPanelHost.Permissons;
 using iPanelHost.Utils;
-using Sharprompt;
 using System;
 using System.IO;
 using System.Linq;
@@ -12,18 +11,7 @@ namespace iPanelHost
 {
     internal static class Program
     {
-        /// <summary>
-        /// 版本
-        /// </summary>
-        public static readonly string VERSION = new Version(2, 2, 0).ToString();
-
-        public static string Logo = @"
-  _ ____                  _   _   _           _   
- (_)  _ \ __ _ _ __   ___| | | | | | ___  ___| |_ 
- | | |_) / _` | '_ \ / _ \ | | |_| |/ _ \/ __| __|
- | |  __/ (_| | | | |  __/ | |  _  | (_) \__ \ |_ 
- |_|_|   \__,_|_| |_|\___|_| |_| |_|\___/|___/\__|
- ";
+        private static bool _hasShownLogo;
 
         /// <summary>
         /// 设置
@@ -41,7 +29,7 @@ namespace iPanelHost
         {
             if (args.Contains("-v") || args.Contains("--version"))
             {
-                Console.WriteLine($"iPanel Host@{VERSION}");
+                Console.WriteLine($"iPanel Host - {Constant.VERSION}");
                 return;
             }
             EntryPoint();
@@ -50,9 +38,16 @@ namespace iPanelHost
         private static void EntryPoint()
         {
             Initialization.InitEnv();
+
             ReadSetting();
-            Logger.Info(Logo);
-            WsServer.Start();
+            UserManager.Read();
+
+            Win32.SetConsoleMode();
+            if (!_hasShownLogo)
+            {
+                Logger.Info(Constant.Logo);
+            }
+
             HttpServer.Start();
             Runtime.StartHandleInput();
         }
@@ -61,7 +56,10 @@ namespace iPanelHost
         {
             if (!File.Exists("setting.json") || Environment.GetCommandLineArgs().Contains("-i") || Environment.GetCommandLineArgs().Contains("--init"))
             {
-                Initialization.InitSetting();
+                Console.WriteLine(Constant.Logo);
+                _hasShownLogo = true;
+                _setting = Initialization.InitSetting();
+                return;
             }
             _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
             _setting.Check();

@@ -1,10 +1,10 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using iPanelHost.WebSocket.Client;
 using iPanelHost.WebSocket.Client.Info;
-using iPanelHost.WebSocket.Packets;
-using iPanelHost.WebSocket.Packets.Event;
+using iPanelHost.Base.Packets;
+using iPanelHost.Base.Packets.Event;
 using iPanelHost.Utils;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,7 +36,7 @@ namespace iPanelHost.WebSocket.Service
                                 .Where((kv) => kv.Value.SubscribingTarget == "*" || kv.Value.SubscribingTarget == instance.GUID)
                                 .Select((kv) => kv.Value)
                                 .ToList()
-                                .ForEach((console) => console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance))));
+                                .ForEach((console) => console.Send(new SentPacket("return", "target_info", instance.FullInfo, Sender.From(instance))));
                     }
                     break;
 
@@ -61,7 +61,7 @@ namespace iPanelHost.WebSocket.Service
                 case "server_start":
                 case "server_stop":
                 case "server_kill":
-                    if (!CheckTarget(console, packet, out subAll, out instance) && instance is null)
+                    if (!CheckTarget(console, out subAll, out instance) && instance is null)
                     {
                         console.Send(new InvalidTargetPacket());
                         break;
@@ -71,7 +71,7 @@ namespace iPanelHost.WebSocket.Service
 
                 case "customize":
                 case "server_input":
-                    if (!CheckTarget(console, packet, out subAll, out instance) && instance is null)
+                    if (!CheckTarget(console, out subAll, out instance) && instance is null)
                     {
                         console.Send(new InvalidTargetPacket());
                         break;
@@ -87,9 +87,9 @@ namespace iPanelHost.WebSocket.Service
                 case "list_instance":
                     console.Send(
                         new SentPacket(
-                            "event",
+                            "return",
                             "list",
-                            new JObject() { { "type", "instance" }, { "list", JArray.FromObject(Handler.Instances.Values) } }
+                            new JObject { { "type", "instance" }, { "list", JArray.FromObject(Handler.Instances.Values) } }
                             ).ToString()
                         );
                     break;
@@ -97,9 +97,9 @@ namespace iPanelHost.WebSocket.Service
                 case "list_console":
                     console.Send(
                         new SentPacket(
-                            "event",
+                            "return",
                             "list",
-                            new JObject() { { "type", "console" }, { "list", JArray.FromObject(Handler.Consoles.Values) } }
+                            new JObject { { "type", "console" }, { "list", JArray.FromObject(Handler.Consoles.Values) } }
                             ).ToString()
                         );
                     break;
@@ -115,7 +115,7 @@ namespace iPanelHost.WebSocket.Service
                         Handler.Instances.TryGetValue(target!, out instance))
                     {
                         console.SubscribingTarget = target;
-                        console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance)));
+                        console.Send(new SentPacket("return", "target_info", instance.FullInfo, Sender.From(instance)));
                     }
                     else
                     {
@@ -126,13 +126,13 @@ namespace iPanelHost.WebSocket.Service
                 case "get_info":
                     if (!string.IsNullOrEmpty(console.SubscribingTarget) && Handler.Instances.TryGetValue(console.SubscribingTarget!, out instance))
                     {
-                        console.Send(new SentPacket("event", "target_info", instance.FullInfo, Sender.From(instance)));
+                        console.Send(new SentPacket("return", "target_info", instance.FullInfo, Sender.From(instance)));
                     }
                     else if (console.SubscribingTarget == "*")
                     {
                         Dictionary<string, FullInfo> fullInfos = new();
                         Handler.Instances.Values.ToList().ForEach((i) => fullInfos.Add(i.GUID, i.FullInfo));
-                        console.Send(new SentPacket("event", "targets_info", fullInfos));
+                        console.Send(new SentPacket("return", "targets_info", fullInfos));
                     }
                     else
                     {
@@ -152,7 +152,7 @@ namespace iPanelHost.WebSocket.Service
         /// <param name="console">控制台客户端</param>
         /// <param name="packet">数据包</param>
         /// <returns>检查结果</returns>
-        private static bool CheckTarget(Console console, ReceivedPacket packet, out bool subAll, out Instance? instance)
+        private static bool CheckTarget(Console console, out bool subAll, out Instance? instance)
         {
             instance = null;
             subAll = console.SubscribingTarget == "*";
@@ -185,7 +185,7 @@ namespace iPanelHost.WebSocket.Service
             }
             else
             {
-                instance?.Send(new SentPacket("action", subType, data, Sender.From(console)).ToString()).Await();
+                instance?.Send(new SentPacket("action", subType, data, Sender.From(console)).ToString());
             }
         }
     }

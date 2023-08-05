@@ -1,10 +1,11 @@
-using Fleck;
-using Newtonsoft.Json.Linq;
+using EmbedIO.WebSockets;
+using iPanelHost.Permissons;
 using iPanelHost.WebSocket.Client;
-using iPanelHost.WebSocket.Packets;
-using iPanelHost.WebSocket.Packets.DataBody;
-using iPanelHost.WebSocket.Packets.Event;
+using iPanelHost.Base.Packets;
+using iPanelHost.Base.Packets.DataBody;
+using iPanelHost.Base.Packets.Event;
 using iPanelHost.Utils;
+using Newtonsoft.Json.Linq;
 using Sys = System;
 using System.Timers;
 
@@ -12,28 +13,33 @@ namespace iPanelHost.WebSocket.Service
 {
     internal static class Verification
     {
-        public static void Request(IWebSocketConnection connection)
+        public static void Request(IWebSocketContext context)
         {
             if (Program.Setting is null)
             {
                 return;
             }
-            string clientUrl = connection.GetFullAddr();
-            string guid = connection.ConnectionInfo.Id.ToString("N");
+            string clientUrl = context.RemoteEndPoint.ToString();
+            if (Handler.Guids.ContainsKey(clientUrl))
+            {
+                return;
+            }
+            string guid = Sys.Guid.NewGuid().ToString("N");
+            Handler.Guids.Add(clientUrl, guid);
             string shortGuid = guid.Substring(0, 10);
 
-            connection.Send(new SentPacket("action", "verify_request", new VerifyRequest(5000, shortGuid)).ToString()).Await();
+            context.Send(new SentPacket("action", "verify_request", new VerifyRequest(5000, shortGuid)).ToString());
 
-            Logger.Info($"<{clientUrl}> 尝试连接，预期MD5值：{General.GetMD5(shortGuid + Program.Setting.WebSocket.Password)}");
+            Logger.Info($"<{clientUrl}> 尝试连接，预期MD5值：{General.GetMD5(shortGuid + Program.Setting.InstancePassword)}");
 
             Timer verifyTimer = new(5000) { AutoReset = false };
             verifyTimer.Start();
             verifyTimer.Elapsed += (_, _) =>
             {
-                if (!Handler.Consoles.ContainsKey(guid) && !Handler.Instances.ContainsKey(guid) && connection.IsAvailable)
+                if (!Handler.Consoles.ContainsKey(guid) && !Handler.Instances.ContainsKey(guid))
                 {
-                    connection.Send(new SentPacket("event", "disconnection", new Reason("验证超时")).ToString()).Await();
-                    connection.Close();
+                    context.Send(new SentPacket("event", "disconnection", new Result(Result.TimeoutInVerification)).ToString());
+                    context.Close();
                 }
                 verifyTimer.Stop();
                 verifyTimer.Dispose();
@@ -43,37 +49,37 @@ namespace iPanelHost.WebSocket.Service
         /// <summary>
         /// 预检
         /// </summary>
-        /// <param name="connection">客户端</param>
+        /// <param name="context">客户端</param>
         /// <param name="packet">数据包</param>
-        public static void PreCheck(IWebSocketConnection connection, ReceivedPacket packet)
+        public static void PreCheck(IWebSocketContext context, ReceivedPacket packet)
         {
             if (packet.Type != "action" ||
                 packet.SubType != "verify")
             {
-                connection.Send(new SentPacket("event", "disconnection", new Reason("你还未通过验证")).ToString()).Await();
-                connection.Close();
+                context.Send(new SentPacket("event", "disconnection", new Result(Result.NotVerifyYet)).ToString());
+                context.Close();
                 return;
             }
-            if (!Verify(connection, packet.Data))
+            if (!Verify(context, packet.Data))
             {
-                connection.Send(new SentPacket("event", "disconnection", new Reason("验证失败，请稍后重试")).ToString()).Await();
-                connection.Close();
+                context.Send(new SentPacket("event", "disconnection", new Result(Result.FailToVerify)).ToString());
+                context.Close();
             }
         }
 
         /// <summary>
         /// 验证
         /// </summary>
-        /// <param name="connection">客户端</param>
+        /// <param name="context">客户端</param>
         /// <param name="data">验证内容
         /// </param>
         /// <returns>验证结果</returns>
-        private static bool Verify(IWebSocketConnection connection, JToken? data)
+        private static bool Verify(IWebSocketContext context, JToken? data)
         {
+            string clientUrl = context.RemoteEndPoint.ToString();
             if (data is null)
             {
-                connection.Send(new VerifyResultPacket(false, "数据异常").ToString()).Await();
-                Logger.Warn($"<{connection.GetFullAddr()}> 验证失败：数据异常");
+                SendVerifyResultPacket(clientUrl, context, Result.DataAnomaly);
                 return false;
             }
 
@@ -84,44 +90,90 @@ namespace iPanelHost.WebSocket.Service
             }
             catch (Sys.Exception e)
             {
-                Logger.Error($"{connection.GetFullAddr()} 获取验证内容时异常\n{e}");
+                SendVerifyResultPacket(clientUrl, context, Result.ErrorWhenGettingPacketContent);
+                Logger.Fatal(e.ToString());
                 return false;
             }
 
-            if (verifyBody.Token != General.GetMD5(connection.ConnectionInfo.Id.ToString("N").Substring(0, 10) + Program.Setting.WebSocket.Password))
+            if (!Handler.Guids.TryGetValue(clientUrl, out string? guid))
             {
-                connection.Send(new VerifyResultPacket(false, "MD5校验失败").ToString()).Await();
-                Logger.Warn($"<{connection.GetFullAddr()}> 验证失败：MD5校验失败");
+                SendVerifyResultPacket(clientUrl, context, Result.InternalDataError);
                 return false;
             }
 
-            string guid = connection.ConnectionInfo.Id.ToString("N");
-            if (verifyBody.ClientType?.ToLowerInvariant() == "instance")
+            switch (verifyBody.ClientType?.ToLowerInvariant())
             {
-                Instance instance = new(guid)
-                {
-                    WebSocketConnection = connection,
-                    CustomName = verifyBody.CustomName,
-                };
-                Handler.Instances.Add(guid, instance);
-                connection.Send(new VerifyResultPacket(true).ToString()).Await();
-                Logger.Info($"<{connection.GetFullAddr()}> 验证成功（实例），自定义名称为：{verifyBody.CustomName ?? "null"}");
-                return true;
+                case "instance":
+                    return VerifyInstance(context, clientUrl, guid, verifyBody);
+
+                case "console":
+                    return VerifyConsole(context, clientUrl, guid, verifyBody);
+
+                default:
+                    SendVerifyResultPacket(clientUrl, context, Result.IncorrectClientType);
+                    return false;
+            }
+        }
+
+        private static bool VerifyInstance(IWebSocketContext context, string clientUrl, string guid, VerifyBody verifyBody)
+        {
+            if (verifyBody.Token != General.GetMD5(guid.Substring(0, 10) + Program.Setting.InstancePassword))
+            {
+                SendVerifyResultPacket(clientUrl, context, Result.FailToVerify);
+                return false;
             }
 
-            if (verifyBody.ClientType?.ToLowerInvariant() == "console")
+            Instance instance = new(guid)
             {
-                Console console = new(guid)
-                {
-                    WebSocketConnection = connection,
-                    CustomName = verifyBody.CustomName,
-                };
-                Handler.Consoles.Add(guid, console);
-                connection.Send(new VerifyResultPacket(true).ToString()).Await();
-                Logger.Info($"<{connection.GetFullAddr()}> 验证成功（控制台），自定义名称为：{verifyBody.CustomName ?? "null"}");
-                return true;
+                Context = context,
+                CustomName = verifyBody.CustomName,
+            };
+            Handler.Instances.Add(guid, instance);
+            context.Send(new VerifyResultPacket(true).ToString());
+            Logger.Info($"<{clientUrl}> 验证成功（实例），自定义名称为：{verifyBody.CustomName ?? "null"}");
+            return true;
+        }
+
+        /// <summary>
+        /// 验证控制台
+        /// </summary>
+        /// <returns>验证结果</returns>
+        private static bool VerifyConsole(IWebSocketContext context, string clientUrl, string guid, VerifyBody verifyBody)
+        {
+            if (string.IsNullOrEmpty(verifyBody.Account))
+            {
+                SendVerifyResultPacket(clientUrl, context, Result.EmptyAccount);
+                return false;
             }
-            return false;
+
+            if (!(UserManager.Users.TryGetValue(verifyBody.Account!, out User? user) &&
+                  verifyBody.Token == General.GetMD5(guid.Substring(0, 10) + verifyBody.Account! + user.Password)))
+            {
+                SendVerifyResultPacket(clientUrl, context, Result.IncorrectAccountOrPassword);
+                return false;
+            }
+
+            Console console = new(guid)
+            {
+                Context = context,
+                User = user
+            };
+
+            Handler.Consoles.Add(guid, console);
+            SendVerifyResultPacket(clientUrl, context);
+            Logger.Info($"<{clientUrl}> 验证成功（控制台）");
+            return true;
+        }
+
+        private static void SendVerifyResultPacket(string clientUrl, IWebSocketContext context, string? reason = null)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                context.Send(new VerifyResultPacket(true).ToString());
+                return;
+            }
+            context.Send(new VerifyResultPacket(false, reason).ToString());
+            Logger.Warn($"<{clientUrl}> 验证失败：{reason}");
         }
     }
 }

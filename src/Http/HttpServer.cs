@@ -1,8 +1,8 @@
 using EmbedIO;
+using iPanelHost.WebSocket;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Swan.Logging;
 
@@ -11,8 +11,6 @@ namespace iPanelHost.Http
     internal static class HttpServer
     {
         private static WebServer? _server;
-
-        private static Thread? _thread;
 
         /// <summary>
         /// 启动服务器
@@ -25,10 +23,10 @@ namespace iPanelHost.Http
                 return;
             }
             _server = new((option) => Program.Setting.WebServer.UrlPrefixes.ToList().ForEach((url) => option.AddUrlPrefix(url)));
+            _server.WithModule(new WsModule("/ws"));
             _server.WithStaticFolder("/", "dist", Program.Setting.WebServer.DisableFilesHotUpdate);
             _server.HandleHttpException(Handle404);
-            _thread = new Thread(() => _server.RunAsync().Wait()) { IsBackground = true };
-            _thread.Start();
+            _server.RunAsync();
         }
 
         /// <summary>
@@ -48,16 +46,16 @@ namespace iPanelHost.Http
             {
                 if (Program.Setting.WebServer.DisableFilesHotUpdate)
                 {
-                    _indexHtml ??= File.Exists(_indexHtmlPath) ? File.ReadAllText(_indexHtmlPath) : null;
+                    _404HtmlContent ??= File.Exists(_404HtmlPath) ? File.ReadAllText(_404HtmlPath) : null;
                 }
                 else
                 {
-                    _indexHtml = File.Exists(_indexHtmlPath) ? File.ReadAllText(_indexHtmlPath) : null;
+                    _404HtmlContent = File.Exists(_404HtmlPath) ? File.ReadAllText(_404HtmlPath) : _404HtmlContent;
                 }
-                if (!string.IsNullOrEmpty(_indexHtml))
+                if (!string.IsNullOrEmpty(_404HtmlContent))
                 {
                     context.Response.StatusCode = 200;
-                    await context.SendStringAsync(_indexHtml!, "text/html", Encoding.UTF8);
+                    await context.SendStringAsync(_404HtmlContent!, "text/html", Encoding.UTF8);
                     return;
                 }
             }
@@ -65,8 +63,8 @@ namespace iPanelHost.Http
             await context.SendStandardHtmlAsync(exception.StatusCode);
         }
 
-        private static string? _indexHtmlPath => Path.Combine(Program.Setting.WebServer.Directory, "index.html");
+        private static string? _404HtmlPath => Path.Combine(Program.Setting.WebServer.Directory, Program.Setting.WebServer.Page404);
 
-        private static string? _indexHtml;
+        private static string? _404HtmlContent;
     }
 }

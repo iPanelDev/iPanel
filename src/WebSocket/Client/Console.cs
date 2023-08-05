@@ -1,3 +1,4 @@
+using iPanelHost.Permissons;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -11,7 +12,7 @@ namespace iPanelHost.WebSocket.Client
 
         public string? SubscribingTarget;
 
-        public string? Account;
+        public User? User;
 
         public Console(string? guid) : base(guid)
         { }

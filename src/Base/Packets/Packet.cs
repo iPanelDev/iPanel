@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace iPanelHost.WebSocket.Packets
+namespace iPanelHost.Base.Packets
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     internal abstract class Packet

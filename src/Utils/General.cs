@@ -1,3 +1,4 @@
+using System;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -13,12 +14,23 @@ namespace iPanelHost.Utils
         public static string GetMD5(string text)
         {
             byte[] targetData = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(text));
-            string result = string.Empty;
+            StringBuilder stringBuilder = new();
             for (int i = 0; i < targetData.Length; i++)
             {
-                result += targetData[i].ToString("x2");
+                stringBuilder.Append(targetData[i].ToString("x2"));
             }
-            return result;
+            return stringBuilder.ToString();
+        }
+
+        /// <summary>
+        /// 安全读取键盘
+        /// </summary>
+        public static void SafeReadKey()
+        {
+            if (!Console.IsInputRedirected)
+            {
+                Console.ReadKey(true);
+            }
         }
     }
 }
