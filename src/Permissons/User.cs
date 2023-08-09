@@ -25,7 +25,7 @@ namespace iPanelHost.Permissons
         /// <summary>
         /// 实例内容
         /// </summary>
-        public string[] Instances = { };
+        public string[] Instances = Array.Empty<string>();
 
         /// <summary>
         /// 描述

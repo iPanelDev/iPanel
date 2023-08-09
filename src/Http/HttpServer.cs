@@ -1,10 +1,10 @@
 using EmbedIO;
+using iPanelHost.Utils;
 using iPanelHost.WebSocket;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Swan.Logging;
 
 namespace iPanelHost.Http
 {
@@ -17,14 +17,16 @@ namespace iPanelHost.Http
         /// </summary>
         public static void Start()
         {
-            if (Program.Setting.WebServer.UrlPrefixes.Length == 0)
-            {
-                Logger.Warn($"{nameof(Program.Setting.WebServer.UrlPrefixes)}为空，将不启动网页服务器");
-                return;
-            }
             _server = new((option) => Program.Setting.WebServer.UrlPrefixes.ToList().ForEach((url) => option.AddUrlPrefix(url)));
             _server.WithModule(new WsModule("/ws"));
-            _server.WithStaticFolder("/", "dist", Program.Setting.WebServer.DisableFilesHotUpdate);
+            if (Directory.Exists(Program.Setting.WebServer.Directory))
+            {
+                _server.WithStaticFolder("/", Program.Setting.WebServer.Directory, Program.Setting.WebServer.DisableFilesHotUpdate);
+            }
+            else
+            {
+                Logger.Warn("静态网页目录不存在");
+            }
             _server.HandleHttpException(Handle404);
             _server.RunAsync();
         }

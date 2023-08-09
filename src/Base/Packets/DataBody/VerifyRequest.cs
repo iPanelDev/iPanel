@@ -16,6 +16,7 @@ namespace iPanelHost.Base.Packets.DataBody
         /// </summary>
         public string Salt;
 
+#pragma warning disable CA1822
         /// <summary>
         /// 当前版本
         /// </summary>
@@ -25,6 +26,7 @@ namespace iPanelHost.Base.Packets.DataBody
         /// 内部版本号
         /// </summary>
         public int InternalVersion => Constant.InternalVersion;
+#pragma warning restore CA1822
 
         public VerifyRequest(int timeout, string salt)
         {

@@ -17,7 +17,7 @@ namespace iPanelHost.Utils
             Log(e.MessageType, e.Exception is null ? line : $"{e.Exception.InnerException?.Message ?? e.Exception.Message}\n  at {e.CallerFilePath}");
         }
 
-        private void Log(LogLevel type, string line)
+        private static void Log(LogLevel type, string line)
         {
             switch (type)
             {
@@ -28,7 +28,7 @@ namespace iPanelHost.Utils
                 case LogLevel.Info:
                     Info(line);
                     break;
-                    
+
                 case LogLevel.Warning:
                     Warn(line);
                     break;

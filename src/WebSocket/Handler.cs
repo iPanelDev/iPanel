@@ -1,11 +1,11 @@
 using EmbedIO.WebSockets;
-using Newtonsoft.Json;
 using iPanelHost.Base;
 using iPanelHost.WebSocket.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.WebSocket.Service;
 using iPanelHost.Utils;
+using Newtonsoft.Json;
 using Sys = System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,12 +81,12 @@ namespace iPanelHost.WebSocket
         /// <param name="message">接收信息</param>
         public static void OnReceive(IWebSocketContext context, string message)
         {
-            UpdateTitle();
-
             if (context is null)
             {
                 return;
             }
+            UpdateTitle();
+
             string clientUrl = context.RemoteEndPoint.ToString();
             if (!Guids.TryGetValue(clientUrl, out string? guid))
             {
@@ -94,7 +94,7 @@ namespace iPanelHost.WebSocket
             }
             bool isConsole = Consoles.TryGetValue(guid, out Console? console) && console is not null,
                  isInstance = Instances.TryGetValue(guid, out Instance? instance) && instance is not null;
-            ReceivedPacket? packet = null;
+            ReceivedPacket? packet;
             try
             {
                 packet = JsonConvert.DeserializeObject<ReceivedPacket>(message) ?? throw new PacketException("空数据包");
@@ -136,6 +136,7 @@ namespace iPanelHost.WebSocket
                 case "action":
                     ActionsHandler.Handle(console, packet);
                     break;
+
                 default:
                     console.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
                     break;
@@ -155,9 +156,11 @@ namespace iPanelHost.WebSocket
                 case "action":
                     ActionsHandler.Handle(instance, packet);
                     break;
+
                 case "event":
                     EventsHandler.Handle(instance, packet);
                     break;
+
                 default:
                     instance.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
                     break;
@@ -171,7 +174,7 @@ namespace iPanelHost.WebSocket
         {
             if (Sys.Environment.OSVersion.Platform == Sys.PlatformID.Win32NT)
             {
-                Sys.Console.Title = $"iPanel Host {Constant.VERSION} [{Consoles.Count + Instances.Count} 连接]";
+                Sys.Console.Title = $"iPanel Host {Constant.VERSION} [{WsModule.This?.ActiveContextsCount ?? 0} 连接]";
             }
         }
     }

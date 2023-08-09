@@ -20,6 +20,11 @@ namespace iPanelHost.WebSocket
             Encoding = new UTF8Encoding(false);
         }
 
+        /// <summary>
+        /// 活跃数量
+        /// </summary>
+        public int ActiveContextsCount => ActiveContexts.Count;
+
         protected override void OnStart(CancellationToken cancellationToken)
         {
             _heartbeatTimer.Elapsed += Handler.Heartbeat;
@@ -35,10 +40,10 @@ namespace iPanelHost.WebSocket
         protected override Task OnClientDisconnectedAsync(IWebSocketContext context)
             => Task.Run(() => Handler.OnClose(context));
 
-        public void Send(IWebSocketContext context, string payload) 
+        public void Send(IWebSocketContext context, string payload)
             => SendAsync(context, payload).Wait();
 
-        public void Close(IWebSocketContext context) 
+        public void Close(IWebSocketContext context)
             => CloseAsync(context).Wait();
     }
 }

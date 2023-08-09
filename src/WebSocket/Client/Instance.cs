@@ -19,7 +19,7 @@ namespace iPanelHost.WebSocket.Client
         public string? CustomName;
 
         [JsonIgnore]
-        public new ClientType Type => ClientType.Instance;
+        public override ClientType Type => ClientType.Instance;
 
         public Instance(string? guid) : base(guid)
         { }

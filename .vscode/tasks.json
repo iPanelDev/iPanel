@@ -8,7 +8,8 @@
             "args": [
                 "build",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "/p:WarningLevel=0"
             ],
             "group": "build",
             "presentation": {

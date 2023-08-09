@@ -27,6 +27,7 @@ namespace iPanelHost.Inputs
   ?/h/help      显示此页面
   v/version     查看当前版本
   cls/clear     清屏
+  logo          显示iPanel的Logo
   exit/^C       退出
   ";
 
@@ -71,9 +72,13 @@ namespace iPanelHost.Inputs
                     Runtime.Exit();
                     break;
 
+                case "logo":
+                    Logger.Info(Constant.LogoIco.Replace("\\x1b", "\x1b"));
+                    break;
+
                 case "v":
                 case "version":
-                    Logger.Info($"iPanel Host@{Constant.VERSION}");
+                    Logger.Info(Constant.VERSION);
                     break;
 
                 case "?":

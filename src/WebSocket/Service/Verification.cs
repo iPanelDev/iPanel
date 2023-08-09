@@ -86,7 +86,7 @@ namespace iPanelHost.WebSocket.Service
             VerifyBody verifyBody;
             try
             {
-                verifyBody = data.ToObject<VerifyBody?>() ?? throw new Sys.ArgumentNullException();
+                verifyBody = data.ToObject<VerifyBody?>() ?? throw new Sys.NullReferenceException();
             }
             catch (Sys.Exception e)
             {
@@ -153,6 +153,7 @@ namespace iPanelHost.WebSocket.Service
                 return false;
             }
 
+            user.LastLogin = Sys.DateTime.Now;
             Console console = new(guid)
             {
                 Context = context,

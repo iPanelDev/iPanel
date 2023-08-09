@@ -1,7 +1,7 @@
-using iPanelHost.WebSocket.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.Event;
 using iPanelHost.Utils;
+using iPanelHost.WebSocket.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -16,7 +16,7 @@ namespace iPanelHost.WebSocket.Service
             {
                 case "server_input":
                 case "server_output":
-                    if (packet.Data is null || packet.Data.Type != JTokenType.Array)
+                    if (packet.Data?.Type != JTokenType.Array)
                     {
                         instance.Send(new InvalidDataPacket("“data”字段类型错误"));
                         break;
@@ -29,7 +29,7 @@ namespace iPanelHost.WebSocket.Service
                     break;
 
                 case "server_stop":
-                    if (packet.SubType == "server_stop" && packet.Data?.Type != JTokenType.Integer)
+                    if (packet.Data?.Type != JTokenType.Integer)
                     {
                         instance.Send(new InvalidParamPacket("“data”字段类型错误"));
                         break;
@@ -51,7 +51,7 @@ namespace iPanelHost.WebSocket.Service
         /// <param name="data">数据主体</param>
         private static void Send(Instance instance, string subType, object? data)
         {
-            string guid = instance.GUID ?? throw new System.ArgumentNullException();
+            string guid = instance.GUID ?? throw new System.NullReferenceException($"{nameof(instance.GUID)}为空");
             lock (Handler.Consoles)
             {
                 foreach (Console console in Handler.Consoles.Values)

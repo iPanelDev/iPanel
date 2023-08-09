@@ -12,3 +12,4 @@ dotnet_diagnostic.CA1416.severity = none
 
 # 由于此调用不会等待，因此在此调用完成之前将会继续执行当前方法。请考虑将 "await" 运算符应用于调用结果
 dotnet_diagnostic.CS4014.severity = none
+

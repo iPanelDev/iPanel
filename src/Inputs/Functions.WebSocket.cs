@@ -23,7 +23,7 @@ namespace iPanelHost.Inputs
             }
             try
             {
-                KeyValuePair<string, Instance> keyValuePair = Prompt.Select<KeyValuePair<string, Instance>>("请选择要断开的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
+                KeyValuePair<string, Instance> keyValuePair = Prompt.Select("请选择要断开的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
                 keyValuePair.Value?.Send(new SentPacket("event", "disconnection", new Result("被用户手动断开")));
                 keyValuePair.Value?.Close();
                 return;
@@ -50,7 +50,7 @@ namespace iPanelHost.Inputs
             }
             try
             {
-                KeyValuePair<string, Instance> keyValuePair = Prompt.Select<KeyValuePair<string, Instance>>("请选择要修改名称的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
+                KeyValuePair<string, Instance> keyValuePair = Prompt.Select("请选择要修改名称的实例", Handler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
                 if (Handler.Instances.ContainsKey(keyValuePair.Key))
                 {
                     string? newName = Prompt.Input<string>("请输入新的名称", null, Handler.Instances[keyValuePair.Key].CustomName);

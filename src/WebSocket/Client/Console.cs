@@ -8,7 +8,7 @@ namespace iPanelHost.WebSocket.Client
     internal class Console : Client
     {
         [JsonIgnore]
-        public new ClientType Type => ClientType.Console;
+        public override ClientType Type => ClientType.Console;
 
         public string? SubscribingTarget;
 

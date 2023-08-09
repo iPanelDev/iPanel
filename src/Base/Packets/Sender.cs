@@ -6,7 +6,7 @@ using iPanelHost.WebSocket.Client;
 namespace iPanelHost.Base.Packets
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal struct Sender
+    internal class Sender
     {
         public string? Name;
 
@@ -17,6 +17,11 @@ namespace iPanelHost.Base.Packets
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, object>? Metadata;
+
+        protected Sender()
+        {
+            Type = "unknown";
+        }
 
         public Sender(string name, string type, string? address, Dictionary<string, object> metadata)
         {

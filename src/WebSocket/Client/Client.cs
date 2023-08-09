@@ -31,7 +31,7 @@ namespace iPanelHost.WebSocket.Client
         /// 类型
         /// </summary>
         [JsonIgnore]
-        public ClientType Type;
+        public virtual ClientType Type => ClientType.Unknown;
 
         /// <summary>
         /// 关闭连接
@@ -44,10 +44,7 @@ namespace iPanelHost.WebSocket.Client
         /// <param name="text">发送内容</param>
         public void Send(string text)
         {
-            if (Context is not null)
-            {
-                Context.Send(text);
-            }
+            Context?.Send(text);
         }
 
         /// <summary>

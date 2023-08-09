@@ -45,9 +45,15 @@ namespace iPanelHost
             Win32.SetConsoleMode();
             if (!_hasShownLogo)
             {
-                Logger.Info(Constant.Logo);
+                if (Setting.DisplayShortLogoWhenStart)
+                {
+                    Logger.Info(Constant.Logo);
+                }
+                else
+                {
+                    Logger.Info(Constant.LogoIco.Replace("\\x1b", "\x1b"));
+                }
             }
-
             HttpServer.Start();
             Runtime.StartHandleInput();
         }
@@ -56,7 +62,7 @@ namespace iPanelHost
         {
             if (!File.Exists("setting.json") || Environment.GetCommandLineArgs().Contains("-i") || Environment.GetCommandLineArgs().Contains("--init"))
             {
-                Console.WriteLine(Constant.Logo);
+                Console.WriteLine(Constant.LogoIco.Replace("\\x1b", "\x1b"));
                 _hasShownLogo = true;
                 _setting = Initialization.InitSetting();
                 return;

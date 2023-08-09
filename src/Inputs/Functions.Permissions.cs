@@ -1,3 +1,4 @@
+using ConsoleTables;
 using iPanelHost.Permissons;
 using iPanelHost.Utils;
 using iPanelHost.WebSocket;
@@ -11,16 +12,16 @@ namespace iPanelHost.Inputs
 {
     internal static partial class Funcions
     {
-        private static User _newUser => new()
+        private static User NewUser => new()
         {
             Password = Prompt.Password("密码",
                 placeholder: "不要与QQ或服务器等密码重复；推荐大小写字母数字结合",
                 validators: new[] {
                     Validators.Required("密码不可为空"),
                     Validators.MinLength(6, "密码长度过短"),
-                    Validators.RegularExpression(@"^[^\s]+$", "密码不得含有空格")
+                    Validators.RegularExpression(@"^[^\s]+$", "密码不得含有空格"),
                 }),
-            Level = Prompt.Select<KeyValuePair<int, string>>(
+            Level = Prompt.Select(
                 "权限等级",
                 UserManager.LevelDescription,
                 textSelector: (kv) => kv.Value
@@ -28,7 +29,7 @@ namespace iPanelHost.Inputs
             Description = Prompt.Input<string>("描述", placeholder: "（可选）")?.Trim()
         };
 
-        private static string _selectUser => Prompt.Select<KeyValuePair<string, User>>(
+        private static string SelectUser => Prompt.Select(
             "选择一个用户",
             UserManager.Users,
             textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLogin:d t}"
@@ -69,10 +70,12 @@ namespace iPanelHost.Inputs
                 case "list":
                     lock (UserManager.Users)
                     {
+                        ConsoleTable consoleTable = new("Account", "Level", "Last Login Time", "Description");
                         foreach (var keyValuePair in UserManager.Users)
                         {
-                            Logger.Info($"{keyValuePair.Key}\t权限等级: {keyValuePair.Value.Level} 上次登录时间: {keyValuePair.Value.LastLogin:d t}");
+                            consoleTable.AddRow(keyValuePair.Key, keyValuePair.Value.Level, keyValuePair.Value.LastLogin?.ToString("g") ?? "-", keyValuePair.Value.Description ?? "-");
                         }
+                        Logger.Info(consoleTable.ToMinimalString());
                     }
                     break;
 
@@ -96,12 +99,13 @@ namespace iPanelHost.Inputs
             {
                 if (!UserManager.Add(
                     Prompt.Input<string>("帐号", validators: new[] {
-                       Validators.Required("帐号不可为空"),
-                       Validators.RegularExpression(@"^[^\s]+$", "帐号不得含有空格"),
-                       Validators.MinLength(3, "帐号长度过短"),
-                       Validators.MaxLength(16, "帐号长度过长"),
+                        Validators.Required("帐号不可为空"),
+                        Validators.RegularExpression(@"^[^\s]+$", "帐号不得含有空格"),
+                        Validators.MinLength(3, "帐号长度过短"),
+                        Validators.MaxLength(16, "帐号长度过长"),
+                        Validators.RegularExpression(@"^[\w\.-]+$", "帐号不得含有除[A-Za-z0-9._-]以外的字符"),
                        (value) => value is string account && !UserManager.Users.ContainsKey(account) ? ValidationResult.Success : new("帐号已存在")
-                    }), _newUser))
+                    }), NewUser))
                 {
                     Logger.Warn("因字典key重复而创建失败");
                     return;
@@ -122,7 +126,7 @@ namespace iPanelHost.Inputs
         {
             try
             {
-                string key = _selectUser;
+                string key = SelectUser;
 
                 if (key == "admin")
                 {
@@ -154,12 +158,12 @@ namespace iPanelHost.Inputs
         {
             try
             {
-                string key = Prompt.Select<KeyValuePair<string, User>>(
+                string key = Prompt.Select(
                     "选择要修改的用户",
                     UserManager.Users,
                     textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLogin:d t}"
                     ).Key;
-                User user = _newUser;
+                User user = NewUser;
                 lock (UserManager.Users)
                 {
                     if (!UserManager.Users.ContainsKey(key))
@@ -187,7 +191,7 @@ namespace iPanelHost.Inputs
         {
             try
             {
-                string key = _selectUser;
+                string key = SelectUser;
 
                 if (!UserManager.Users.TryGetValue(key, out User? user))
                 {
@@ -213,13 +217,13 @@ namespace iPanelHost.Inputs
                 }
                 IEnumerable<KeyValuePair<string, Instance?>> all = dict!.Concat(Handler.Instances).Distinct()!;
 
-                if (all.Count() == 0)
+                if (!all.Any())
                 {
                     Logger.Warn("没有在线实例且该用户的当前可使用实例为空");
                     return;
                 }
 
-                user.Instances = Prompt.MultiSelect<KeyValuePair<string, Instance?>>(
+                user.Instances = Prompt.MultiSelect(
                     "选择实例",
                     all,
                     minimum: 0,

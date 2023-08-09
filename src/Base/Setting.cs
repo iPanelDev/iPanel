@@ -1,7 +1,6 @@
 ﻿using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System.IO;
 
 namespace iPanelHost.Base
 {
@@ -16,12 +15,14 @@ namespace iPanelHost.Base
 
         public string InstancePassword = string.Empty;
 
+        public bool DisplayShortLogoWhenStart;
+
         [JsonProperty("_internalVersion")]
         public int? InternalVersion = Constant.InternalVersion;
 
         public void Check()
         {
-            if (!(InternalVersion > Constant.InternalVersion))
+            if (!(InternalVersion >= Constant.InternalVersion))
             {
                 Logger.Warn("设置文件setting.json版本过低，建议删除后重新生成");
             }
@@ -56,10 +57,6 @@ namespace iPanelHost.Base
             if (string.IsNullOrEmpty(WebServer.Page404))
             {
                 throw new SettingsException($"{nameof(WebServer.Page404)}为空");
-            }
-            if (!Directory.Exists(WebServer.Directory))
-            {
-                throw new SettingsException($"{nameof(WebServer.Directory)}不存在", new DirectoryNotFoundException());
             }
         }
 

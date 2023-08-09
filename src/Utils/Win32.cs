@@ -1,11 +1,5 @@
-using iPanelHost.WebSocket;
-using iPanelHost.Http;
-using iPanelHost.Inputs;
 using System;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace iPanelHost.Utils
 {
@@ -18,7 +12,7 @@ namespace iPanelHost.Utils
         const uint ENABLE_QUICK_EDIT_MODE = 0x0040;
         const uint ENABLE_INSERT_MODE = 0x0020;
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         extern static IntPtr FindWindow(string? lpClassName, string lpWindowName);
 
         [DllImport("user32.dll")]

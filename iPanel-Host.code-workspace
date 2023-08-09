@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"extensions": {
+		"recommendations": [
+			"ms-dotnettools.vscode-dotnet-runtime",
+			"ms-dotnettools.csharp",
+			"ms-dotnettools.vscodeintellicode-csharp",
+			"k--kato.docomment",
+			"Fudge.auto-using",
+			"adrianwilczynski.namespace",
+			"kreativ-software.csharpextensions"
+		],
+	},
+	"settings": {
+		"workbench.colorTheme": "Visual Studio 2019 Dark",
+		"workbench.iconTheme": "vscode-icons",
+		"dotnet.defaultSolution": "iPanel-Host.sln"
+	}
+}
