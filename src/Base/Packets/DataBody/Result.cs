@@ -30,15 +30,17 @@ namespace iPanelHost.Base.Packets.DataBody
         }
 
         public const string
-           FailToVerify = "验证失败",
-           NotVerifyYet = "你还未通过验证",
-           InvalidTarget = "订阅目标无效",
-           IncorrectAccountOrPassword = "帐号或密码错误",
-           EmptyAccount = "帐号为空",
-           InternalDataError = "内部数据错误",
-           ErrorWhenGettingPacketContent = "获取验证内容时异常",
            DataAnomaly = "数据异常",
+           DuplicateInstanceID = "实例ID重复",
+           EmptyAccount = "帐号为空",
+           ErrorWhenGettingPacketContent = "获取验证内容时异常",
+           FailToVerify = "验证失败",
+           IncorrectAccountOrPassword = "帐号或密码错误",
            IncorrectClientType = "客户端类型错误",
+           IncorrectInstanceID = "实例ID错误",
+           InternalDataError = "内部数据错误",
+           InvalidTarget = "订阅目标无效",
+           NotVerifyYet = "你还未通过验证",
            TimeoutInVerification = "验证超时";
     }
 }

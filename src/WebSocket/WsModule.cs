@@ -1,4 +1,5 @@
 using EmbedIO.WebSockets;
+using iPanelHost.WebSocket.Handlers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
@@ -27,18 +28,18 @@ namespace iPanelHost.WebSocket
 
         protected override void OnStart(CancellationToken cancellationToken)
         {
-            _heartbeatTimer.Elapsed += Handler.Heartbeat;
+            _heartbeatTimer.Elapsed += MainHandler.Heartbeat;
             _heartbeatTimer.Start();
         }
 
         protected override Task OnMessageReceivedAsync(IWebSocketContext context, byte[] buffer, IWebSocketReceiveResult result)
-            => Task.Run(() => Handler.OnReceive(context, Encoding.GetString(buffer)));
+            => Task.Run(() => MainHandler.OnReceive(context, Encoding.GetString(buffer)));
 
         protected override Task OnClientConnectedAsync(IWebSocketContext context)
-            => Task.Run(() => Handler.OnOpen(context));
+            => Task.Run(() => MainHandler.OnOpen(context));
 
         protected override Task OnClientDisconnectedAsync(IWebSocketContext context)
-            => Task.Run(() => Handler.OnClose(context));
+            => Task.Run(() => MainHandler.OnClose(context));
 
         public void Send(IWebSocketContext context, string payload)
             => SendAsync(context, payload).Wait();

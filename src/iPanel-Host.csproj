@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
-    <ApplicationIcon>Sources/logo_small.ico</ApplicationIcon>
+    <ApplicationIcon>Sources/logo.ico</ApplicationIcon>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Copyright>Copyright (C) 2023 Zaitonn</Copyright>
     <LangVersion>10</LangVersion>
@@ -18,9 +18,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
     </PackageReference>
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="Sharprompt" Version="2.4.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <Content Include="Sources/logo_small.ico" />
+    <PackageReference Include="Sharprompt" Version="2.4.5" />
+    <PackageReference Include="System.Security.Cryptography.OpenSsl" Version="6.0.0-preview.4.21253.7" />
+    <Content Include="Sources/logo.ico" />
   </ItemGroup>
 
 </Project>

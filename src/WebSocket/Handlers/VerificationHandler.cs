@@ -7,12 +7,18 @@ using iPanelHost.Base.Packets.Event;
 using iPanelHost.Utils;
 using Newtonsoft.Json.Linq;
 using Sys = System;
+using System.Linq;
 using System.Timers;
+using System.Text.RegularExpressions;
 
-namespace iPanelHost.WebSocket.Service
+namespace iPanelHost.WebSocket.Handlers
 {
-    internal static class Verification
+    internal static class VerificationHandler
     {
+        /// <summary>
+        /// 请求验证
+        /// </summary>
+        /// <param name="context"></param>
         public static void Request(IWebSocketContext context)
         {
             if (Program.Setting is null)
@@ -20,15 +26,15 @@ namespace iPanelHost.WebSocket.Service
                 return;
             }
             string clientUrl = context.RemoteEndPoint.ToString();
-            if (Handler.Guids.ContainsKey(clientUrl))
+            if (MainHandler.UUIDs.ContainsKey(clientUrl))
             {
                 return;
             }
-            string guid = Sys.Guid.NewGuid().ToString("N");
-            Handler.Guids.Add(clientUrl, guid);
-            string shortGuid = guid.Substring(0, 10);
+            string uuid = Sys.Guid.NewGuid().ToString("N");
+            MainHandler.UUIDs.Add(clientUrl, uuid);
+            string shortGuid = uuid.Substring(0, 10);
 
-            context.Send(new SentPacket("action", "verify_request", new VerifyRequest(5000, shortGuid)).ToString());
+            context.Send(new SentPacket("request", "verify_request", new VerifyRequest(5000, shortGuid)).ToString());
 
             Logger.Info($"<{clientUrl}> 尝试连接，预期MD5值：{General.GetMD5(shortGuid + Program.Setting.InstancePassword)}");
 
@@ -36,7 +42,7 @@ namespace iPanelHost.WebSocket.Service
             verifyTimer.Start();
             verifyTimer.Elapsed += (_, _) =>
             {
-                if (!Handler.Consoles.ContainsKey(guid) && !Handler.Instances.ContainsKey(guid))
+                if (!MainHandler.Consoles.ContainsKey(uuid) && !MainHandler.Instances.ContainsKey(uuid))
                 {
                     context.Send(new SentPacket("event", "disconnection", new Result(Result.TimeoutInVerification)).ToString());
                     context.Close();
@@ -53,7 +59,7 @@ namespace iPanelHost.WebSocket.Service
         /// <param name="packet">数据包</param>
         public static void PreCheck(IWebSocketContext context, ReceivedPacket packet)
         {
-            if (packet.Type != "action" ||
+            if (packet.Type != "request" ||
                 packet.SubType != "verify")
             {
                 context.Send(new SentPacket("event", "disconnection", new Result(Result.NotVerifyYet)).ToString());
@@ -95,7 +101,7 @@ namespace iPanelHost.WebSocket.Service
                 return false;
             }
 
-            if (!Handler.Guids.TryGetValue(clientUrl, out string? guid))
+            if (!MainHandler.UUIDs.TryGetValue(clientUrl, out string? uuid))
             {
                 SendVerifyResultPacket(clientUrl, context, Result.InternalDataError);
                 return false;
@@ -104,10 +110,10 @@ namespace iPanelHost.WebSocket.Service
             switch (verifyBody.ClientType?.ToLowerInvariant())
             {
                 case "instance":
-                    return VerifyInstance(context, clientUrl, guid, verifyBody);
+                    return VerifyInstance(context, clientUrl, uuid, verifyBody);
 
                 case "console":
-                    return VerifyConsole(context, clientUrl, guid, verifyBody);
+                    return VerifyConsole(context, clientUrl, uuid, verifyBody);
 
                 default:
                     SendVerifyResultPacket(clientUrl, context, Result.IncorrectClientType);
@@ -115,20 +121,34 @@ namespace iPanelHost.WebSocket.Service
             }
         }
 
-        private static bool VerifyInstance(IWebSocketContext context, string clientUrl, string guid, VerifyBody verifyBody)
+        private static bool VerifyInstance(IWebSocketContext context, string clientUrl, string uuid, VerifyBody verifyBody)
         {
-            if (verifyBody.Token != General.GetMD5(guid.Substring(0, 10) + Program.Setting.InstancePassword))
+            if (verifyBody.Token != General.GetMD5(uuid.Substring(0, 10) + Program.Setting.InstancePassword))
             {
                 SendVerifyResultPacket(clientUrl, context, Result.FailToVerify);
                 return false;
             }
 
-            Instance instance = new(guid)
+            if (string.IsNullOrEmpty(verifyBody.InstanceID) || Regex.IsMatch(verifyBody.InstanceID, @"^\w{32}$"))
+            {
+                SendVerifyResultPacket(clientUrl, context, Result.IncorrectInstanceID);
+                return false;
+            }
+
+            if (MainHandler.Instances.Values.Select((i) => i.InstanceID).Contains(verifyBody.InstanceID))
+            {
+                SendVerifyResultPacket(clientUrl, context, Result.DuplicateInstanceID);
+                return false;
+            }
+
+            Instance instance = new(uuid)
             {
                 Context = context,
                 CustomName = verifyBody.CustomName,
+                InstanceID = verifyBody.InstanceID,
+                Metadata = verifyBody.MetaData,
             };
-            Handler.Instances.Add(guid, instance);
+            MainHandler.Instances.Add(uuid, instance);
             context.Send(new VerifyResultPacket(true).ToString());
             Logger.Info($"<{clientUrl}> 验证成功（实例），自定义名称为：{verifyBody.CustomName ?? "null"}");
             return true;
@@ -138,7 +158,7 @@ namespace iPanelHost.WebSocket.Service
         /// 验证控制台
         /// </summary>
         /// <returns>验证结果</returns>
-        private static bool VerifyConsole(IWebSocketContext context, string clientUrl, string guid, VerifyBody verifyBody)
+        private static bool VerifyConsole(IWebSocketContext context, string clientUrl, string uuid, VerifyBody verifyBody)
         {
             if (string.IsNullOrEmpty(verifyBody.Account))
             {
@@ -147,20 +167,20 @@ namespace iPanelHost.WebSocket.Service
             }
 
             if (!(UserManager.Users.TryGetValue(verifyBody.Account!, out User? user) &&
-                  verifyBody.Token == General.GetMD5(guid.Substring(0, 10) + verifyBody.Account! + user.Password)))
+                  verifyBody.Token == General.GetMD5(uuid.Substring(0, 10) + verifyBody.Account! + user.Password)))
             {
                 SendVerifyResultPacket(clientUrl, context, Result.IncorrectAccountOrPassword);
                 return false;
             }
 
-            user.LastLogin = Sys.DateTime.Now;
-            Console console = new(guid)
+            user.LastLoginTime = Sys.DateTime.Now;
+            Console console = new(uuid)
             {
                 Context = context,
                 User = user
             };
 
-            Handler.Consoles.Add(guid, console);
+            MainHandler.Consoles.Add(uuid, console);
             SendVerifyResultPacket(clientUrl, context);
             Logger.Info($"<{clientUrl}> 验证成功（控制台）");
             return true;

@@ -1,6 +1,6 @@
 using System;
 
-namespace iPanel_Host.Base
+namespace iPanelHost.Base
 {
     public class InternalException : Exception
     {

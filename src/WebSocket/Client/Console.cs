@@ -7,14 +7,12 @@ namespace iPanelHost.WebSocket.Client
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     internal class Console : Client
     {
-        [JsonIgnore]
-        public override ClientType Type => ClientType.Console;
-
         public string? SubscribingTarget;
 
+        [JsonIgnore]
         public User? User;
 
-        public Console(string? guid) : base(guid)
+        public Console(string? uuid) : base(uuid)
         { }
     }
 }

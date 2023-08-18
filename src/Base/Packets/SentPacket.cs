@@ -12,7 +12,15 @@ namespace iPanelHost.Base.Packets
 
         public long Time { init; get; }
 
-        private static readonly Sender _selfSender = new($"iPanel Host", "host", null, new() { { "version", Constant.VERSION } });
+        private static readonly Sender _selfSender = new(
+            $"iPanel Host",
+            "host",
+            null,
+            new()
+            {
+                Version = Constant.VERSION
+            }
+            );
 
         /// <summary>
         /// 发送者

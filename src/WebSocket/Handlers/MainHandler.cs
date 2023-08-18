@@ -3,7 +3,6 @@ using iPanelHost.Base;
 using iPanelHost.WebSocket.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
-using iPanelHost.WebSocket.Service;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Sys = System;
@@ -11,9 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 
-namespace iPanelHost.WebSocket
+namespace iPanelHost.WebSocket.Handlers
 {
-    internal static class Handler
+    internal static class MainHandler
     {
         /// <summary>
         /// 控制台字典
@@ -25,7 +24,10 @@ namespace iPanelHost.WebSocket
         /// </summary>
         public static readonly Dictionary<string, Instance> Instances = new();
 
-        public static readonly Dictionary<string, string> Guids = new();
+        /// <summary>
+        /// UUID字典
+        /// </summary>
+        public static readonly Dictionary<string, string> UUIDs = new();
 
         /// <summary>
         /// 发送心跳
@@ -34,7 +36,7 @@ namespace iPanelHost.WebSocket
         {
             lock (Instances)
             {
-                Instances.Values.ToList().ForEach((instance) => instance?.Send(new SentPacket("action", "heartbeat").ToString()));
+                Instances.Values.ToList().ForEach((instance) => instance?.Send(new SentPacket("request", "heartbeat").ToString()));
             }
         }
 
@@ -48,7 +50,7 @@ namespace iPanelHost.WebSocket
             {
                 return;
             }
-            Verification.Request(context);
+            VerificationHandler.Request(context);
             UpdateTitle();
         }
 
@@ -62,15 +64,17 @@ namespace iPanelHost.WebSocket
             {
                 return;
             }
+            
             string clientUrl = context.RemoteEndPoint.ToString();
-            if (!Guids.TryGetValue(clientUrl, out string? guid))
+            if (!UUIDs.TryGetValue(clientUrl, out string? uuid))
             {
                 return;
             }
+
             Logger.Info($"<{clientUrl}> 断开了连接");
-            Instances.Remove(guid);
-            Consoles.Remove(guid);
-            Guids.Remove(clientUrl);
+            Instances.Remove(uuid);
+            Consoles.Remove(uuid);
+            UUIDs.Remove(clientUrl);
             UpdateTitle();
         }
 
@@ -88,12 +92,12 @@ namespace iPanelHost.WebSocket
             UpdateTitle();
 
             string clientUrl = context.RemoteEndPoint.ToString();
-            if (!Guids.TryGetValue(clientUrl, out string? guid))
+            if (!UUIDs.TryGetValue(clientUrl, out string? uuid))
             {
                 return;
             }
-            bool isConsole = Consoles.TryGetValue(guid, out Console? console) && console is not null,
-                 isInstance = Instances.TryGetValue(guid, out Instance? instance) && instance is not null;
+            bool isConsole = Consoles.TryGetValue(uuid, out Console? console) && console is not null,
+                 isInstance = Instances.TryGetValue(uuid, out Instance? instance) && instance is not null;
             ReceivedPacket? packet;
             try
             {
@@ -103,7 +107,7 @@ namespace iPanelHost.WebSocket
             {
                 Logger.Warn($"<{clientUrl}>处理数据包异常\n{e}");
                 context.Send(new SentPacket("event", (isConsole || isInstance) ? "invalid_packet" : "disconnection", new Result($"发送的数据包存在问题：{e.Message}")).ToString());
-                if (!isConsole && !isInstance)
+                if (!isConsole || !isInstance)
                 {
                     context.Close();
                 }
@@ -112,7 +116,7 @@ namespace iPanelHost.WebSocket
 
             if (!isConsole && !isInstance) // 对未记录的的上下文进行校验
             {
-                Verification.PreCheck(context, packet);
+                VerificationHandler.PreCheck(context, packet);
             }
             else if (isConsole)
             {
@@ -131,16 +135,12 @@ namespace iPanelHost.WebSocket
         /// <param name="packet">数据包</param>
         private static void Handle(Console console, ReceivedPacket packet)
         {
-            switch (packet.Type)
+            if (packet.Type != "request")
             {
-                case "action":
-                    ActionsHandler.Handle(console, packet);
-                    break;
-
-                default:
-                    console.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
-                    break;
+                console.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
+                return;
             }
+            RequestsHandler.Handle(console, packet);
         }
 
         /// <summary>
@@ -153,12 +153,12 @@ namespace iPanelHost.WebSocket
             instance.LastTime = Sys.DateTime.Now;
             switch (packet.Type)
             {
-                case "action":
-                    ActionsHandler.Handle(instance, packet);
+                case "request":
+                    RequestsHandler.Handle(instance, packet);
                     break;
 
-                case "event":
-                    EventsHandler.Handle(instance, packet);
+                case "broadcast":
+                    BroadcastHandler.Handle(instance, packet);
                     break;
 
                 default:

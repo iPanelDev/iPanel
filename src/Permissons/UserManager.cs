@@ -35,14 +35,9 @@ namespace iPanelHost.Permissons
             {
                 Users = JsonConvert.DeserializeObject<Dictionary<string, User>>(File.ReadAllText(_path)) ?? throw new FileLoadException("文件数据异常");
 
-                if (!Users.ContainsKey("admin"))
+                if (Users.Count == 0)
                 {
-                    Add("admin", new()
-                    {
-                        Level = 3
-                    });
-                    Logger.Warn("最高控制权限用户“admin”不存在，现已重新创建。");
-                    Save();
+                    Logger.Warn("用户列表为空。请使用“user add”或“u a”添加一个用户");
                 }
             }
             catch (Exception e)

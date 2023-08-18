@@ -1,6 +1,7 @@
 ﻿using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
 
 namespace iPanelHost.Base
 {
@@ -15,7 +16,7 @@ namespace iPanelHost.Base
 
         public string InstancePassword = string.Empty;
 
-        public bool DisplayShortLogoWhenStart;
+        public bool DisplayShorterLogoWhenStart;
 
         [JsonProperty("_internalVersion")]
         public int? InternalVersion = Constant.InternalVersion;
@@ -58,6 +59,14 @@ namespace iPanelHost.Base
             {
                 throw new SettingsException($"{nameof(WebServer.Page404)}为空");
             }
+            if (WebServer.Certificate is null)
+            {
+                throw new SettingsException($"{nameof(WebServer.Certificate)}为null");
+            }
+            if (WebServer.Certificate.Enable && Environment.OSVersion.Platform != PlatformID.Win32NT)
+            {
+                Logger.Warn("网页证书可能在非Windows系统下不可用");
+            }
         }
 
         [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
@@ -82,6 +91,13 @@ namespace iPanelHost.Base
             /// 404网页
             /// </summary>
             public string Page404 = "index.html";
+
+            /// <summary>
+            /// 允许跨源
+            /// </summary>
+            public bool AllowCrossOrigin;
+
+            public CertificateSettings Certificate = new();
         }
 
         [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
@@ -90,6 +106,20 @@ namespace iPanelHost.Base
             public bool
                 AllowWindowClosing,
                 AllowQuickEditAndInsert;
+        }
+
+
+        [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+        internal class CertificateSettings
+        {
+            public bool
+                Enable,
+                AutoRegisterCertificate,
+                AutoLoadCertificate;
+
+            public string? Path;
+
+            public string? Password;
         }
     }
 }

@@ -25,13 +25,7 @@ namespace iPanelHost.WebSocket.Client
         /// <summary>
         /// 唯一标识符
         /// </summary>
-        public string GUID { init; get; }
-
-        /// <summary>
-        /// 类型
-        /// </summary>
-        [JsonIgnore]
-        public virtual ClientType Type => ClientType.Unknown;
+        public string UUID { init; get; }
 
         /// <summary>
         /// 关闭连接
@@ -56,24 +50,17 @@ namespace iPanelHost.WebSocket.Client
             Send(JsonConvert.SerializeObject(obj));
         }
 
-        internal enum ClientType
-        {
-            Unknown,
-            Instance,
-            Console
-        }
-
         protected Client()
         {
-            if (GUID is null)
+            if (UUID is null)
             {
                 throw new InvalidOperationException();
             }
         }
 
-        protected Client(string? guid)
+        protected Client(string? uuid)
         {
-            GUID = guid ?? throw new ArgumentNullException(nameof(guid));
+            UUID = uuid ?? throw new ArgumentNullException(nameof(uuid));
         }
     }
 }

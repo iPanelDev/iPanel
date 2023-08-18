@@ -5,6 +5,9 @@ namespace iPanelHost.WebSocket.Client
 {
     internal class Instance : Client
     {
+        /// <summary>
+        /// 完整信息
+        /// </summary>
         [JsonIgnore]
         public FullInfo FullInfo;
 
@@ -18,10 +21,18 @@ namespace iPanelHost.WebSocket.Client
         /// </summary>
         public string? CustomName;
 
-        [JsonIgnore]
-        public override ClientType Type => ClientType.Instance;
+        /// <summary>
+        /// 实例ID
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string? InstanceID;
 
-        public Instance(string? guid) : base(guid)
+        /// <summary>
+        /// 实例元数据
+        /// </summary>
+        public Meta? Metadata;
+
+        public Instance(string? uuid) : base(uuid)
         { }
     }
 }

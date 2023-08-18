@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using iPanelHost.WebSocket.Client;
 
 namespace iPanelHost.Base.Packets.DataBody
 {
@@ -12,6 +13,16 @@ namespace iPanelHost.Base.Packets.DataBody
         /// 自定义名称
         /// </summary>
         public string? CustomName;
+
+        /// <summary>
+        /// 实例ID
+        /// </summary>
+        public string? InstanceID;
+
+        /// <summary>
+        /// 元数据
+        /// </summary>
+        public Meta? MetaData;
 
         /// <summary>
         /// 帐号

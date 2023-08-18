@@ -89,7 +89,8 @@ namespace iPanelHost.Utils
                         }),
                     WebServer =
                     {
-                        UrlPrefixes = new[] { $"http://{(toPublic ? "+" : "127.0.0.1")}:{port}" }
+                        UrlPrefixes = new[] { $"http://{(toPublic ? "+" : "127.0.0.1")}:{port}" },
+                        AllowCrossOrigin = Prompt.Confirm("允许跨源资源共享（CORS）", false)
                     }
                 };
 

@@ -1,8 +1,8 @@
 using ConsoleTables;
 using iPanelHost.Permissons;
 using iPanelHost.Utils;
-using iPanelHost.WebSocket;
 using iPanelHost.WebSocket.Client;
+using iPanelHost.WebSocket.Handlers;
 using Sharprompt;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,14 +32,14 @@ namespace iPanelHost.Inputs
         private static string SelectUser => Prompt.Select(
             "选择一个用户",
             UserManager.Users,
-            textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLogin:d t}"
+            textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime:d t}"
             ).Key;
 
         public static void ManageUsers(string[] args)
         {
             if (args.Length == 1)
             {
-                Logger.Warn("缺少参数:<operation>");
+                Logger.Warn("缺少参数");
                 return;
             }
 
@@ -73,7 +73,7 @@ namespace iPanelHost.Inputs
                         ConsoleTable consoleTable = new("Account", "Level", "Last Login Time", "Description");
                         foreach (var keyValuePair in UserManager.Users)
                         {
-                            consoleTable.AddRow(keyValuePair.Key, keyValuePair.Value.Level, keyValuePair.Value.LastLogin?.ToString("g") ?? "-", keyValuePair.Value.Description ?? "-");
+                            consoleTable.AddRow(keyValuePair.Key, keyValuePair.Value.Level, keyValuePair.Value.LastLoginTime?.ToString("g") ?? "-", keyValuePair.Value.Description ?? "-");
                         }
                         Logger.Info(consoleTable.ToMinimalString());
                     }
@@ -128,12 +128,7 @@ namespace iPanelHost.Inputs
             {
                 string key = SelectUser;
 
-                if (key == "admin")
-                {
-                    Logger.Warn("此用户不可被删除");
-                }
-
-                else if (UserManager.Users.Remove(key))
+                if (UserManager.Users.Remove(key))
                 {
                     Logger.Info("删除成功");
                     UserManager.Save();
@@ -161,7 +156,7 @@ namespace iPanelHost.Inputs
                 string key = Prompt.Select(
                     "选择要修改的用户",
                     UserManager.Users,
-                    textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLogin:d t}"
+                    textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime:d t}"
                     ).Key;
                 User user = NewUser;
                 lock (UserManager.Users)
@@ -205,9 +200,9 @@ namespace iPanelHost.Inputs
                     .Select(i => new KeyValuePair<string, Instance?>(i, null))
                     .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-                lock (Handler.Instances)
+                lock (MainHandler.Instances)
                 {
-                    foreach (KeyValuePair<string, Instance> keyValuePair in Handler.Instances)
+                    foreach (KeyValuePair<string, Instance> keyValuePair in MainHandler.Instances)
                     {
                         if (dict.ContainsKey(keyValuePair.Key))
                         {
@@ -215,7 +210,7 @@ namespace iPanelHost.Inputs
                         }
                     }
                 }
-                IEnumerable<KeyValuePair<string, Instance?>> all = dict!.Concat(Handler.Instances).Distinct()!;
+                IEnumerable<KeyValuePair<string, Instance?>> all = dict!.Concat(MainHandler.Instances).Distinct()!;
 
                 if (!all.Any())
                 {

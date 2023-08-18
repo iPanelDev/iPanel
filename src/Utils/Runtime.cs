@@ -1,6 +1,6 @@
-using iPanelHost.Http;
+using iPanelHost.Server;
 using iPanelHost.Inputs;
-using iPanelHost.WebSocket;
+using iPanelHost.WebSocket.Handlers;
 using System;
 using System.Linq;
 
@@ -42,8 +42,8 @@ namespace iPanelHost.Utils
         /// <param name="code">退出代码</param>
         public static void ExitQuietly(int code = 0)
         {
-            Handler.Instances.Values.ToList().ForEach((instance) => instance.Close());
-            Handler.Consoles.Values.ToList().ForEach((console) => console.Close());
+            MainHandler.Instances.Values.ToList().ForEach((instance) => instance.Close());
+            MainHandler.Consoles.Values.ToList().ForEach((console) => console.Close());
             HttpServer.Stop();
             Environment.Exit(code);
         }

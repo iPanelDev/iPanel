@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using iPanelHost.Base;
-using iPanelHost.Http;
+using iPanelHost.Server;
 using iPanelHost.Permissons;
 using iPanelHost.Utils;
 using System;
@@ -45,7 +45,7 @@ namespace iPanelHost
             Win32.SetConsoleMode();
             if (!_hasShownLogo)
             {
-                if (Setting.DisplayShortLogoWhenStart)
+                if (Setting.DisplayShorterLogoWhenStart)
                 {
                     Logger.Info(Constant.Logo);
                 }

@@ -5,7 +5,6 @@ namespace iPanelHost.Utils
 {
     internal static class Win32
     {
-
         const int STD_INPUT_HANDLE = -10;
         const int STD_OUTPUT_HANDLE = -11;
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;

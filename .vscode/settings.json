@@ -3,5 +3,6 @@
         "**/obj/**": true,
         "**/bin/**": true,
         "**/packages/**": true
-    }
+    },
+    "editor.bracketPairColorization.enabled": false
 }

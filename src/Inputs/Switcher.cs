@@ -1,4 +1,4 @@
-using iPanelHost.WebSocket;
+using iPanelHost.WebSocket.Handlers;
 using iPanelHost.Utils;
 using Sys = System;
 using System.Linq;
@@ -7,7 +7,7 @@ namespace iPanelHost.Inputs
 {
     internal static class Switcher
     {
-        private const string _help =
+        private const string _helpMenu =
 @"
 连接
   ls/list       查看当前连接列表
@@ -42,14 +42,14 @@ namespace iPanelHost.Inputs
             {
                 case "ls":
                 case "list":
-                    Logger.Info($"当前有{Handler.Consoles.Count}个控制台和{Handler.Instances.Count}个面板在线");
-                    lock (Handler.Consoles)
+                    Logger.Info($"当前有{MainHandler.Consoles.Count}个控制台和{MainHandler.Instances.Count}个面板在线");
+                    lock (MainHandler.Consoles)
                     {
-                        Handler.Consoles.Keys.ToList().ForEach((key) => Logger.Info($"{"[控制台]",-5}{Handler.Consoles[key].Address,-20}"));
+                        MainHandler.Consoles.Keys.ToList().ForEach((key) => Logger.Info($"{"[控制台]",-5}{MainHandler.Consoles[key].Address,-20}"));
                     }
-                    lock (Handler.Instances)
+                    lock (MainHandler.Instances)
                     {
-                        Handler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"{"[实例]",-5}{Handler.Instances[key].Address,-20}{Handler.Instances[key].CustomName}"));
+                        MainHandler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"{"[实例]",-5}{MainHandler.Instances[key].Address,-20}{MainHandler.Instances[key].CustomName}"));
                     }
                     break;
 
@@ -85,7 +85,7 @@ namespace iPanelHost.Inputs
                 case "？":
                 case "h":
                 case "help":
-                    Logger.Info(_help);
+                    Logger.Info(_helpMenu);
                     break;
 
                 case "u":

@@ -1,7 +1,6 @@
-using System.Collections.Generic;
+using iPanelHost.WebSocket.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using iPanelHost.WebSocket.Client;
 
 namespace iPanelHost.Base.Packets
 {
@@ -16,14 +15,20 @@ namespace iPanelHost.Base.Packets
         public string? Address;
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, object>? Metadata;
+        public Meta? Metadata;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string? UUID;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string? InstanceID;
 
         protected Sender()
         {
             Type = "unknown";
         }
 
-        public Sender(string name, string type, string? address, Dictionary<string, object> metadata)
+        public Sender(string name, string type, string? address, Meta metadata)
         {
             Name = name;
             Type = type;
@@ -38,8 +43,11 @@ namespace iPanelHost.Base.Packets
             => new()
             {
                 Name = instance.CustomName,
-                Type = instance.Type.ToString().ToLowerInvariant(),
-                Address = instance.Address
+                Type = "instance",
+                Address = instance.Address,
+                InstanceID = instance.InstanceID,
+                UUID = instance.UUID,
+                Metadata = instance.Metadata
             };
 
         /// <summary>
@@ -48,8 +56,9 @@ namespace iPanelHost.Base.Packets
         public static Sender From(Console console)
             => new()
             {
-                Type = console.Type.ToString().ToLowerInvariant(),
-                Address = console.Address
+                Type = "console",
+                Address = console.Address,
+                UUID = console.UUID,
             };
     }
 }

@@ -5,13 +5,13 @@ using iPanelHost.WebSocket.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace iPanelHost.WebSocket.Service
+namespace iPanelHost.WebSocket.Handlers
 {
-    internal static class EventsHandler
+    internal static class BroadcastHandler
     {
         public static void Handle(Instance instance, ReceivedPacket packet)
         {
-            Logger.Info($"<{instance.Address}> 收到事件：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}");
+            Logger.Info($"<{instance.Address}> 收到广播：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}");
             switch (packet.SubType)
             {
                 case "server_input":
@@ -38,7 +38,7 @@ namespace iPanelHost.WebSocket.Service
                     break;
                     
                 default:
-                    instance.Send(new InvalidParamPacket($"所请求的“{packet.Type}”类型不存在或无法调用"));
+                    instance.Send(new InvalidParamPacket($"所请求的“{packet.SubType}”类型不存在或无法调用"));
                     break;
             }
         }
@@ -51,12 +51,12 @@ namespace iPanelHost.WebSocket.Service
         /// <param name="data">数据主体</param>
         private static void Send(Instance instance, string subType, object? data)
         {
-            string guid = instance.GUID ?? throw new System.NullReferenceException($"{nameof(instance.GUID)}为空");
-            lock (Handler.Consoles)
+            string uuid = instance.UUID ?? throw new System.NullReferenceException($"{nameof(instance.UUID)}为空");
+            lock (MainHandler.Consoles)
             {
-                foreach (Console console in Handler.Consoles.Values)
+                foreach (Console console in MainHandler.Consoles.Values)
                 {
-                    if (console.SubscribingTarget == guid || console.SubscribingTarget == "*")
+                    if (console.SubscribingTarget == uuid || console.SubscribingTarget == "*")
                     {
                         console.Send(new SentPacket("broadcast", subType, data, Sender.From(instance)).ToString());
                     }
