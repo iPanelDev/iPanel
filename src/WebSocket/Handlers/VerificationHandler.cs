@@ -32,11 +32,10 @@ namespace iPanelHost.WebSocket.Handlers
             }
             string uuid = Sys.Guid.NewGuid().ToString("N");
             MainHandler.UUIDs.Add(clientUrl, uuid);
-            string shortGuid = uuid.Substring(0, 10);
 
-            context.Send(new SentPacket("request", "verify_request", new VerifyRequest(5000, shortGuid)).ToString());
+            context.Send(new SentPacket("request", "verify_request", new VerifyRequest(5000, uuid)).ToString());
 
-            Logger.Info($"<{clientUrl}> 尝试连接，预期MD5值：{General.GetMD5(shortGuid + Program.Setting.InstancePassword)}");
+            Logger.Info($"<{clientUrl}> 尝试连接，预期实例MD5值：{General.GetMD5(uuid + Program.Setting.InstancePassword)}");
 
             Timer verifyTimer = new(5000) { AutoReset = false };
             verifyTimer.Start();
@@ -123,13 +122,13 @@ namespace iPanelHost.WebSocket.Handlers
 
         private static bool VerifyInstance(IWebSocketContext context, string clientUrl, string uuid, VerifyBody verifyBody)
         {
-            if (verifyBody.Token != General.GetMD5(uuid.Substring(0, 10) + Program.Setting.InstancePassword))
+            if (verifyBody.Token != General.GetMD5(uuid + Program.Setting.InstancePassword))
             {
                 SendVerifyResultPacket(clientUrl, context, Result.FailToVerify);
                 return false;
             }
 
-            if (string.IsNullOrEmpty(verifyBody.InstanceID) || Regex.IsMatch(verifyBody.InstanceID, @"^\w{32}$"))
+            if (string.IsNullOrEmpty(verifyBody.InstanceID) || !Regex.IsMatch(verifyBody.InstanceID, @"^\w{32}$"))
             {
                 SendVerifyResultPacket(clientUrl, context, Result.IncorrectInstanceID);
                 return false;
@@ -167,7 +166,7 @@ namespace iPanelHost.WebSocket.Handlers
             }
 
             if (!(UserManager.Users.TryGetValue(verifyBody.Account!, out User? user) &&
-                  verifyBody.Token == General.GetMD5(uuid.Substring(0, 10) + verifyBody.Account! + user.Password)))
+                  verifyBody.Token == General.GetMD5(uuid + verifyBody.Account! + user.Password)))
             {
                 SendVerifyResultPacket(clientUrl, context, Result.IncorrectAccountOrPassword);
                 return false;

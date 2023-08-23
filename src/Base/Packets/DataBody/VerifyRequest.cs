@@ -12,11 +12,10 @@ namespace iPanelHost.Base.Packets.DataBody
         public int Timeout;
 
         /// <summary>
-        /// 盐
+        /// 唯一标识ID
         /// </summary>
-        public string Salt;
+        public string UUID;
 
-#pragma warning disable CA1822
         /// <summary>
         /// 当前版本
         /// </summary>
@@ -26,12 +25,11 @@ namespace iPanelHost.Base.Packets.DataBody
         /// 内部版本号
         /// </summary>
         public int InternalVersion => Constant.InternalVersion;
-#pragma warning restore CA1822
 
-        public VerifyRequest(int timeout, string salt)
+        public VerifyRequest(int timeout, string uuid)
         {
             Timeout = timeout;
-            Salt = salt;
+            UUID = uuid;
         }
     }
 }

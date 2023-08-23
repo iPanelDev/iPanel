@@ -16,9 +16,13 @@ string GetChars(Bitmap bmp)
         {
             Color color = bmp.GetPixel(w, h);
             if (color.A == 0)
+            {
                 sb.Append($"\x1b[0m  ");
+            }
             else
+            {
                 sb.Append($"\x1b[48;2;{color.R};{color.G};{color.B}m  ");
+            }
         }
         sb.Append($"\x1b[0m");
         sb.AppendLine();

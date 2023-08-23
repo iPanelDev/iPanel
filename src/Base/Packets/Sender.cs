@@ -7,21 +7,21 @@ namespace iPanelHost.Base.Packets
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     internal class Sender
     {
-        public string? Name;
+        public string? Name { init; get; }
 
-        public string Type;
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string? Address;
+        public string Type { init; get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public Meta? Metadata;
+        public string? Address { init; get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string? UUID;
+        public Meta? Metadata { init; get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string? InstanceID;
+        public string? UUID { init; get; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string? InstanceID { init; get; }
 
         protected Sender()
         {

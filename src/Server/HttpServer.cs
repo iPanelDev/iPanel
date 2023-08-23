@@ -1,5 +1,6 @@
 using EmbedIO;
 using EmbedIO.Security;
+using EmbedIO.WebApi;
 using iPanelHost.Utils;
 using iPanelHost.WebSocket;
 using System;
@@ -20,27 +21,18 @@ namespace iPanelHost.Server
         public static void Start()
         {
             _server = new(CreateOptions());
-            _server.WithModule(new WsModule("/ws"));
-
-            if (Program.Setting.WebServer.AllowCrossOrigin)
+            if (Program.Setting.WebServer.AllowCrossOrigin) // 允许跨源
             {
                 _server.WithCors();
             }
+
+            _server.WithModule(new WsModule("/ws"));
+            _server.WithWebApi("/api", (module) => module.WithController<Apis>());
 
             if (Directory.Exists(Program.Setting.WebServer.Directory))
             {
                 _server.WithStaticFolder("/", Program.Setting.WebServer.Directory, Program.Setting.WebServer.DisableFilesHotUpdate);
                 _server.HandleHttpException(Handle404);
-
-                if (Program.Setting.WebServer.DisableFilesHotUpdate)
-                {
-                    FileSystemWatcher fileSystemWatcher = new(Program.Setting.WebServer.Directory)
-                    {
-                        EnableRaisingEvents = true,
-                        IncludeSubdirectories = true,
-                    };
-                    fileSystemWatcher.Changed += (_, e) => Logger.Warn($"网页文件目录中“{e.Name}”貌似发生了更改:{e.ChangeType}。但是由于关闭了热更新文件，所以这些更改不会被应用");
-                }
             }
             else
             {
@@ -60,6 +52,9 @@ namespace iPanelHost.Server
             _server?.Dispose();
         }
 
+        /// <summary>
+        /// 重启
+        /// </summary>
         public static void Restart()
         {
             Stop();

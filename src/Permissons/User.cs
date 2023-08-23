@@ -20,7 +20,7 @@ namespace iPanelHost.Permissons
         /// <summary>
         /// 权限等级
         /// </summary>
-        public int Level = 0;
+        public PermissonLevel Level = 0;
 
         /// <summary>
         /// 允许的实例
@@ -34,11 +34,6 @@ namespace iPanelHost.Permissons
 
         public User()
         {
-            if (Level > 3 || Level < 0)
-            {
-                Level = 0;
-            }
-
             Instances ??= Array.Empty<string>();
         }
 
@@ -56,7 +51,7 @@ namespace iPanelHost.Permissons
             public PublicUser(User user)
             {
                 LastLoginTime = user.LastLoginTime;
-                Level = user.Level;
+                Level = (int)user.Level;
                 Instances = user.Instances;
                 Description = user.Description;
             }

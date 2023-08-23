@@ -8,7 +8,7 @@ namespace iPanelHost.Base.Packets
     internal class SentPacket : Packet
     {
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, Order = 1)]
-        public readonly object? Data;
+        public object? Data { init; get; }
 
         public long Time { init; get; }
 
@@ -26,7 +26,7 @@ namespace iPanelHost.Base.Packets
         /// 发送者
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public Sender? Sender;
+        public Sender? Sender { init; get; }
 
         protected SentPacket() { }
 

@@ -36,7 +36,7 @@ namespace iPanelHost.WebSocket.Handlers
                     }
                     Send(instance, packet.SubType, packet.Data);
                     break;
-                    
+
                 default:
                     instance.Send(new InvalidParamPacket($"所请求的“{packet.SubType}”类型不存在或无法调用"));
                     break;
@@ -51,12 +51,12 @@ namespace iPanelHost.WebSocket.Handlers
         /// <param name="data">数据主体</param>
         private static void Send(Instance instance, string subType, object? data)
         {
-            string uuid = instance.UUID ?? throw new System.NullReferenceException($"{nameof(instance.UUID)}为空");
+            string instanceID = instance.InstanceID ?? throw new System.NullReferenceException($"{nameof(instance.InstanceID)}为空");
             lock (MainHandler.Consoles)
             {
                 foreach (Console console in MainHandler.Consoles.Values)
                 {
-                    if (console.SubscribingTarget == uuid || console.SubscribingTarget == "*")
+                    if (console.SubscribingTarget == instanceID || console.SubscribingTarget == "*")
                     {
                         console.Send(new SentPacket("broadcast", subType, data, Sender.From(instance)).ToString());
                     }

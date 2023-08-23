@@ -21,7 +21,7 @@ namespace iPanelHost.Inputs
                     Validators.MinLength(6, "密码长度过短"),
                     Validators.RegularExpression(@"^[^\s]+$", "密码不得含有空格"),
                 }),
-            Level = Prompt.Select(
+            Level = (PermissonLevel)Prompt.Select(
                 "权限等级",
                 UserManager.LevelDescription,
                 textSelector: (kv) => kv.Value

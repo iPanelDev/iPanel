@@ -19,9 +19,6 @@ namespace iPanelHost.WebSocket.Client
         /// </summary>
         public string? Address => Context?.RemoteEndPoint.ToString();
 
-        [JsonIgnore]
-        public DateTime LastTime;
-
         /// <summary>
         /// 唯一标识符
         /// </summary>

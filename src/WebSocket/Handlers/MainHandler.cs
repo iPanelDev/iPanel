@@ -64,7 +64,7 @@ namespace iPanelHost.WebSocket.Handlers
             {
                 return;
             }
-            
+
             string clientUrl = context.RemoteEndPoint.ToString();
             if (!UUIDs.TryGetValue(clientUrl, out string? uuid))
             {
@@ -150,15 +150,14 @@ namespace iPanelHost.WebSocket.Handlers
         /// <param name="packet">数据包</param>
         private static void Handle(Instance instance, ReceivedPacket packet)
         {
-            instance.LastTime = Sys.DateTime.Now;
             switch (packet.Type)
             {
-                case "request":
-                    RequestsHandler.Handle(instance, packet);
-                    break;
-
                 case "broadcast":
                     BroadcastHandler.Handle(instance, packet);
+                    break;
+
+                case "return":
+                    ReturnHandler.Handle(instance, packet);
                     break;
 
                 default:
