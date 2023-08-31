@@ -5,6 +5,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+  checks: write
+
 jobs:
   Test:
     strategy:
