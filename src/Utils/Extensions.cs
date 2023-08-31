@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace iPanelHost.Utils
 {
-    internal static class Extensions
+    public static class Extensions
     {
         /// <summary>
         /// 等待

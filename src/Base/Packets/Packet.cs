@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.Base.Packets
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal abstract class Packet
+    public abstract class Packet
     {
         /// <summary>
         /// 类型

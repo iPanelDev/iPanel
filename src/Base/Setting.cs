@@ -6,7 +6,7 @@ using System;
 namespace iPanelHost.Base
 {
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-    internal class Setting
+    public class Setting
     {
         public WebServerSetting WebServer = new();
 
@@ -39,10 +39,6 @@ namespace iPanelHost.Base
             {
                 throw new SettingsException($"{nameof(InstancePassword)}为空");
             }
-            if (string.IsNullOrEmpty(InstancePassword))
-            {
-                throw new SettingsException($"{nameof(InstancePassword)}为空");
-            }
             if (WebServer.UrlPrefixes is null)
             {
                 throw new SettingsException($"{nameof(WebServer.UrlPrefixes)}为null");
@@ -70,7 +66,7 @@ namespace iPanelHost.Base
         }
 
         [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        internal class WebServerSetting
+        public class WebServerSetting
         {
             /// <summary>
             /// URL前缀
@@ -101,7 +97,7 @@ namespace iPanelHost.Base
         }
 
         [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        internal class Win32ConsoleSetting
+        public class Win32ConsoleSetting
         {
             public bool
                 AllowWindowClosing,
@@ -110,7 +106,7 @@ namespace iPanelHost.Base
 
 
         [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        internal class CertificateSettings
+        public class CertificateSettings
         {
             public bool
                 Enable,

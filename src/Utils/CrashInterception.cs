@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace iPanelHost.Utils
 {
-    internal static class CrashInterception
+    public static class CrashInterception
     {
         /// <summary>
         /// 初始化

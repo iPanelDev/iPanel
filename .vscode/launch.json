@@ -21,7 +21,7 @@
             "name": ".NET Framework Launch",
             "type": "clr",
             "request": "launch",
-            "program": "${workspaceFolder}/src/bin/Debug/net472/iPanel-Host.exe",
+            "program": "${workspaceFolder}/src/bin/Debug/net48/iPanel-Host.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

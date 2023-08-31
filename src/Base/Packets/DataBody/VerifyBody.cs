@@ -5,7 +5,7 @@ using iPanelHost.WebSocket.Client;
 namespace iPanelHost.Base.Packets.DataBody
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal class VerifyBody
+    public class VerifyBody
     {
         public string? Token;
 

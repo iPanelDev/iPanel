@@ -1,3 +1,4 @@
+using iPanelHost.Base;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.Event;
 using iPanelHost.Permissons;
@@ -11,7 +12,7 @@ using System.Linq;
 
 namespace iPanelHost.WebSocket.Handlers
 {
-    internal static class RequestsHandler
+    public static class RequestsHandler
     {
         /// <summary>
         /// 处理来自控制台的请求数据
@@ -31,24 +32,26 @@ namespace iPanelHost.WebSocket.Handlers
                 case "server_kill":
                     if (!CheckTarget(console, out subAll, out instance) && instance is null)
                     {
-                        console.Send(new InvalidTargetPacket());
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InvalidTarget));
                         break;
                     }
                     Send(console, packet.SubType, null, subAll, instance);
+                    console.Send(new OperationResultPacket(packet.Echo, ResultTypes.None));
                     break;
 
                 case "server_input":
                     if (!CheckTarget(console, out subAll, out instance) && instance is null)
                     {
-                        console.Send(new InvalidTargetPacket());
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InvalidTarget));
                         break;
                     }
                     if (packet.Data is null || packet.Data.Type != JTokenType.Array)
                     {
-                        console.Send(new InvalidDataPacket("“data”字段类型错误"));
+                        console.Send(new InvalidDataPacket("“data”字段类型错误") { Echo = packet.Echo });
                         break;
                     }
                     Send(console, packet.SubType, packet.Data, subAll, instance);
+                    console.Send(new OperationResultPacket(packet.Echo, ResultTypes.None));
                     break;
 
                 case "list_instance":
@@ -56,6 +59,7 @@ namespace iPanelHost.WebSocket.Handlers
                         new SentPacket(
                             "return",
                             "instance_list",
+                            packet.Echo,
                             JArray.FromObject(MainHandler.Instances.Values)
                             ).ToString()
                         );
@@ -66,6 +70,7 @@ namespace iPanelHost.WebSocket.Handlers
                         new SentPacket(
                             "return",
                             "console_list",
+                            packet.Echo,
                             JArray.FromObject(MainHandler.Consoles.Values)
                             ).ToString()
                         );
@@ -83,15 +88,19 @@ namespace iPanelHost.WebSocket.Handlers
                         (console.User?.Level == PermissonLevel.Assistant || console.User?.Level == PermissonLevel.Administrator || (console.User?.Instances.Contains(target) ?? false)))
                     {
                         console.SubscribingTarget = target;
-                        console.Send(new SentPacket("return", "instance_info", new JObject
-                        {
-                            { "instance_id",    target},
-                            { "info",           JObject.FromObject(instance.FullInfo) }
-                        }));
+                        console.Send(new SentPacket(
+                            "return",
+                            "instance_info",
+                            packet.Echo,
+                            new JObject
+                            {
+                                { "instance_id", target },
+                                { "info", JObject.FromObject(instance.FullInfo) }
+                            }));
                     }
                     else
                     {
-                        console.Send(new InvalidTargetPacket());
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InvalidTarget));
                     }
                     break;
 
@@ -102,63 +111,107 @@ namespace iPanelHost.WebSocket.Handlers
                 case "get_instance_info":
                     if (!string.IsNullOrEmpty(packet.Data?.ToString()) && MainHandler.Instances.TryGetValue(packet.Data?.ToString()!, out instance))
                     {
-                        console.Send(new SentPacket("return", "instance_info", new JObject
-                        {
-                            { "instance_id",    console.SubscribingTarget},
-                            { "info",           JObject.FromObject(instance.FullInfo) }
-                        }));
+                        console.Send(new SentPacket(
+                            "return",
+                            "instance_info",
+                            packet.Echo,
+                            new JObject
+                            {
+                                { "instance_id", console.SubscribingTarget },
+                                { "info", JObject.FromObject(instance.FullInfo) }
+                            }));
                     }
                     else if (packet.Data?.ToString() == "*")
                     {
                         Dictionary<string, FullInfo> fullInfos = new();
                         MainHandler.Instances.Values.ToList().ForEach((i) => fullInfos.Add(i.InstanceID!, i.FullInfo));
-                        console.Send(new SentPacket("return", "instances_info", fullInfos));
+                        console.Send(new SentPacket(
+                            "return",
+                            "instances_info",
+                            packet.Echo,
+                            fullInfos
+                            ));
                     }
                     else
                     {
-                        console.Send(new InvalidDataPacket("未知实例"));
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InvalidTarget));
                     }
                     break;
 
                 case "get_current_user_info":
                     if (console.User is null)
                     {
-                        console.Send(new OperationResultPacket("内部异常：用户为空"));
-                        break;
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InternalDataError));
+                        throw new InternalException("用户为空");
                     }
-                    console.Send(new SentPacket("return", "user_info", new User.PublicUser(console.User)));
+                    console.Send(new SentPacket(
+                        "return",
+                        "user_info",
+                        packet.Echo,
+                        new User.PublicUser(console.User)
+                        ));
                     break;
 
                 case "get_all_users":
                     if (console.User?.Level != PermissonLevel.Administrator)
                     {
-                        console.Send(new OperationResultPacket("权限不足"));
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied));
                         break;
                     }
                     console.Send(
                         new SentPacket(
                             "return",
                             "user_dict",
+                            packet.Echo,
                             UserManager.Users
                                 .Select((kv) => new KeyValuePair<string, User.PublicUser>(kv.Key, kv.Value))
                                 .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
                             ));
                     break;
 
-                case "get_tree_info":
-                    if (console.User?.Level != PermissonLevel.Assistant && console.User?.Level != PermissonLevel.Administrator)
+                case "delete_user":
+                    if (console.User?.Level != PermissonLevel.Administrator)
                     {
-                        console.Send(new OperationResultPacket("权限不足"));
-                        break;
-                    }
-                    if (!CheckTarget(console, out subAll, out instance) && instance is null)
-                    {
-                        console.Send(new InvalidTargetPacket());
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied));
                         break;
                     }
                     if (packet.Data is null)
                     {
-                        console.Send(new InvalidDataPacket("“data”字段为null"));
+                        console.Send(new InvalidDataPacket("“data”字段为null") { Echo = packet.Echo });
+                        break;
+                    }
+
+                    console.Send(new OperationResultPacket(
+                        packet.Echo,
+                        UserManager.Users.Remove(packet.Data.ToString()) ?
+                        ResultTypes.None :
+                        ResultTypes.InvalidUser));
+                    UserManager.Save();
+                    console.Send(
+                        new SentPacket(
+                            "return",
+                            "user_dict",
+                            packet.Echo,
+                            UserManager.Users
+                                .Select((kv) => new KeyValuePair<string, User.PublicUser>(kv.Key, kv.Value))
+                                .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
+                            ));
+                    break;
+
+                case "get_dir_info":
+                    if (console.User?.Level != PermissonLevel.Assistant && console.User?.Level != PermissonLevel.Administrator)
+                    {
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied));
+                        break;
+                    }
+                    if (!CheckTarget(console, out subAll, out instance) && instance is null)
+                    {
+                        console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InvalidTarget));
+                        break;
+                    }
+                    if (packet.Data is null)
+                    {
+                        console.Send(new InvalidDataPacket("“data”字段为null") { Echo = packet.Echo });
                         break;
                     }
                     Send(console, packet.SubType, packet.Data, subAll, instance);
@@ -166,7 +219,7 @@ namespace iPanelHost.WebSocket.Handlers
 
 
                 default:
-                    console.Send(new InvalidParamPacket($"所请求的“{packet.Type}”类型不存在或无法调用"));
+                    console.Send(new InvalidParamPacket($"所请求的“{packet.SubType}”类型不存在或无法调用") { Echo = packet.Echo });
                     break;
             }
         }

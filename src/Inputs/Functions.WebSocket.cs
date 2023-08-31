@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace iPanelHost.Inputs
 {
-    internal static partial class Funcions
+    public static partial class Funcions
     {
         /// <summary>
         /// 断开连接

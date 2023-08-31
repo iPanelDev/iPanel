@@ -4,7 +4,7 @@ using System.Text;
 
 namespace iPanelHost.Utils
 {
-    internal static class General
+    public static class General
     {
         /// <summary>
         /// 获取MD5
@@ -12,8 +12,15 @@ namespace iPanelHost.Utils
         /// <param name="text">文本</param>
         /// <returns>MD5文本</returns>
         public static string GetMD5(string text)
+            => GetMD5String(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(text)));
+
+        /// <summary>
+        /// 获取MD5
+        /// </summary>
+        /// <param name="bytes">字节数组</param>
+        /// <returns>MD5文本</returns>
+        public static string GetMD5String(byte[] targetData)
         {
-            byte[] targetData = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(text));
             StringBuilder stringBuilder = new();
             for (int i = 0; i < targetData.Length; i++)
             {

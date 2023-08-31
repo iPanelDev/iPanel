@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace iPanelHost.WebSocket.Client
 {
-    internal class Instance : Client
+    public class Instance : Client
     {
         /// <summary>
         /// 完整信息

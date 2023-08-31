@@ -1,11 +1,12 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 
 namespace iPanelHost.Permissons
 {
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-    internal class User
+    public class User
     {
         /// <summary>
         /// 密码
@@ -32,8 +33,11 @@ namespace iPanelHost.Permissons
         /// </summary>
         public string? Description;
 
+        public List<string> IPAddresses = new();
+
         public User()
         {
+            IPAddresses ??= new();
             Instances ??= Array.Empty<string>();
         }
 
@@ -48,12 +52,15 @@ namespace iPanelHost.Permissons
 
             public string? Description;
 
+            public List<string> IPAddresses = new();
+
             public PublicUser(User user)
             {
                 LastLoginTime = user.LastLoginTime;
                 Level = (int)user.Level;
                 Instances = user.Instances;
                 Description = user.Description;
+                IPAddresses = user.IPAddresses;
             }
 
             public static implicit operator PublicUser(User user) => new(user);

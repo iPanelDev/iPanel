@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.WebSocket.Client.Info
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal struct FullInfo
+    public struct FullInfo
     {
         public SysInfo Sys;
 

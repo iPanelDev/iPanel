@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.WebSocket.Client.Info
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal struct ShortInfo
+    public struct ShortInfo
     {
         public bool ServerStatus;
 

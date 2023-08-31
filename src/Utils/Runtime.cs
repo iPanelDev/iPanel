@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace iPanelHost.Utils
 {
-    internal static class Runtime
+    public static class Runtime
     {
         /// <summary>
         /// 开始处理输入

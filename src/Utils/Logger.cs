@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace iPanelHost.Utils
 {
-    internal class Logger : ILogger
+    public class Logger : ILogger
     {
         public LogLevel LogLevel => LogLevel.Info;
 

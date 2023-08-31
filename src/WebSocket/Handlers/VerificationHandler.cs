@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 
 namespace iPanelHost.WebSocket.Handlers
 {
-    internal static class VerificationHandler
+    public static class VerificationHandler
     {
         /// <summary>
         /// 请求验证
@@ -173,6 +173,12 @@ namespace iPanelHost.WebSocket.Handlers
             }
 
             user.LastLoginTime = Sys.DateTime.Now;
+            user.IPAddresses.Insert(0, context.RemoteEndPoint.ToString());
+            if (user.IPAddresses.Count > 10)
+            {
+                user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
+            }
+
             Console console = new(uuid)
             {
                 Context = context,

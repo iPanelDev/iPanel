@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.Base.Packets.DataBody
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal class VerifyRequest
+    public class VerifyRequest
     {
         /// <summary>
         /// 超时

@@ -3,11 +3,20 @@ using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Timers;
 
 namespace iPanelHost.Permissons
 {
-    internal static class UserManager
+    public static class UserManager
     {
+        private static readonly Timer _timer = new(60_000) { AutoReset = true };
+
+        static UserManager()
+        {
+            _timer.Elapsed += (_, _) => Save();
+            _timer.Start();
+        }
+
         public static Dictionary<string, User> Users { get; private set; } = new();
 
         public static Dictionary<int, string> LevelDescription = new()

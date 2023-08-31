@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace iPanelHost.Server
 {
-    internal static class HttpServer
+    public static class HttpServer
     {
         private static WebServer? _server;
 

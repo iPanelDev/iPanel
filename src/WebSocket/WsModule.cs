@@ -6,7 +6,7 @@ using System.Text;
 
 namespace iPanelHost.WebSocket
 {
-    internal class WsModule : WebSocketModule
+    public class WsModule : WebSocketModule
     {
         public static WsModule? This;
 

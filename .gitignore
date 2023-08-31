@@ -9,3 +9,4 @@ node_modules
 __pycache__/**
 *.pyc
 LocalTest/**
+test/TestResults/**

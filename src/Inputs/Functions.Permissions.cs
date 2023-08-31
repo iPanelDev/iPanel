@@ -7,10 +7,11 @@ using Sharprompt;
 using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace iPanelHost.Inputs
 {
-    internal static partial class Funcions
+    public static partial class Funcions
     {
         private static User NewUser => new()
         {
@@ -32,7 +33,7 @@ namespace iPanelHost.Inputs
         private static string SelectUser => Prompt.Select(
             "选择一个用户",
             UserManager.Users,
-            textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime:d t}"
+            textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime}"
             ).Key;
 
         public static void ManageUsers(string[] args)
@@ -194,23 +195,28 @@ namespace iPanelHost.Inputs
                     return;
                 }
 
-                Dictionary<string, Instance?> dict = user
+                Dictionary<string, Instance> dict = user
                     .Instances
                     .Distinct()
-                    .Select(i => new KeyValuePair<string, Instance?>(i, null))
+                    .Select(i => new KeyValuePair<string, Instance>(Guid.NewGuid().ToString("N"), new(string.Empty) { InstanceID = i }))
                     .ToDictionary(kv => kv.Key, kv => kv.Value);
 
                 lock (MainHandler.Instances)
                 {
-                    foreach (KeyValuePair<string, Instance> keyValuePair in MainHandler.Instances)
+                    foreach (KeyValuePair<string, Instance> online in MainHandler.Instances)
                     {
-                        if (dict.ContainsKey(keyValuePair.Key))
+                        foreach (KeyValuePair<string, Instance> loaded in dict)
                         {
-                            dict[keyValuePair.Key] = keyValuePair.Value;
+                            if (online.Value.InstanceID == loaded.Value.InstanceID)
+                            {
+                                dict.Remove(loaded.Key);
+                                dict.Add(online.Key, online.Value);
+                                break;
+                            }
                         }
                     }
                 }
-                IEnumerable<KeyValuePair<string, Instance?>> all = dict!.Concat(MainHandler.Instances).Distinct()!;
+                IEnumerable<KeyValuePair<string, Instance>> all = dict.Concat(MainHandler.Instances).Distinct();
 
                 if (!all.Any())
                 {
@@ -223,9 +229,10 @@ namespace iPanelHost.Inputs
                     all,
                     minimum: 0,
                     defaultValues: dict,
-                    textSelector: (kv) => $"{kv.Key.Substring(0, 10)}({kv.Value?.Address ?? "-"}) \t自定义名称：{kv.Value?.CustomName}")
-                    .Select(kv => kv.Key)
-                    .ToArray();
+                    textSelector: (kv) => $"{kv.Value.InstanceID}({kv.Value?.Address ?? "-"}) \t自定义名称：{kv.Value?.CustomName}")
+                    .Select(kv => kv.Value.InstanceID)
+                    .Where(instanceID => !string.IsNullOrEmpty(instanceID))
+                    .ToArray()!;
 
                 if (UserManager.Users.ContainsKey(key))
                 {

@@ -12,7 +12,7 @@ using System.Timers;
 
 namespace iPanelHost.WebSocket.Handlers
 {
-    internal static class MainHandler
+    public static class MainHandler
     {
         /// <summary>
         /// 控制台字典
@@ -107,7 +107,7 @@ namespace iPanelHost.WebSocket.Handlers
             {
                 Logger.Warn($"<{clientUrl}>处理数据包异常\n{e}");
                 context.Send(new SentPacket("event", (isConsole || isInstance) ? "invalid_packet" : "disconnection", new Result($"发送的数据包存在问题：{e.Message}")).ToString());
-                if (!isConsole || !isInstance)
+                if (!isConsole && !isInstance)
                 {
                     context.Close();
                 }

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace iPanelHost.Utils
 {
-    internal static class Initialization
+    public static class Initialization
     {
         /// <summary>
         /// 初始化环境

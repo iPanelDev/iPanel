@@ -2,7 +2,7 @@ using System;
 
 namespace iPanelHost
 {
-    internal static class Constant
+    public static class Constant
     {
         /// <summary>
         /// 版本

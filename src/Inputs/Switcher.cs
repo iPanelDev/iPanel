@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace iPanelHost.Inputs
 {
-    internal static class Switcher
+    public static class Switcher
     {
         private const string _helpMenu =
 @"

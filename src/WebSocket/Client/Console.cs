@@ -5,7 +5,7 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.WebSocket.Client
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal class Console : Client
+    public class Console : Client
     {
         public string? SubscribingTarget;
 

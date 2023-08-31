@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace iPanelHost.WebSocket.Handlers
 {
-    internal static class BroadcastHandler
+    public static class BroadcastHandler
     {
         public static void Handle(Instance instance, ReceivedPacket packet)
         {

@@ -6,7 +6,7 @@ using System;
 namespace iPanelHost.WebSocket.Client
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    internal abstract class Client
+    public abstract class Client
     {
         /// <summary>
         /// 连接对象

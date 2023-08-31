@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace iPanelHost
 {
-    internal static class Program
+    public static class Program
     {
         private static bool _hasShownLogo;
 
@@ -58,7 +58,7 @@ namespace iPanelHost
             Runtime.StartHandleInput();
         }
 
-        private static void ReadSetting()
+        public static void ReadSetting()
         {
             if (!File.Exists("setting.json") || Environment.GetCommandLineArgs().Contains("-i") || Environment.GetCommandLineArgs().Contains("--init"))
             {
