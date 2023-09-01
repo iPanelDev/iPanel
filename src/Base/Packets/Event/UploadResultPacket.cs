@@ -1,47 +1,32 @@
-using System.Collections.Generic;
+using iPanelHost.Base.Packets.DataBody;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Collections.Generic;
 
-namespace iPanelHost.Base.Packets.Event
+namespace iPanelHost.Base.Packets.Event;
+
+[JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+public class UploadResultPacket : SentPacket
 {
-    [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    public class UploadResultPacket : SentPacket
+    public UploadResultPacket(string id, Dictionary<string, FileItemInfo>? files, string speed)
     {
-        public UploadResultPacket(string id, Dictionary<string, FileInfo>? files, string speed)
+        Data = new UploadResult
         {
-            Data = new UploadResult
-            {
-                Files = files,
-                Speed = speed,
-                ID = id
-            };
-            Type = "event";
-            SubType = "upload_result";
-        }
+            Files = files,
+            Speed = speed,
+            ID = id
+        };
+        Type = "event";
+        SubType = "upload_result";
+    }
 
-        [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-        private class UploadResult
-        {
-            public Dictionary<string, FileInfo>? Files;
+    [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+    private class UploadResult
+    {
+        public Dictionary<string, FileItemInfo>? Files;
 
-            public string? Speed;
+        public string? Speed;
 
-            public string? ID;
-        }
-
-        [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-        public class FileInfo
-        {
-            public FileInfo(string md5, long length)
-            {
-                MD5 = md5;
-                Length = length;
-            }
-
-            [JsonProperty("md5")]
-            public string MD5;
-
-            public long Length;
-        }
+        public string? ID;
     }
 }

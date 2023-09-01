@@ -6,6 +6,7 @@ namespace iPanelHost.Tests;
 
 public class Base
 {
+
     [Fact]
     public void SettingsShouldThrowIfInvalid()
     {

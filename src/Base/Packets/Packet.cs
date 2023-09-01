@@ -1,21 +1,21 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace iPanelHost.Base.Packets
+namespace iPanelHost.Base.Packets;
+
+[JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+public abstract class Packet
 {
-    [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    public abstract class Packet
-    {
-        /// <summary>
-        /// 类型
-        /// </summary>
-        public string Type = string.Empty;
+    /// <summary>
+    /// 类型
+    /// </summary>
+    public string Type = string.Empty;
 
-        /// <summary>
-        /// 子类型
-        /// </summary>
-        public string SubType = string.Empty;
+    /// <summary>
+    /// 子类型
+    /// </summary>
+    public string SubType = string.Empty;
 
-        public override string ToString() => JsonConvert.SerializeObject(this);
-    }
+    public override string ToString() => JsonConvert.SerializeObject(this);
 }
+

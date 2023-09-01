@@ -1,74 +1,75 @@
 ﻿using Newtonsoft.Json;
 using iPanelHost.Base;
+using iPanelHost.Interaction;
 using iPanelHost.Server;
-using iPanelHost.Permissons;
+using iPanelHost.Service;
 using iPanelHost.Utils;
 using System;
 using System.IO;
 using System.Linq;
 
-namespace iPanelHost
+namespace iPanelHost;
+
+public static class Program
 {
-    public static class Program
+    private static bool _hasShownLogo;
+
+    /// <summary>
+    /// 设置
+    /// </summary>
+    public static Setting Setting => _setting!;
+
+    private static Setting? _setting;
+
+    /// <summary>
+    /// 应用程序的主入口点
+    /// </summary>
+    /// <param name="args">启动参数</param>
+    [STAThread]
+    public static void Main(string[] args)
     {
-        private static bool _hasShownLogo;
-
-        /// <summary>
-        /// 设置
-        /// </summary>
-        public static Setting Setting => _setting!;
-
-        private static Setting? _setting;
-
-        /// <summary>
-        /// 应用程序的主入口点
-        /// </summary>
-        /// <param name="args">启动参数</param>
-        [STAThread]
-        public static void Main(string[] args)
+        if (args.Contains("-v") || args.Contains("--version"))
         {
-            if (args.Contains("-v") || args.Contains("--version"))
-            {
-                Console.WriteLine($"iPanel Host - {Constant.VERSION}");
-                return;
-            }
-            EntryPoint();
+            Console.WriteLine($"iPanel Host - {Constant.VERSION}");
+            return;
         }
+        EntryPoint();
+    }
 
-        private static void EntryPoint()
+    private static void EntryPoint()
+    {
+        Initialization.InitEnv();
+
+        ReadSetting();
+        UserManager.Read();
+
+        Win32.SetConsoleMode();
+        if (!_hasShownLogo)
         {
-            Initialization.InitEnv();
-
-            ReadSetting();
-            UserManager.Read();
-
-            Win32.SetConsoleMode();
-            if (!_hasShownLogo)
+            if (Setting.DisplayShorterLogoWhenStart)
             {
-                if (Setting.DisplayShorterLogoWhenStart)
-                {
-                    Logger.Info(Constant.Logo);
-                }
-                else
-                {
-                    Logger.Info(Constant.LogoIco.Replace("\\x1b", "\x1b"));
-                }
+                Logger.Info(Constant.Logo);
             }
-            HttpServer.Start();
-            Runtime.StartHandleInput();
+            else
+            {
+                Logger.Info(Constant.LogoIco.Replace("\\x1b", "\x1b"));
+            }
         }
+        HttpServer.Start();
+        Runtime.StartHandleInput();
+    }
 
-        public static void ReadSetting()
+    public static void ReadSetting()
+    {
+        if (!File.Exists("setting.json") || Environment.GetCommandLineArgs().Contains("-i") || Environment.GetCommandLineArgs().Contains("--init"))
         {
-            if (!File.Exists("setting.json") || Environment.GetCommandLineArgs().Contains("-i") || Environment.GetCommandLineArgs().Contains("--init"))
-            {
-                Console.WriteLine(Constant.LogoIco.Replace("\\x1b", "\x1b"));
-                _hasShownLogo = true;
-                _setting = Initialization.InitSetting();
-                return;
-            }
-            _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
-            _setting.Check();
+            Console.WriteLine(Constant.LogoIco.Replace("\\x1b", "\x1b"));
+            _hasShownLogo = true;
+            _setting = Input.CreateSetting();
+            return;
         }
+        _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
+        _setting.Check();
     }
 }
+

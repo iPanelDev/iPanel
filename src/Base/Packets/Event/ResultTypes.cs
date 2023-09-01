@@ -1,23 +1,22 @@
-namespace iPanelHost.Base.Packets.Event
+namespace iPanelHost.Base.Packets.Event;
+
+public enum ResultTypes
 {
-    public enum ResultTypes
-    {
-        Unknown = -1,
-        None,
-        DataAnomaly,
-        DuplicateInstanceID,
-        EmptyAccount,
-        ErrorWhenGettingPacketContent,
-        FailToVerify,
-        IncorrectAccountOrPassword,
-        IncorrectClientType,
-        IncorrectInstanceID,
-        InternalDataError,
-        InvalidConsole,
-        InvalidTarget,
-        InvalidUser,
-        NotVerifyYet,
-        PermissionDenied,
-        TimeoutInVerification,
-    }
+    Unknown = -1,
+    None,
+    DataAnomaly,
+    DuplicateInstanceID,
+    EmptyAccount,
+    ErrorWhenGettingPacketContent,
+    FailToVerify,
+    IncorrectAccountOrPassword,
+    IncorrectClientType,
+    IncorrectInstanceID,
+    InternalDataError,
+    InvalidConsole,
+    InvalidTarget,
+    InvalidUser,
+    NotVerifyYet,
+    PermissionDenied,
+    TimeoutInVerification,
 }

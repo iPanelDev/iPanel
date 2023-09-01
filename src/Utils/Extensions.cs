@@ -1,17 +1,16 @@
 using System.Threading.Tasks;
 
-namespace iPanelHost.Utils
-{
-    public static class Extensions
-    {
-        /// <summary>
-        /// 等待
-        /// </summary>
-        public static void Await(this Task task) => task.GetAwaiter().GetResult();
+namespace iPanelHost.Utils;
 
-        /// <summary>
-        /// 等待
-        /// </summary>
-        public static T Await<T>(this Task<T> task) => task.GetAwaiter().GetResult();
-    }
+public static class Extensions
+{
+    /// <summary>
+    /// 等待
+    /// </summary>
+    public static void Await(this Task task) => task.GetAwaiter().GetResult();
+
+    /// <summary>
+    /// 等待
+    /// </summary>
+    public static T Await<T>(this Task<T> task) => task.GetAwaiter().GetResult();
 }

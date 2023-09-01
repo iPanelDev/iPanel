@@ -3,119 +3,138 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 
-namespace iPanelHost.Base
+namespace iPanelHost.Base;
+
+[JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+public class Setting
 {
-    [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-    public class Setting
+    public WebServerSetting WebServer = new();
+
+    public Win32ConsoleSetting Win32Console = new();
+
+    public bool Debug;
+
+    public string InstancePassword = string.Empty;
+
+    public bool DisplayShorterLogoWhenStart;
+
+    [JsonProperty("_internalVersion")]
+    public int? InternalVersion = Constant.InternalVersion;
+
+    public void Check()
     {
-        public WebServerSetting WebServer = new();
-
-        public Win32ConsoleSetting Win32Console = new();
-
-        public bool Debug;
-
-        public string InstancePassword = string.Empty;
-
-        public bool DisplayShorterLogoWhenStart;
-
-        [JsonProperty("_internalVersion")]
-        public int? InternalVersion = Constant.InternalVersion;
-
-        public void Check()
+        if (!(InternalVersion >= Constant.InternalVersion))
         {
-            if (!(InternalVersion >= Constant.InternalVersion))
-            {
-                Logger.Warn("设置文件setting.json版本过低，建议删除后重新生成");
-            }
-            if (WebServer is null)
-            {
-                throw new SettingsException($"{nameof(WebServer)}数据异常");
-            }
-            if (Win32Console is null)
-            {
-                throw new SettingsException($"{nameof(Win32Console)}数据异常");
-            }
-            if (string.IsNullOrEmpty(InstancePassword))
-            {
-                throw new SettingsException($"{nameof(InstancePassword)}为空");
-            }
-            if (WebServer.UrlPrefixes is null)
-            {
-                throw new SettingsException($"{nameof(WebServer.UrlPrefixes)}为null");
-            }
-            if (WebServer.UrlPrefixes.Length == 0)
-            {
-                throw new SettingsException($"{nameof(WebServer.UrlPrefixes)}为空。你至少应该设置一个");
-            }
-            if (string.IsNullOrEmpty(WebServer.Directory))
-            {
-                throw new SettingsException($"{nameof(WebServer.Directory)}为空");
-            }
-            if (string.IsNullOrEmpty(WebServer.Page404))
-            {
-                throw new SettingsException($"{nameof(WebServer.Page404)}为空");
-            }
-            if (WebServer.Certificate is null)
-            {
-                throw new SettingsException($"{nameof(WebServer.Certificate)}为null");
-            }
-            if (WebServer.Certificate.Enable && Environment.OSVersion.Platform != PlatformID.Win32NT)
-            {
-                Logger.Warn("网页证书可能在非Windows系统下不可用");
-            }
+            Logger.Warn("设置文件setting.json版本过低，建议删除后重新生成");
         }
-
-        [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        public class WebServerSetting
+        if (WebServer is null)
         {
-            /// <summary>
-            /// URL前缀
-            /// </summary>
-            public string[] UrlPrefixes = { "http://127.0.0.1:30001" };
-
-            /// <summary>
-            /// 本地网页文件夹
-            /// </summary>
-            public string Directory = "dist";
-
-            /// <summary>
-            /// 禁用热更新文件
-            /// </summary>
-            public bool DisableFilesHotUpdate = true;
-
-            /// <summary>
-            /// 404网页
-            /// </summary>
-            public string Page404 = "index.html";
-
-            /// <summary>
-            /// 允许跨源
-            /// </summary>
-            public bool AllowCrossOrigin;
-
-            public CertificateSettings Certificate = new();
+            throw new SettingsException($"{nameof(WebServer)}数据异常");
         }
-
-        [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        public class Win32ConsoleSetting
+        if (Win32Console is null)
         {
-            public bool
-                AllowWindowClosing,
-                AllowQuickEditAndInsert;
+            throw new SettingsException($"{nameof(Win32Console)}数据异常");
         }
-
-
-        [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-        public class CertificateSettings
+        if (string.IsNullOrEmpty(InstancePassword))
         {
-            public bool
-                Enable,
-                AutoRegisterCertificate,
-                AutoLoadCertificate;
-
-            public string? Path;
-
-            public string? Password;
+            throw new SettingsException($"{nameof(InstancePassword)}为空");
+        }
+        if (WebServer.UrlPrefixes is null)
+        {
+            throw new SettingsException($"{nameof(WebServer.UrlPrefixes)}为null");
+        }
+        if (WebServer.UrlPrefixes.Length == 0)
+        {
+            throw new SettingsException($"{nameof(WebServer.UrlPrefixes)}为空。你至少应该设置一个");
+        }
+        if (string.IsNullOrEmpty(WebServer.Directory))
+        {
+            throw new SettingsException($"{nameof(WebServer.Directory)}为空");
+        }
+        if (string.IsNullOrEmpty(WebServer.Page404))
+        {
+            throw new SettingsException($"{nameof(WebServer.Page404)}为空");
+        }
+        if (WebServer.MaxRequestsPerSecond <= 0)
+        {
+            throw new SettingsException($"{nameof(WebServer.MaxRequestsPerSecond)}超出范围");
+        }
+        if (WebServer.Certificate is null)
+        {
+            throw new SettingsException($"{nameof(WebServer.Certificate)}为null");
+        }
+        if (WebServer.Certificate.Enable && Environment.OSVersion.Platform != PlatformID.Win32NT)
+        {
+            Logger.Warn("网页证书可能在非Windows系统下不可用");
         }
     }
+
+    [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+    public class WebServerSetting
+    {
+        /// <summary>
+        /// URL前缀
+        /// </summary>
+        public string[] UrlPrefixes = { "http://127.0.0.1:30001" };
+
+        /// <summary>
+        /// 本地网页文件夹
+        /// </summary>
+        public string Directory = "dist";
+
+        /// <summary>
+        /// 禁用热更新文件
+        /// </summary>
+        public bool DisableFilesHotUpdate = true;
+
+        /// <summary>
+        /// 404网页
+        /// </summary>
+        public string Page404 = "index.html";
+
+        /// <summary>
+        /// 允许跨源
+        /// </summary>
+        public bool AllowCrossOrigin;
+
+        /// <summary>
+        /// 每秒最大请求数量
+        /// </summary>
+        public int MaxRequestsPerSecond = 30;
+
+        /// <summary>
+        /// 封禁时长（分钟）
+        /// </summary>
+        public int BanMinutes = 30;
+
+        /// <summary>
+        /// 白名单
+        /// </summary>
+        public string[] WhiteList = Array.Empty<string>();
+
+        public CertificateSettings Certificate = new();
+    }
+
+    [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+    public class Win32ConsoleSetting
+    {
+        public bool
+            AllowWindowClosing,
+            AllowQuickEditAndInsert;
+    }
+
+
+    [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+    public class CertificateSettings
+    {
+        public bool
+            Enable,
+            AutoRegisterCertificate,
+            AutoLoadCertificate;
+
+        public string? Path;
+
+        public string? Password;
+    }
 }
+

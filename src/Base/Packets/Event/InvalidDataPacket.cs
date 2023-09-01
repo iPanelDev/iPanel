@@ -1,10 +1,9 @@
 using iPanelHost.Base.Packets.DataBody;
 
-namespace iPanelHost.Base.Packets.Event
+namespace iPanelHost.Base.Packets.Event;
+
+public class InvalidDataPacket : SentPacket
 {
-    public class InvalidDataPacket : SentPacket
-    {
-        public InvalidDataPacket(string reason) : base("event", "invalid_data", new Result(reason))
-        { }
-    }
+    public InvalidDataPacket(string reason) : base("event", "invalid_data", new Result(reason))
+    { }
 }

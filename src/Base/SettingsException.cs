@@ -1,9 +1,8 @@
 using System;
 
-namespace iPanelHost.Base
+namespace iPanelHost.Base;
+
+public class SettingsException : Exception
 {
-    public class SettingsException : Exception
-    {
-        public SettingsException(string? message) : base(message) { }
-    }
+    public SettingsException(string? message) : base(message) { }
 }

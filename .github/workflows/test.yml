@@ -14,7 +14,7 @@ jobs:
   Test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [windows-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -27,15 +27,19 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 6.0.x
 
-      - name: Run tests
-        run: dotnet test
+      - name: Run tests(net48)
+        if: ${{ matrix.os }} == "windows-latest"
+        run: dotnet test -f net48
+      
+      - name: Run tests(net6.0)
+        run: dotnet test -f net6.0
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: tests-on-${{ matrix.os }}
+          name: Tests-on-${{ matrix.os }}
           path: test/TestResults/*/iPanel-Host.Tests.trx
           reporter: dotnet-trx
