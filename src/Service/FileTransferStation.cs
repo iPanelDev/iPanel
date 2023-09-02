@@ -64,7 +64,10 @@ public static class FileTransferStation
                 continue;
             }
         }
-        File.WriteAllText("fileInfos.json", JsonConvert.SerializeObject(FileItemInfos, Formatting.Indented));
+        File.WriteAllText(
+            "fileInfos.json",
+            JsonConvert.SerializeObject(FileItemInfos, Formatting.Indented)
+        );
     }
 
     /// <summary>
@@ -139,7 +142,16 @@ public static class FileTransferStation
         string speed = General.GetSizeString(byteCount / time) + "/s";
 
         Logger.Info($"<{httpContext.RemoteEndPoint}> 一共接收了{dict.Count}个文件，用时{time}s，平均速度{speed}");
-        await Apis.SendJson(httpContext, new UploadResult() { ID = id, Files = files, Speed = speed }, true);
+        await Apis.SendJson(
+            httpContext,
+            new UploadResult()
+            {
+                ID = id,
+                Files = files,
+                Speed = speed
+            },
+            true
+        );
     }
 
     /// <summary>
@@ -193,6 +205,15 @@ public static class FileTransferStation
         string speed = General.GetSizeString(byteCount / time) + "/s";
         Logger.Info($"<{httpContext.RemoteEndPoint}> 一共接收了{files.Count}个文件，用时{time}s，平均速度{speed}");
 
-        await Apis.SendJson(httpContext, new UploadResult() { ID = id, Files = files, Speed = speed }, true);
+        await Apis.SendJson(
+            httpContext,
+            new UploadResult()
+            {
+                ID = id,
+                Files = files,
+                Speed = speed
+            },
+            true
+        );
     }
 }

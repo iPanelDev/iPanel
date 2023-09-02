@@ -38,7 +38,13 @@ public class Apis : WebApiController
     [Route(HttpVerbs.Post, "/uploadSimplly")]
     public async Task SimpleUpload()
     {
-        if (!(HttpContext.Session.TryGetValue("user", out object? value) && value is User && value is not null))
+        if (
+            !(
+                HttpContext.Session.TryGetValue("user", out object? value)
+                && value is User
+                && value is not null
+            )
+        )
         {
             await SendJson(HttpContext, ResultTypes.NotVerifyYet.ToString(), false, 401);
             return;
@@ -53,7 +59,13 @@ public class Apis : WebApiController
     [Route(HttpVerbs.Post, "/upload")]
     public async Task StreamUpload()
     {
-        if (!(HttpContext.Session.TryGetValue("user", out object? value) && value is User && value is not null))
+        if (
+            !(
+                HttpContext.Session.TryGetValue("user", out object? value)
+                && value is User
+                && value is not null
+            )
+        )
         {
             await SendJson(HttpContext, ResultTypes.NotVerifyYet.ToString(), false, 401);
             return;
@@ -65,7 +77,11 @@ public class Apis : WebApiController
     [Route(HttpVerbs.Any, "/verify")]
     public async Task Verify()
     {
-        if (HttpContext.Session.TryGetValue("user", out object? value) && value is User && value is not null)
+        if (
+            HttpContext.Session.TryGetValue("user", out object? value)
+            && value is User
+            && value is not null
+        )
         {
             await SendJson(HttpContext, null, true);
             return;
@@ -81,11 +97,19 @@ public class Apis : WebApiController
             await SendJson(HttpContext, ResultTypes.LostArgs.ToString(), false, 400);
             return;
         }
-        if (!MainHandler.Consoles.ContainsKey(verifyBody.SessionId) ||
-            !UserManager.Users.TryGetValue(verifyBody.Account, out User? user) ||
-            General.GetMD5(verifyBody.SessionId + verifyBody.Account! + user.Password) != verifyBody.Token)
+        if (
+            !MainHandler.Consoles.ContainsKey(verifyBody.SessionId)
+            || !UserManager.Users.TryGetValue(verifyBody.Account, out User? user)
+            || General.GetMD5(verifyBody.SessionId + verifyBody.Account! + user.Password)
+                != verifyBody.Token
+        )
         {
-            await SendJson(HttpContext, ResultTypes.IncorrectAccountOrPassword.ToString(), false, 400);
+            await SendJson(
+                HttpContext,
+                ResultTypes.IncorrectAccountOrPassword.ToString(),
+                false,
+                400
+            );
             return;
         }
 
@@ -132,7 +156,12 @@ public class Apis : WebApiController
     /// </summary>
     /// <param name="data">数据字段</param>
     /// <param name="statusCode">状态码</param>
-    public static async Task SendJson(IHttpContext httpContext, object? data, bool? success = null, int statusCode = 200)
+    public static async Task SendJson(
+        IHttpContext httpContext,
+        object? data,
+        bool? success = null,
+        int statusCode = 200
+    )
     {
         httpContext.Response.StatusCode = statusCode;
         await httpContext.SendStringAsync(
