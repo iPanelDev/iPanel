@@ -8,13 +8,21 @@ public class Logger : ILogger
 {
     public LogLevel LogLevel => LogLevel.Info;
 
-    public void Dispose() { }
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+    }
 
     public void Log(LogMessageReceivedEventArgs e)
     {
         string line = string.Empty;
         line += e.Message;
-        Log(e.MessageType, e.Exception is null ? line : $"{e.Exception.InnerException?.Message ?? e.Exception.Message}\n  at {e.CallerFilePath}");
+        Log(
+            e.MessageType,
+            e.Exception is null
+                ? line
+                : $"{e.Exception.InnerException?.Message ?? e.Exception.Message}\n  at {e.CallerFilePath}"
+        );
     }
 
     private static void Log(LogLevel type, string line)
@@ -101,4 +109,3 @@ public class Logger : ILogger
         Console.WriteLine($"{DateTime.Now:T} \x1b[95m[Debug]{line}\x1b[0m");
     }
 }
-

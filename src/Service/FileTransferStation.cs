@@ -1,11 +1,13 @@
 using EmbedIO;
 using HttpMultipartParser;
 using iPanelHost.Base.Packets.DataBody;
-using iPanelHost.Base.Packets.Event;
+using iPanelHost.Server;
 using iPanelHost.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,17 +21,50 @@ public static class FileTransferStation
 
     public static readonly Dictionary<string, FileItemInfo> FileItemInfos = new();
 
-    public static readonly Timer itemsChecker = new(10000);
+    public static readonly Timer _checker = new(10000);
 
     static FileTransferStation()
     {
-        itemsChecker.Elapsed += (_, _) => CheckFiles();
-        itemsChecker.Start();
+        _checker.Elapsed += (_, _) => CheckFiles();
+        _checker.Start();
+        if (!File.Exists("fileInfos.json"))
+        {
+            return;
+        }
+        try
+        {
+            FileItemInfos =
+                JsonConvert.DeserializeObject<Dictionary<string, FileItemInfo>>(
+                    File.ReadAllText("fileInfos.json")
+                ) ?? new();
+        }
+        catch (Exception e)
+        {
+            Logger.Error($"fileInfos.json”时出现问题: {e.Message}");
+        }
     }
 
+    /// <summary>
+    /// 检查文件列表
+    /// </summary>
     private static void CheckFiles()
     {
-
+        foreach (var keyValuePair in FileItemInfos.ToArray())
+        {
+            if (!File.Exists(keyValuePair.Key))
+            {
+                FileItemInfos.Remove(keyValuePair.Key);
+                continue;
+            }
+            if (keyValuePair.Value.Expires < DateTime.Now)
+            {
+                File.Delete(keyValuePair.Key);
+                Logger.Warn($"上传的文件“{keyValuePair.Key}”过期，已被删除");
+                FileItemInfos.Remove(keyValuePair.Key);
+                continue;
+            }
+        }
+        File.WriteAllText("fileInfos.json", JsonConvert.SerializeObject(FileItemInfos, Formatting.Indented));
     }
 
     /// <summary>
@@ -52,7 +87,9 @@ public static class FileTransferStation
         Timer timer = new(2500);
         timer.Elapsed += (_, _) =>
         {
-            Logger.Info($"<{httpContext.RemoteEndPoint}> 当前正在接收文件“{currentFile}” {General.GetSizeString(partByteCount / 2.5)}/s");
+            Logger.Info(
+                $"<{httpContext.RemoteEndPoint}> 当前正在接收文件“{currentFile}” {General.GetSizeString(partByteCount / 2.5)}/s"
+            );
             partByteCount = 0;
         };
         timer.Start();
@@ -60,8 +97,12 @@ public static class FileTransferStation
         try
         {
             StreamingMultipartFormDataParser parser = new(httpContext.Request.InputStream);
-            parser.FileHandler += (name, fileName, type, disposition, buffer, bytes, partNumber, additionalProperties) =>
+            parser.FileHandler += (_, fileName, _, _, buffer, bytes, partNumber, _) =>
             {
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    return;
+                }
                 if (!dict.TryGetValue(fileName, out FileStream? fileStream))
                 {
                     fileStream = new($"upload/{id}/{fileName}", FileMode.OpenOrCreate);
@@ -80,17 +121,25 @@ public static class FileTransferStation
         {
             foreach (var kv in dict)
             {
-                files.Add(kv.Key, new(General.GetMD5String(MD5.Create().ComputeHash(kv.Value)), kv.Value.Length));
+                files.Add(
+                    kv.Key,
+                    new(General.GetMD5String(MD5.Create().ComputeHash(kv.Value)), kv.Value.Length)
+                );
                 kv.Value.Close();
             }
             timer.Stop();
+        }
+
+        foreach (var kv in files)
+        {
+            FileItemInfos.Add(kv.Key, kv.Value);
         }
 
         time = (DateTime.Now - start).TotalSeconds;
         string speed = General.GetSizeString(byteCount / time) + "/s";
 
         Logger.Info($"<{httpContext.RemoteEndPoint}> 一共接收了{dict.Count}个文件，用时{time}s，平均速度{speed}");
-        await httpContext.SendStringAsync(new UploadResultPacket(id, files, speed).ToString(), "text/json", UTF8);
+        await Apis.SendJson(httpContext, new UploadResult() { ID = id, Files = files, Speed = speed }, true);
     }
 
     /// <summary>
@@ -104,27 +153,46 @@ public static class FileTransferStation
 
         Directory.CreateDirectory($"upload/{id}");
         Dictionary<string, FileItemInfo> files = new();
-        MultipartFormDataParser parser = await MultipartFormDataParser.ParseAsync(httpContext.Request.InputStream);
+        MultipartFormDataParser parser = await MultipartFormDataParser.ParseAsync(
+            httpContext.Request.InputStream
+        );
 
         foreach (FilePart file in parser.Files)
         {
             DateTime start = DateTime.Now;
-            Logger.Info($"<{httpContext.RemoteEndPoint}> 当前正在接收文件“{file.FileName}”({General.GetSizeString(file.Data.Length)})");
+            Logger.Info(
+                $"<{httpContext.RemoteEndPoint}> 当前正在接收文件“{file.FileName}”({General.GetSizeString(file.Data.Length)})"
+            );
 
-            using FileStream fileStream = new($"upload/{id}/{file.FileName}", FileMode.OpenOrCreate);
+            if (string.IsNullOrEmpty(file.FileName))
+            {
+                return;
+            }
+            using FileStream fileStream =
+                new($"upload/{id}/{file.FileName}", FileMode.OpenOrCreate);
             file.Data.CopyTo(fileStream);
 
             double timeSpan = (DateTime.Now - start).TotalSeconds;
-            Logger.Info($"<{httpContext.RemoteEndPoint}> “{file.FileName}”接收完毕，用时{timeSpan}s，平均速度{General.GetSizeString(file.Data.Length / timeSpan)}/s");
-
+            Logger.Info(
+                $"<{httpContext.RemoteEndPoint}> “{file.FileName}”接收完毕，用时{timeSpan}s，平均速度{General.GetSizeString(file.Data.Length / timeSpan)}/s"
+            );
 
             time += timeSpan;
             byteCount += file.Data.Length;
-            files.Add(file.FileName, new(General.GetMD5String(MD5.Create().ComputeHash(fileStream)), file.Data.Length));
+            files.Add(
+                file.FileName,
+                new(General.GetMD5String(MD5.Create().ComputeHash(fileStream)), file.Data.Length)
+            );
         }
+
+        foreach (var kv in files)
+        {
+            FileItemInfos.Add(kv.Key, kv.Value);
+        }
+
         string speed = General.GetSizeString(byteCount / time) + "/s";
         Logger.Info($"<{httpContext.RemoteEndPoint}> 一共接收了{files.Count}个文件，用时{time}s，平均速度{speed}");
 
-        await httpContext.SendStringAsync(new UploadResultPacket(id, files, speed).ToString(), "text/json", UTF8);
+        await Apis.SendJson(httpContext, new UploadResult() { ID = id, Files = files, Speed = speed }, true);
     }
 }

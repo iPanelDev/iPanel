@@ -9,7 +9,7 @@ public class Instance : Client
     /// 完整信息
     /// </summary>
     [JsonIgnore]
-    public FullInfo FullInfo;
+    public FullInfo? FullInfo;
 
     /// <summary>
     /// 短信息
@@ -32,6 +32,6 @@ public class Instance : Client
     /// </summary>
     public Meta? Metadata;
 
-    public Instance(string? uuid) : base(uuid)
-    { }
+    public Instance(string? uuid)
+        : base(uuid) { }
 }

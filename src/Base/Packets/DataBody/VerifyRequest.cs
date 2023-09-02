@@ -9,22 +9,24 @@ public class VerifyRequest
     /// <summary>
     /// 超时
     /// </summary>
-    public int Timeout;
+    public readonly int Timeout;
 
     /// <summary>
     /// 唯一标识ID
     /// </summary>
-    public string UUID;
+    public readonly string UUID;
 
     /// <summary>
     /// 当前版本
     /// </summary>
-    public string Version => Constant.VERSION;
+    [JsonProperty]
+    public static string Version => Constant.VERSION;
 
     /// <summary>
     /// 内部版本号
     /// </summary>
-    public int InternalVersion => Constant.InternalVersion;
+    [JsonProperty]
+    public static int InternalVersion => Constant.InternalVersion;
 
     public VerifyRequest(int timeout, string uuid)
     {

@@ -8,7 +8,7 @@ using System.Text;
 Console.WriteLine(GetChars(new Bitmap(Console.ReadLine())));
 
 string GetChars(Bitmap bmp)
-
+{
     StringBuilder sb = new();
     for (int h = 0; h < bmp.Height; h += 1)
     {
@@ -29,3 +29,4 @@ string GetChars(Bitmap bmp)
     }
     bmp.Dispose();
     return sb.ToString();
+}

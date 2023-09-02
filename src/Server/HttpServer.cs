@@ -32,7 +32,11 @@ public static class HttpServer
 
         if (Directory.Exists(Program.Setting.WebServer.Directory))
         {
-            _server.WithStaticFolder("/", Program.Setting.WebServer.Directory, Program.Setting.WebServer.DisableFilesHotUpdate);
+            _server.WithStaticFolder(
+                "/",
+                Program.Setting.WebServer.Directory,
+                Program.Setting.WebServer.DisableFilesHotUpdate
+            );
             _server.HandleHttpException(HandleHttpException);
         }
         else
@@ -70,7 +74,9 @@ public static class HttpServer
 
         try
         {
-            Program.Setting.WebServer.UrlPrefixes.ToList().ForEach((url) => options.AddUrlPrefix(url));
+            Program.Setting.WebServer.UrlPrefixes
+                .ToList()
+                .ForEach((url) => options.AddUrlPrefix(url));
         }
         catch (Exception e)
         {
@@ -80,7 +86,11 @@ public static class HttpServer
         if (Program.Setting.WebServer.Certificate.Enable)
         {
             options.AutoLoadCertificate = Program.Setting.WebServer.Certificate.AutoLoadCertificate;
-            options.AutoRegisterCertificate = Program.Setting.WebServer.Certificate.AutoRegisterCertificate;
+            options.AutoRegisterCertificate = Program
+                .Setting
+                .WebServer
+                .Certificate
+                .AutoRegisterCertificate;
             if (string.IsNullOrEmpty(Program.Setting.WebServer.Certificate.Path))
             {
                 return options;
@@ -88,9 +98,14 @@ public static class HttpServer
 
             if (File.Exists(Program.Setting.WebServer.Certificate.Path))
             {
-                options.Certificate = string.IsNullOrEmpty(Program.Setting.WebServer.Certificate.Password) ?
-                    new(Program.Setting.WebServer.Certificate.Path) :
-                    new(Program.Setting.WebServer.Certificate.Path, Program.Setting.WebServer.Certificate.Password);
+                options.Certificate = string.IsNullOrEmpty(
+                    Program.Setting.WebServer.Certificate.Password
+                )
+                    ? new(Program.Setting.WebServer.Certificate.Path)
+                    : new(
+                        Program.Setting.WebServer.Certificate.Path,
+                        Program.Setting.WebServer.Certificate.Password
+                    );
             }
             else
             {
@@ -110,17 +125,23 @@ public static class HttpServer
         {
             if (Program.Setting.WebServer.DisableFilesHotUpdate)
             {
-                _404HtmlContent ??= File.Exists(_404HtmlPath) ? File.ReadAllText(_404HtmlPath) : null;
+                _404HtmlContent ??= File.Exists(_404HtmlPath)
+                    ? File.ReadAllText(_404HtmlPath)
+                    : null;
             }
             else
             {
-                _404HtmlContent = File.Exists(_404HtmlPath) ? File.ReadAllText(_404HtmlPath) : _404HtmlContent;
+                _404HtmlContent = File.Exists(_404HtmlPath)
+                    ? File.ReadAllText(_404HtmlPath)
+                    : _404HtmlContent;
             }
             if (!string.IsNullOrEmpty(_404HtmlContent))
             {
                 context.Response.StatusCode = 200;
                 await context.SendStringAsync(_404HtmlContent!, "text/html", Encoding.UTF8);
-                Logger.Info($"[{context.Id}] {context.Request.HttpMethod} {context.RequestedPath}: 404 -> 200");
+                Logger.Info(
+                    $"[{context.Id}] {context.Request.HttpMethod} {context.RequestedPath}: 404 -> 200"
+                );
                 return;
             }
         }
@@ -128,8 +149,8 @@ public static class HttpServer
         await context.SendStandardHtmlAsync(exception.StatusCode);
     }
 
-    private static string? _404HtmlPath => Path.Combine(Program.Setting.WebServer.Directory, Program.Setting.WebServer.Page404);
+    private static string? _404HtmlPath =>
+        Path.Combine(Program.Setting.WebServer.Directory, Program.Setting.WebServer.Page404);
 
     private static string? _404HtmlContent;
 }
-

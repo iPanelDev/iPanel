@@ -12,7 +12,8 @@ public static class CrashInterception
     public static void Init()
     {
         AppDomain.CurrentDomain.UnhandledException += PrintException;
-        TaskScheduler.UnobservedTaskException += (_, e) => Logger.Fatal(e.Exception.ToString() ?? string.Empty);
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+            Logger.Fatal(e.Exception.ToString() ?? string.Empty);
     }
 
     /// <summary>
@@ -26,8 +27,10 @@ public static class CrashInterception
         File.AppendAllText(
             $"log/crash/{DateTime.Now:yyyy-MM-dd}.txt",
             $"{DateTime.Now:T} | iPanel@{Constant.VERSION} | NET@{Environment.Version}{Environment.NewLine}{exceptionMsg}{Environment.NewLine}"
-            );
-        Logger.Fatal($"崩溃日志已保存在 {(Path.GetFullPath(Path.Combine("logs", "crash", $"{DateTime.Now:yyyy-MM-dd}.txt")))}");
+        );
+        Logger.Fatal(
+            $"崩溃日志已保存在 {(Path.GetFullPath(Path.Combine("logs", "crash", $"{DateTime.Now:yyyy-MM-dd}.txt")))}"
+        );
 
         if (e.IsTerminating && !Console.IsInputRedirected)
         {
@@ -35,4 +38,3 @@ public static class CrashInterception
         }
     }
 }
-

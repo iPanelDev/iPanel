@@ -11,8 +11,8 @@ public static class General
     /// </summary>
     /// <param name="text">文本</param>
     /// <returns>MD5文本</returns>
-    public static string GetMD5(string text)
-        => GetMD5String(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(text)));
+    public static string GetMD5(string text) =>
+        GetMD5String(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(text)));
 
     /// <summary>
     /// 获取MD5
@@ -39,7 +39,6 @@ public static class General
             Console.ReadKey(true);
         }
     }
-
 
     /// <summary>
     /// 获取大小的文本

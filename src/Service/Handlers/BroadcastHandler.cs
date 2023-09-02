@@ -11,7 +11,9 @@ public static class BroadcastHandler
 {
     public static void Handle(Instance instance, ReceivedPacket packet)
     {
-        Logger.Info($"<{instance.Address}> 收到广播：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}");
+        Logger.Info(
+            $"<{instance.Address}> 收到广播：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}"
+        );
         switch (packet.SubType)
         {
             case "server_input":
@@ -51,14 +53,18 @@ public static class BroadcastHandler
     /// <param name="data">数据主体</param>
     private static void Send(Instance instance, string subType, object? data)
     {
-        string instanceID = instance.InstanceID ?? throw new System.NullReferenceException($"{nameof(instance.InstanceID)}为空");
+        string instanceID =
+            instance.InstanceID
+            ?? throw new System.NullReferenceException($"{nameof(instance.InstanceID)}为空");
         lock (MainHandler.Consoles)
         {
             foreach (Console console in MainHandler.Consoles.Values)
             {
                 if (console.SubscribingTarget == instanceID || console.SubscribingTarget == "*")
                 {
-                    console.Send(new SentPacket("broadcast", subType, data, Sender.From(instance)).ToString());
+                    console.Send(
+                        new SentPacket("broadcast", subType, data, Sender.From(instance)).ToString()
+                    );
                 }
             }
         }

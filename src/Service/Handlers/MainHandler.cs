@@ -37,7 +37,11 @@ public static class MainHandler
     {
         lock (Instances)
         {
-            Instances.Values.ToList().ForEach((instance) => instance?.Send(new SentPacket("request", "heartbeat").ToString()));
+            Instances.Values
+                .ToList()
+                .ForEach(
+                    (instance) => instance?.Send(new SentPacket("request", "heartbeat").ToString())
+                );
         }
     }
 
@@ -98,16 +102,25 @@ public static class MainHandler
             return;
         }
         bool isConsole = Consoles.TryGetValue(uuid, out Console? console) && console is not null,
-             isInstance = Instances.TryGetValue(uuid, out Instance? instance) && instance is not null;
+            isInstance =
+                Instances.TryGetValue(uuid, out Instance? instance) && instance is not null;
         ReceivedPacket? packet;
         try
         {
-            packet = JsonConvert.DeserializeObject<ReceivedPacket>(message) ?? throw new PacketException("空数据包");
+            packet =
+                JsonConvert.DeserializeObject<ReceivedPacket>(message)
+                ?? throw new PacketException("空数据包");
         }
         catch (Sys.Exception e)
         {
             Logger.Warn($"<{clientUrl}>处理数据包异常\n{e}");
-            context.Send(new SentPacket("event", (isConsole || isInstance) ? "invalid_packet" : "disconnection", new Result($"发送的数据包存在问题：{e.Message}")).ToString());
+            context.Send(
+                new SentPacket(
+                    "event",
+                    (isConsole || isInstance) ? "invalid_packet" : "disconnection",
+                    new Result($"发送的数据包存在问题：{e.Message}")
+                ).ToString()
+            );
             if (!isConsole && !isInstance)
             {
                 context.Close();
@@ -138,7 +151,13 @@ public static class MainHandler
     {
         if (packet.Type != "request")
         {
-            console.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
+            console.Send(
+                new SentPacket(
+                    "event",
+                    "invalid_param",
+                    new Result($"所请求的“{packet.Type}”类型不存在或无法调用")
+                ).ToString()
+            );
             return;
         }
         RequestsHandler.Handle(console, packet);
@@ -162,7 +181,13 @@ public static class MainHandler
                 break;
 
             default:
-                instance.Send(new SentPacket("event", "invalid_param", new Result($"所请求的“{packet.Type}”类型不存在或无法调用")).ToString());
+                instance.Send(
+                    new SentPacket(
+                        "event",
+                        "invalid_param",
+                        new Result($"所请求的“{packet.Type}”类型不存在或无法调用")
+                    ).ToString()
+                );
                 break;
         }
     }
@@ -174,8 +199,8 @@ public static class MainHandler
     {
         if (Sys.Environment.OSVersion.Platform == Sys.PlatformID.Win32NT)
         {
-            Sys.Console.Title = $"iPanel Host {Constant.VERSION} [{WsModule.This?.ActiveContextsCount ?? 0} 连接]";
+            Sys.Console.Title =
+                $"iPanel Host {Constant.VERSION} [{WsModule.Instance?.ActiveContextsCount ?? 0} 连接]";
         }
     }
 }
-

@@ -9,13 +9,12 @@ public abstract class Packet
     /// <summary>
     /// 类型
     /// </summary>
-    public string Type = string.Empty;
+    public string Type { init; get; } = string.Empty;
 
     /// <summary>
     /// 子类型
     /// </summary>
-    public string SubType = string.Empty;
+    public string SubType { init; get; } = string.Empty;
 
     public override string ToString() => JsonConvert.SerializeObject(this);
 }
-

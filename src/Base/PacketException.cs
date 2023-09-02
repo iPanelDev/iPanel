@@ -4,5 +4,6 @@ namespace iPanelHost.Base;
 
 public class PacketException : Exception
 {
-    public PacketException(string? message) : base(message) { }
+    public PacketException(string? message)
+        : base(message) { }
 }

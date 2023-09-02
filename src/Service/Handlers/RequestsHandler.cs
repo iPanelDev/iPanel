@@ -21,7 +21,9 @@ public static class RequestsHandler
     /// <param name="packet">数据包</param>
     public static void Handle(Console console, ReceivedPacket packet)
     {
-        Logger.Info($"<{console.Address}> 收到请求：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}");
+        Logger.Info(
+            $"<{console.Address}> 收到请求：{packet.SubType}，数据：{packet.Data?.ToString(Formatting.None) ?? "空"}"
+        );
         bool subAll;
         Instance? instance;
 
@@ -36,7 +38,7 @@ public static class RequestsHandler
                     break;
                 }
                 Send(console, packet.SubType, null, subAll, instance);
-                console.Send(new OperationResultPacket(packet.Echo, ResultTypes.None));
+                console.Send(new OperationResultPacket(packet.Echo, ResultTypes.Success));
                 break;
 
             case "server_input":
@@ -51,7 +53,7 @@ public static class RequestsHandler
                     break;
                 }
                 Send(console, packet.SubType, packet.Data, subAll, instance);
-                console.Send(new OperationResultPacket(packet.Echo, ResultTypes.None));
+                console.Send(new OperationResultPacket(packet.Echo, ResultTypes.Success));
                 break;
 
             case "list_instance":
@@ -61,8 +63,8 @@ public static class RequestsHandler
                         "instance_list",
                         packet.Echo,
                         JArray.FromObject(MainHandler.Instances.Values)
-                        ).ToString()
-                    );
+                    ).ToString()
+                );
                 break;
 
             case "list_console":
@@ -72,8 +74,8 @@ public static class RequestsHandler
                         "console_list",
                         packet.Echo,
                         JArray.FromObject(MainHandler.Consoles.Values)
-                        ).ToString()
-                    );
+                    ).ToString()
+                );
                 break;
 
             case "subscribe":
@@ -83,20 +85,33 @@ public static class RequestsHandler
                     console.SubscribingTarget = target;
                 }
                 else if (
-                    !string.IsNullOrEmpty(target) &&
-                    (instance = MainHandler.Instances.Values.FirstOrDefault((i) => i.InstanceID == target)) is not null &&
-                    (console.User?.Level == PermissonLevel.Assistant || console.User?.Level == PermissonLevel.Administrator || (console.User?.Instances.Contains(target) ?? false)))
+                    !string.IsNullOrEmpty(target)
+                    && (
+                        instance = MainHandler.Instances.Values.FirstOrDefault(
+                            (i) => i.InstanceID == target
+                        )
+                    )
+                        is not null
+                    && (
+                        console.User?.Level == PermissonLevel.Assistant
+                        || console.User?.Level == PermissonLevel.Administrator
+                        || (console.User?.Instances.Contains(target) ?? false)
+                    )
+                )
                 {
                     console.SubscribingTarget = target;
-                    console.Send(new SentPacket(
-                        "return",
-                        "instance_info",
-                        packet.Echo,
-                        new JObject
-                        {
+                    console.Send(
+                        new SentPacket(
+                            "return",
+                            "instance_info",
+                            packet.Echo,
+                            new JObject
+                            {
                                 { "instance_id", target },
-                                { "info", JObject.FromObject(instance.FullInfo) }
-                        }));
+                                { "info", JObject.FromObject(instance.FullInfo!) }
+                            }
+                        )
+                    );
                 }
                 else
                 {
@@ -109,28 +124,33 @@ public static class RequestsHandler
                 break;
 
             case "get_instance_info":
-                if (!string.IsNullOrEmpty(packet.Data?.ToString()) && MainHandler.Instances.TryGetValue(packet.Data?.ToString()!, out instance))
+                if (
+                    !string.IsNullOrEmpty(packet.Data?.ToString())
+                    && MainHandler.Instances.TryGetValue(packet.Data?.ToString()!, out instance)
+                )
                 {
-                    console.Send(new SentPacket(
-                        "return",
-                        "instance_info",
-                        packet.Echo,
-                        new JObject
-                        {
+                    console.Send(
+                        new SentPacket(
+                            "return",
+                            "instance_info",
+                            packet.Echo,
+                            new JObject
+                            {
                                 { "instance_id", console.SubscribingTarget },
-                                { "info", JObject.FromObject(instance.FullInfo) }
-                        }));
+                                { "info", JObject.FromObject(instance.FullInfo!) }
+                            }
+                        )
+                    );
                 }
                 else if (packet.Data?.ToString() == "*")
                 {
-                    Dictionary<string, FullInfo> fullInfos = new();
-                    MainHandler.Instances.Values.ToList().ForEach((i) => fullInfos.Add(i.InstanceID!, i.FullInfo));
-                    console.Send(new SentPacket(
-                        "return",
-                        "instances_info",
-                        packet.Echo,
-                        fullInfos
-                        ));
+                    Dictionary<string, FullInfo?> fullInfos = new();
+                    MainHandler.Instances.Values
+                        .ToList()
+                        .ForEach((i) => fullInfos.Add(i.InstanceID!, i.FullInfo));
+                    console.Send(
+                        new SentPacket("return", "instances_info", packet.Echo, fullInfos)
+                    );
                 }
                 else
                 {
@@ -141,21 +161,22 @@ public static class RequestsHandler
             case "get_current_user_info":
                 if (console.User is null)
                 {
-                    console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InternalDataError));
+                    console.Send(
+                        new OperationResultPacket(packet.Echo, ResultTypes.InternalDataError)
+                    );
                     throw new InternalException("用户为空");
                 }
-                console.Send(new SentPacket(
-                    "return",
-                    "user_info",
-                    packet.Echo,
-                    new SafeUser(console.User)
-                    ));
+                console.Send(
+                    new SentPacket("return", "user_info", packet.Echo, new SafeUser(console.User))
+                );
                 break;
 
             case "get_all_users":
                 if (console.User?.Level != PermissonLevel.Administrator)
                 {
-                    console.Send(new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied));
+                    console.Send(
+                        new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied)
+                    );
                     break;
                 }
                 console.Send(
@@ -166,13 +187,16 @@ public static class RequestsHandler
                         UserManager.Users
                             .Select((kv) => new KeyValuePair<string, SafeUser>(kv.Key, kv.Value))
                             .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
-                        ));
+                    )
+                );
                 break;
 
             case "delete_user":
                 if (console.User?.Level != PermissonLevel.Administrator)
                 {
-                    console.Send(new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied));
+                    console.Send(
+                        new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied)
+                    );
                     break;
                 }
                 if (packet.Data is null)
@@ -181,11 +205,14 @@ public static class RequestsHandler
                     break;
                 }
 
-                console.Send(new OperationResultPacket(
-                    packet.Echo,
-                    UserManager.Users.Remove(packet.Data.ToString()) ?
-                    ResultTypes.None :
-                    ResultTypes.InvalidUser));
+                console.Send(
+                    new OperationResultPacket(
+                        packet.Echo,
+                        UserManager.Users.Remove(packet.Data.ToString())
+                            ? ResultTypes.Success
+                            : ResultTypes.InvalidUser
+                    )
+                );
                 UserManager.Save();
                 console.Send(
                     new SentPacket(
@@ -195,13 +222,19 @@ public static class RequestsHandler
                         UserManager.Users
                             .Select((kv) => new KeyValuePair<string, SafeUser>(kv.Key, kv.Value))
                             .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
-                        ));
+                    )
+                );
                 break;
 
             case "get_dir_info":
-                if (console.User?.Level != PermissonLevel.Assistant && console.User?.Level != PermissonLevel.Administrator)
+                if (
+                    console.User?.Level != PermissonLevel.Assistant
+                    && console.User?.Level != PermissonLevel.Administrator
+                )
                 {
-                    console.Send(new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied));
+                    console.Send(
+                        new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied)
+                    );
                     break;
                 }
                 if (!CheckTarget(console, out subAll, out instance) && instance is null)
@@ -217,9 +250,13 @@ public static class RequestsHandler
                 Send(console, packet.SubType, packet.Data, subAll, instance);
                 break;
 
-
             default:
-                console.Send(new InvalidParamPacket($"所请求的“{packet.SubType}”类型不存在或无法调用") { Echo = packet.Echo });
+                console.Send(
+                    new InvalidParamPacket($"所请求的“{packet.SubType}”类型不存在或无法调用")
+                    {
+                        Echo = packet.Echo
+                    }
+                );
                 break;
         }
     }
@@ -238,9 +275,13 @@ public static class RequestsHandler
         {
             return true;
         }
-        return
-            !string.IsNullOrEmpty(console.SubscribingTarget) &&
-            (instance = MainHandler.Instances.FirstOrDefault((kv) => kv.Value.InstanceID == console.SubscribingTarget).Value) is not null;
+        return !string.IsNullOrEmpty(console.SubscribingTarget)
+            && (
+                instance = MainHandler.Instances
+                    .FirstOrDefault((kv) => kv.Value.InstanceID == console.SubscribingTarget)
+                    .Value
+            )
+                is not null;
     }
 
     /// <summary>
@@ -251,18 +292,38 @@ public static class RequestsHandler
     /// <param name="data">数据主体</param>
     /// <param name="subAll">订阅目标为全体</param>
     /// <param name="instance">实例对象</param>
-    private static void Send(Console console, string subType, object? data, bool subAll = false, Instance? instance = null)
+    private static void Send(
+        Console console,
+        string subType,
+        object? data,
+        bool subAll = false,
+        Instance? instance = null
+    )
     {
         if (subAll)
         {
             lock (MainHandler.Instances)
             {
-                MainHandler.Instances.Values.ToList().ForEach((enumeredInstance) => enumeredInstance?.Send(new SentPacket("request", subType, data, Sender.From(console)).ToString()));
+                MainHandler.Instances.Values
+                    .ToList()
+                    .ForEach(
+                        (enumeredInstance) =>
+                            enumeredInstance?.Send(
+                                new SentPacket(
+                                    "request",
+                                    subType,
+                                    data,
+                                    Sender.From(console)
+                                ).ToString()
+                            )
+                    );
             }
         }
         else
         {
-            instance?.Send(new SentPacket("request", subType, data, Sender.From(console)).ToString());
+            instance?.Send(
+                new SentPacket("request", subType, data, Sender.From(console)).ToString()
+            );
         }
     }
 }

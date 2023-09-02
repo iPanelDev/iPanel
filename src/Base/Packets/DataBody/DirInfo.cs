@@ -8,31 +8,35 @@ namespace iPanelHost.Base.Packets.DataBody;
 public class DirInfo
 {
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public Item[]? Items;
+    public Item[]? Items { get; init; }
 
-    public bool IsExist;
+    public bool IsExist { get; init; }
 
-    public string? Dir;
+    public string? Dir { get; init; }
 
     private static readonly string[] _childrenTypes = { "file", "dir" };
 
     public DirInfo()
     {
-        Items = Items?
-            .Where((item) => !string.IsNullOrEmpty(item?.Type) && _childrenTypes.Contains(item?.Type ?? string.Empty))
+        Items = Items
+            ?.Where(
+                (item) =>
+                    !string.IsNullOrEmpty(item?.Type)
+                    && _childrenTypes.Contains(item?.Type ?? string.Empty)
+            )
             .ToArray();
     }
 
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     public class Item
     {
-        public string? Type;
+        public string? Type { get; init; }
 
-        public string? Path;
+        public string? Path { get; init; }
 
-        public string? Name;
+        public string? Name { get; init; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public long? Size;
+        public long? Size { get; init; }
     }
 }

@@ -12,6 +12,6 @@ public class Console : Client
     [JsonIgnore]
     public User? User;
 
-    public Console(string? uuid) : base(uuid)
-    { }
+    public Console(string? uuid)
+        : base(uuid) { }
 }

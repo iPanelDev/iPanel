@@ -14,11 +14,11 @@ public class FileItemInfo
     }
 
     [JsonProperty("md5")]
-    public string MD5;
+    public string MD5 { get; init; }
 
-    public long Length;
+    public long Length { get; init; }
 
-    public DateTime Expired = DateTime.Now.AddMinutes(10);
+    public readonly DateTime Expires = DateTime.Now.AddMinutes(30);
 
-    public string? InstanceId;
+    public string? User { get; init; }
 }

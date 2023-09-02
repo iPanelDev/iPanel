@@ -16,7 +16,7 @@ namespace iPanelHost.Tests;
 
 public class WS : IDisposable
 {
-    public WebSocket4Net.WebSocket WebSocket;
+    private readonly WebSocket4Net.WebSocket WebSocket;
 
     private readonly ITestOutputHelper _outputHelper;
 
@@ -31,7 +31,10 @@ public class WS : IDisposable
     {
         _outputHelper = outputHelper;
 
-        File.WriteAllText("setting.json", JsonConvert.SerializeObject(new Setting { InstancePassword = _password }));
+        File.WriteAllText(
+            "setting.json",
+            JsonConvert.SerializeObject(new Setting { InstancePassword = _password })
+        );
         Program.ReadSetting();
         HttpServer.Start();
 
@@ -125,7 +128,6 @@ public class WS : IDisposable
         };
 
         WebSocket.Open();
-
     }
 
     /// <summary>
@@ -145,10 +147,7 @@ public class WS : IDisposable
                     {
                         Type = "request",
                         SubType = "verify",
-                        Data = new JObject
-                        {
-                            { "token", "114514" }
-                        }
+                        Data = new JObject { { "token", "114514" } }
                     }.ToString()
                 );
             }

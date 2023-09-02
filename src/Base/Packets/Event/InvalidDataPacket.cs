@@ -4,6 +4,6 @@ namespace iPanelHost.Base.Packets.Event;
 
 public class InvalidDataPacket : SentPacket
 {
-    public InvalidDataPacket(string reason) : base("event", "invalid_data", new Result(reason))
-    { }
+    public InvalidDataPacket(string reason)
+        : base("event", "invalid_data", new Result(reason)) { }
 }

@@ -35,7 +35,6 @@ public static class Runtime
         ExitQuietly(code);
     }
 
-
     /// <summary>
     /// 安静退出
     /// </summary>
@@ -48,4 +47,3 @@ public static class Runtime
         Environment.Exit(code);
     }
 }
-

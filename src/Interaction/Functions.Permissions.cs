@@ -14,28 +14,35 @@ namespace iPanelHost.Interaction;
 
 public static partial class Funcions
 {
-    private static User NewUser => new()
-    {
-        Password = Prompt.Password("密码",
-            placeholder: "不要与QQ或服务器等密码重复；推荐大小写字母数字结合",
-            validators: new[] {
+    private static User NewUser =>
+        new()
+        {
+            Password = Prompt.Password(
+                "密码",
+                placeholder: "不要与QQ或服务器等密码重复；推荐大小写字母数字结合",
+                validators: new[]
+                {
                     Validators.Required("密码不可为空"),
                     Validators.MinLength(6, "密码长度过短"),
                     Validators.RegularExpression(@"^[^\s]+$", "密码不得含有空格"),
-            }),
-        Level = (PermissonLevel)Prompt.Select(
-            "权限等级",
-            UserManager.LevelDescription,
-            textSelector: (kv) => kv.Value
-            ).Key,
-        Description = Prompt.Input<string>("描述", placeholder: "（可选）")?.Trim()
-    };
+                }
+            ),
+            Level = (PermissonLevel)
+                Prompt
+                    .Select("权限等级", UserManager.LevelDescription, textSelector: (kv) => kv.Value)
+                    .Key,
+            Description = Prompt.Input<string>("描述", placeholder: "（可选）")?.Trim()
+        };
 
-    private static string SelectUser => Prompt.Select(
-        "选择一个用户",
-        UserManager.Users,
-        textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime}"
-        ).Key;
+    private static string SelectUser =>
+        Prompt
+            .Select(
+                "选择一个用户",
+                UserManager.Users,
+                textSelector: (kv) =>
+                    $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime}"
+            )
+            .Key;
 
     public static void ManageUsers(string[] args)
     {
@@ -72,10 +79,16 @@ public static partial class Funcions
             case "list":
                 lock (UserManager.Users)
                 {
-                    ConsoleTable consoleTable = new("Account", "Level", "Last Login Time", "Description");
+                    ConsoleTable consoleTable =
+                        new("Account", "Level", "Last Login Time", "Description");
                     foreach (var keyValuePair in UserManager.Users)
                     {
-                        consoleTable.AddRow(keyValuePair.Key, keyValuePair.Value.Level, keyValuePair.Value.LastLoginTime?.ToString("g") ?? "-", keyValuePair.Value.Description ?? "-");
+                        consoleTable.AddRow(
+                            keyValuePair.Key,
+                            keyValuePair.Value.Level,
+                            keyValuePair.Value.LastLoginTime?.ToString("g") ?? "-",
+                            keyValuePair.Value.Description ?? "-"
+                        );
                     }
                     Logger.Info(consoleTable.ToMinimalString());
                 }
@@ -99,14 +112,28 @@ public static partial class Funcions
     {
         try
         {
-            if (!UserManager.Add(
-                Prompt.Input<string>("帐号", validators: new[] {
-                        Validators.Required("帐号不可为空"),
-                        Validators.RegularExpression(@"^[^\s]+$", "帐号不得含有空格"),
-                        Validators.MinLength(3, "帐号长度过短"),
-                        Validators.RegularExpression(@"^[\w\.-@#\$%]+$", "帐号不得含有除[A-Za-z0-9._-@#$%]以外的字符"),
-                       (value) => value is string account && !UserManager.Users.ContainsKey(account) ? ValidationResult.Success : new("帐号已存在")
-                }), NewUser))
+            if (
+                !UserManager.Add(
+                    Prompt.Input<string>(
+                        "帐号",
+                        validators: new[]
+                        {
+                            Validators.Required("帐号不可为空"),
+                            Validators.RegularExpression(@"^[^\s]+$", "帐号不得含有空格"),
+                            Validators.MinLength(3, "帐号长度过短"),
+                            Validators.RegularExpression(
+                                @"^[\w\.-@#\$%]+$",
+                                "帐号不得含有除[A-Za-z0-9._-@#$%]以外的字符"
+                            ),
+                            (value) =>
+                                value is string account && !UserManager.Users.ContainsKey(account)
+                                    ? ValidationResult.Success
+                                    : new("帐号已存在")
+                        }
+                    ),
+                    NewUser
+                )
+            )
             {
                 Logger.Warn("因字典key重复而创建失败");
                 return;
@@ -134,12 +161,10 @@ public static partial class Funcions
                 Logger.Info("删除成功");
                 UserManager.Save();
             }
-
             else
             {
                 Logger.Warn("因字典key变更而删除失败");
             }
-
         }
         catch (PromptCanceledException)
         {
@@ -154,11 +179,14 @@ public static partial class Funcions
     {
         try
         {
-            string key = Prompt.Select(
-                "选择要修改的用户",
-                UserManager.Users,
-                textSelector: (kv) => $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime:d t}"
-                ).Key;
+            string key = Prompt
+                .Select(
+                    "选择要修改的用户",
+                    UserManager.Users,
+                    textSelector: (kv) =>
+                        $"{kv.Key}\t权限等级: {kv.Value.Level} 上次登录时间: {kv.Value.LastLoginTime:d t}"
+                )
+                .Key;
             User user = NewUser;
             lock (UserManager.Users)
             {
@@ -195,10 +223,15 @@ public static partial class Funcions
                 return;
             }
 
-            Dictionary<string, Instance> dict = user
-                .Instances
+            Dictionary<string, Instance> dict = user.Instances
                 .Distinct()
-                .Select(i => new KeyValuePair<string, Instance>(Guid.NewGuid().ToString("N"), new(string.Empty) { InstanceID = i }))
+                .Select(
+                    i =>
+                        new KeyValuePair<string, Instance>(
+                            Guid.NewGuid().ToString("N"),
+                            new(string.Empty) { InstanceID = i }
+                        )
+                )
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
             lock (MainHandler.Instances)
@@ -216,7 +249,8 @@ public static partial class Funcions
                     }
                 }
             }
-            IEnumerable<KeyValuePair<string, Instance>> all = dict.Concat(MainHandler.Instances).Distinct();
+            IEnumerable<KeyValuePair<string, Instance>> all = dict.Concat(MainHandler.Instances)
+                .Distinct();
 
             if (!all.Any())
             {
@@ -224,12 +258,15 @@ public static partial class Funcions
                 return;
             }
 
-            user.Instances = Prompt.MultiSelect(
-                "选择实例",
-                all,
-                minimum: 0,
-                defaultValues: dict,
-                textSelector: (kv) => $"{kv.Value.InstanceID}({kv.Value?.Address ?? "-"}) \t自定义名称：{kv.Value?.CustomName}")
+            user.Instances = Prompt
+                .MultiSelect(
+                    "选择实例",
+                    all,
+                    minimum: 0,
+                    defaultValues: dict,
+                    textSelector: (kv) =>
+                        $"{kv.Value.InstanceID}({kv.Value?.Address ?? "-"}) \t自定义名称：{kv.Value?.CustomName}"
+                )
                 .Select(kv => kv.Value.InstanceID)
                 .Where(instanceID => !string.IsNullOrEmpty(instanceID))
                 .ToArray()!;

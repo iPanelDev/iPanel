@@ -4,38 +4,37 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.Base.Client.Info;
 
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-public struct FullInfo
+public class FullInfo
 {
-    public SysInfo Sys;
+    public SysInfo Sys { get; init; } = new();
 
-    public ServerInfo Server;
+    public ServerInfo Server { get; init; } = new();
 
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    public struct SysInfo
+    public class SysInfo
     {
-        public string? OS;
+        public string? OS { get; init; }
 
-        public string? CPUName;
+        public string? CPUName { get; init; }
 
-        public long TotalRAM;
+        public long TotalRAM { get; init; }
 
-        public long FreeRAM;
+        public long FreeRAM { get; init; }
 
         public double RAMUsage => (1 - (double)FreeRAM / TotalRAM) * 100;
 
-        public double CPUUsage;
+        public double CPUUsage { get; init; }
     }
 
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    public struct ServerInfo
+    public class ServerInfo
     {
-        public string? Filename;
+        public string? Filename { get; init; }
 
-        public bool Status;
+        public bool Status { get; init; }
 
-        public string? RunTime;
+        public string? RunTime { get; init; }
 
-        public double Usage;
+        public double Usage { get; init; }
     }
 }
-

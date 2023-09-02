@@ -20,13 +20,14 @@ public static class UserManager
 
     public static Dictionary<string, User> Users { get; private set; } = new();
 
-    public static readonly Dictionary<int, string> LevelDescription = new()
-    {
-        { 0, "游客:   禁止登录" },
-        { 1, "只读:   仅可查看" },
-        { 2, "助手:   允许控制服务器" },
-        { 3, "管理员: 允许控制服务器、新建修改删除用户" }
-    };
+    public static readonly Dictionary<int, string> LevelDescription =
+        new()
+        {
+            { 0, "游客:   禁止登录" },
+            { 1, "只读:   仅可查看" },
+            { 2, "助手:   允许控制服务器" },
+            { 3, "管理员: 允许控制服务器、新建修改删除用户" }
+        };
 
     private const string _path = "users.json";
 
@@ -43,7 +44,9 @@ public static class UserManager
 
         try
         {
-            Users = JsonConvert.DeserializeObject<Dictionary<string, User>>(File.ReadAllText(_path)) ?? throw new FileLoadException("文件数据异常");
+            Users =
+                JsonConvert.DeserializeObject<Dictionary<string, User>>(File.ReadAllText(_path))
+                ?? throw new FileLoadException("文件数据异常");
 
             if (Users.Count == 0)
             {

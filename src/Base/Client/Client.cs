@@ -13,7 +13,7 @@ public abstract class Client
     /// 连接对象
     /// </summary>
     [JsonIgnore]
-    public IWebSocketContext? Context;
+    public IWebSocketContext? Context { get; init; }
 
     /// <summary>
     /// 地址
@@ -61,4 +61,3 @@ public abstract class Client
         UUID = uuid ?? throw new ArgumentNullException(nameof(uuid));
     }
 }
-

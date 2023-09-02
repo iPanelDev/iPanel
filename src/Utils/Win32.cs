@@ -12,13 +12,13 @@ public static class Win32
     const uint ENABLE_INSERT_MODE = 0x0020;
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    extern static IntPtr FindWindow(string? lpClassName, string lpWindowName);
+    static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
 
     [DllImport("user32.dll")]
-    extern static IntPtr GetSystemMenu(IntPtr hWnd, IntPtr bRevert);
+    static extern IntPtr GetSystemMenu(IntPtr hWnd, IntPtr bRevert);
 
     [DllImport("user32.dll")]
-    extern static IntPtr RemoveMenu(IntPtr hMenu, uint uPosition, uint uFlags);
+    static extern IntPtr RemoveMenu(IntPtr hMenu, uint uPosition, uint uFlags);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern IntPtr GetStdHandle(int nStdHandle);
@@ -62,7 +62,7 @@ public static class Win32
 
             if (!Program.Setting.Win32Console.AllowWindowClosing)
             {
-                IntPtr windowHandle = FindWindow(null, System.Console.Title);
+                IntPtr windowHandle = FindWindow(null, Console.Title);
                 IntPtr closeMenu = GetSystemMenu(windowHandle, IntPtr.Zero);
                 uint SC_CLOSE = 0xF060;
                 RemoveMenu(closeMenu, SC_CLOSE, 0x0);

@@ -3,7 +3,6 @@ using iPanelHost.Service.Handlers;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Sharprompt;
-using Sys = System;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -15,7 +14,7 @@ namespace iPanelHost.Interaction;
 public static class Input
 {
     private const string _helpMenu =
-@"
+        @"
 连接
   ls/list       查看当前连接列表
   d/disconnect  强制断开实例
@@ -41,22 +40,41 @@ public static class Input
     public static void ReadLine(string line)
     {
 #if NET
-        string[] args = line.Split('\x20', Sys.StringSplitOptions.RemoveEmptyEntries | Sys.StringSplitOptions.TrimEntries);
+        string[] args = line.Split(
+            '\x20',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+        );
 #else
-            string[] args = line.Split('\x20');
+        string[] args = line.Split('\x20');
 #endif
         switch (args.FirstOrDefault()?.ToLowerInvariant())
         {
             case "ls":
             case "list":
-                Logger.Info($"当前有{MainHandler.Consoles.Count}个控制台和{MainHandler.Instances.Count}个面板在线");
+                Logger.Info(
+                    $"当前有{MainHandler.Consoles.Count}个控制台和{MainHandler.Instances.Count}个面板在线"
+                );
                 lock (MainHandler.Consoles)
                 {
-                    MainHandler.Consoles.Keys.ToList().ForEach((key) => Logger.Info($"{"[控制台]",-5}{MainHandler.Consoles[key].Address,-20}"));
+                    MainHandler.Consoles.Keys
+                        .ToList()
+                        .ForEach(
+                            (key) =>
+                                Logger.Info(
+                                    $"{"[控制台]", -5}{MainHandler.Consoles[key].Address, -20}"
+                                )
+                        );
                 }
                 lock (MainHandler.Instances)
                 {
-                    MainHandler.Instances.Keys.ToList().ForEach((key) => Logger.Info($"{"[实例]",-5}{MainHandler.Instances[key].Address,-20}{MainHandler.Instances[key].CustomName}"));
+                    MainHandler.Instances.Keys
+                        .ToList()
+                        .ForEach(
+                            (key) =>
+                                Logger.Info(
+                                    $"{"[实例]", -5}{MainHandler.Instances[key].Address, -20}{MainHandler.Instances[key].CustomName}"
+                                )
+                        );
                 }
                 break;
 
@@ -72,7 +90,7 @@ public static class Input
 
             case "cls":
             case "clear":
-                Sys.Console.Clear();
+                Console.Clear();
                 break;
 
             case "exit":
@@ -106,9 +124,21 @@ public static class Input
         }
     }
 
+    /// <summary>
+    /// 确保输出流未被重定向
+    /// </summary>
+    public static bool EnsureOutputNotRedirected()
+    {
+        if (Console.IsOutputRedirected)
+        {
+            Logger.Warn("输出流被重定向，高级输入模式不可用");
+            return true;
+        }
+        return false;
+    }
 
     /// <summary>
-    /// 初始化设置
+    /// 创建设置文件
     /// </summary>
     public static Setting CreateSetting()
     {
@@ -119,28 +149,39 @@ public static class Input
                 "Http服务器的端口",
                 30000,
                 "1~65535",
-                new Func<object, ValidationResult?>[] {
-                        (obj) => obj is int value && value > 0 && value <= 65535 ? ValidationResult.Success : new("端口无效")
-                });
+                new[]
+                {
+                    (object obj) =>
+                        obj is int value && value > 0 && value <= 65535
+                            ? ValidationResult.Success
+                            : new("端口无效")
+                }
+            );
 
-            Setting setting = new()
-            {
-                InstancePassword = Prompt.Password(
-                    "实例连接密码",
-                    placeholder: "不要与QQ或服务器等密码重复；推荐大小写字母数字结合",
-                    validators: new[] {
+            Setting setting =
+                new()
+                {
+                    InstancePassword = Prompt.Password(
+                        "实例连接密码",
+                        placeholder: "不要与QQ或服务器等密码重复；推荐大小写字母数字结合",
+                        validators: new[]
+                        {
                             Validators.Required("密码不可为空"),
                             Validators.MinLength(6, "密码长度过短"),
                             Validators.RegularExpression(@"^[^\s]+$", "密码不得含有空格"),
-                    }),
-                WebServer =
+                        }
+                    ),
+                    WebServer = new()
                     {
                         UrlPrefixes = new[] { $"http://{(toPublic ? "+" : "127.0.0.1")}:{port}" },
                         AllowCrossOrigin = Prompt.Confirm("允许跨源资源共享（CORS）", false)
                     }
-            };
+                };
 
-            File.WriteAllText("setting.json", JsonConvert.SerializeObject(setting, Formatting.Indented));
+            File.WriteAllText(
+                "setting.json",
+                JsonConvert.SerializeObject(setting, Formatting.Indented)
+            );
             Directory.CreateDirectory("logs");
             Directory.CreateDirectory("dist");
 
@@ -155,5 +196,4 @@ public static class Input
             return null!;
         }
     }
-
 }

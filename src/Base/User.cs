@@ -11,7 +11,7 @@ public class User
     /// <summary>
     /// 密码
     /// </summary>
-    public string? Password;
+    public string? Password { get; init; }
 
     /// <summary>
     /// 上一次登录
@@ -33,7 +33,7 @@ public class User
     /// </summary>
     public string? Description;
 
-    public List<string> IPAddresses = new();
+    public readonly List<string> IPAddresses = new();
 
     public User()
     {

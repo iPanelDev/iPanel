@@ -8,19 +8,31 @@ namespace iPanelHost.Base;
 [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 public class Setting
 {
-    public WebServerSetting WebServer = new();
+    public WebServerSetting WebServer { get; init; } = new();
 
-    public Win32ConsoleSetting Win32Console = new();
+    public Win32ConsoleSetting Win32Console { get; init; } = new();
 
-    public bool Debug;
+    /// <summary>
+    /// 调试模式
+    /// </summary>
+    public bool Debug { get; init; }
 
-    public string InstancePassword = string.Empty;
+    /// <summary>
+    /// 实例连接密码
+    /// </summary>
+    public string InstancePassword { get; init; } = string.Empty;
 
-    public bool DisplayShorterLogoWhenStart;
+    /// <summary>
+    /// 启动时显示更短的Logo
+    /// </summary>
+    public bool DisplayShorterLogoWhenStart { get; init; }
 
     [JsonProperty("_internalVersion")]
-    public int? InternalVersion = Constant.InternalVersion;
+    public static int? InternalVersion => Constant.InternalVersion;
 
+    /// <summary>
+    /// 检查设置
+    /// </summary>
     public void Check()
     {
         if (!(InternalVersion >= Constant.InternalVersion))
@@ -75,66 +87,64 @@ public class Setting
         /// <summary>
         /// URL前缀
         /// </summary>
-        public string[] UrlPrefixes = { "http://127.0.0.1:30001" };
+        public string[] UrlPrefixes { get; init; } = { "http://127.0.0.1:30001" };
 
         /// <summary>
         /// 本地网页文件夹
         /// </summary>
-        public string Directory = "dist";
+        public string Directory { get; init; } = "dist";
 
         /// <summary>
         /// 禁用热更新文件
         /// </summary>
-        public bool DisableFilesHotUpdate = true;
+        public bool DisableFilesHotUpdate { get; init; } = true;
 
         /// <summary>
         /// 404网页
         /// </summary>
-        public string Page404 = "index.html";
+        public string Page404 { get; init; } = "index.html";
 
         /// <summary>
         /// 允许跨源
         /// </summary>
-        public bool AllowCrossOrigin;
+        public bool AllowCrossOrigin { get; init; }
 
         /// <summary>
         /// 每秒最大请求数量
         /// </summary>
-        public int MaxRequestsPerSecond = 30;
+        public int MaxRequestsPerSecond { get; init; } = 30;
 
         /// <summary>
         /// 封禁时长（分钟）
         /// </summary>
-        public int BanMinutes = 30;
+        public int BanMinutes { get; init; } = 30;
 
         /// <summary>
         /// 白名单
         /// </summary>
-        public string[] WhiteList = Array.Empty<string>();
+        public string[] WhiteList { get; init; } = Array.Empty<string>();
 
-        public CertificateSettings Certificate = new();
+        public CertificateSettings Certificate { get; init; } = new();
     }
 
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     public class Win32ConsoleSetting
     {
-        public bool
-            AllowWindowClosing,
-            AllowQuickEditAndInsert;
+        public bool AllowWindowClosing { get; init; }
+        public bool AllowQuickEditAndInsert { get; init; }
     }
-
 
     [JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
     public class CertificateSettings
     {
-        public bool
-            Enable,
-            AutoRegisterCertificate,
-            AutoLoadCertificate;
+        public bool Enable { get; init; }
+
+        public bool AutoRegisterCertificate { get; init; }
+
+        public bool AutoLoadCertificate { get; init; }
 
         public string? Path;
 
         public string? Password;
     }
 }
-

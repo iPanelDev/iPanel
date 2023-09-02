@@ -61,15 +61,20 @@ public static class Program
 
     public static void ReadSetting()
     {
-        if (!File.Exists("setting.json") || Environment.GetCommandLineArgs().Contains("-i") || Environment.GetCommandLineArgs().Contains("--init"))
+        if (
+            !File.Exists("setting.json")
+            || Environment.GetCommandLineArgs().Contains("-i")
+            || Environment.GetCommandLineArgs().Contains("--init")
+        )
         {
             Console.WriteLine(Constant.LogoIco.Replace("\\x1b", "\x1b"));
             _hasShownLogo = true;
             _setting = Input.CreateSetting();
             return;
         }
-        _setting = JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json")) ?? throw new SettingsException("转换出现异常空值");
+        _setting =
+            JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json"))
+            ?? throw new SettingsException("转换出现异常空值");
         _setting.Check();
     }
 }
-

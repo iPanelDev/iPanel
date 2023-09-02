@@ -4,22 +4,25 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.Base.Client.Info;
 
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-public struct ShortInfo
+public class ShortInfo
 {
-    public bool ServerStatus;
+    public readonly bool ServerStatus;
 
-    public string? ServerFilename;
+    public readonly string? ServerFilename;
 
-    public string? ServerTime;
+    public readonly string? ServerTime;
 
-    public string? OS;
+    public readonly string? OS;
 
-    public ShortInfo(FullInfo fullInfo)
+    public ShortInfo(FullInfo? fullInfo)
     {
+        if (fullInfo is null)
+        {
+            return;
+        }
         ServerStatus = fullInfo.Server.Status;
         ServerFilename = fullInfo.Server.Filename;
         ServerTime = fullInfo.Server.RunTime;
         OS = fullInfo.Sys.OS;
     }
 }
-

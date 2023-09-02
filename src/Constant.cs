@@ -14,7 +14,8 @@ public static class Constant
     /// </summary>
     public const int InternalVersion = 1;
 
-    public const string Logo = @"
+    public const string Logo =
+        @"
   _ ____                  _   _   _           _   
  (_)  _ \ __ _ _ __   ___| | | | | | ___  ___| |_ 
  | | |_) / _` | '_ \ / _ \ | | |_| |/ _ \/ __| __|
@@ -22,7 +23,8 @@ public static class Constant
  |_|_|   \__,_|_| |_|\___|_| |_| |_|\___/|___/\__|
  ";
 
-    public const string LogoIco = @"
+    public const string LogoIco =
+        @"
         \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[48;2;87;113;128m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m
         \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[48;2;87;113;128m  \x1b[48;2;87;113;128m  \x1b[48;2;121;190;233m  \x1b[48;2;56;81;96m  \x1b[48;2;56;81;96m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m
         \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[48;2;87;113;128m  \x1b[48;2;87;113;128m  \x1b[48;2;121;190;233m  \x1b[48;2;121;190;233m  \x1b[48;2;121;190;233m  \x1b[48;2;121;190;233m  \x1b[48;2;121;190;233m  \x1b[48;2;56;81;96m  \x1b[48;2;56;81;96m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m  \x1b[0m

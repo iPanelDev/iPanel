@@ -34,9 +34,13 @@ public static class VerificationHandler
         string uuid = Sys.Guid.NewGuid().ToString("N");
         MainHandler.UUIDs.Add(clientUrl, uuid);
 
-        context.Send(new SentPacket("request", "verify_request", new VerifyRequest(5000, uuid)).ToString());
+        context.Send(
+            new SentPacket("request", "verify_request", new VerifyRequest(5000, uuid)).ToString()
+        );
 
-        Logger.Info($"<{clientUrl}> 尝试连接，预期实例MD5值：{General.GetMD5(uuid + Program.Setting.InstancePassword)}");
+        Logger.Info(
+            $"<{clientUrl}> 尝试连接，预期实例MD5值：{General.GetMD5(uuid + Program.Setting.InstancePassword)}"
+        );
 
         Timer verifyTimer = new(5000) { AutoReset = false };
         verifyTimer.Start();
@@ -44,7 +48,13 @@ public static class VerificationHandler
         {
             if (!MainHandler.Consoles.ContainsKey(uuid) && !MainHandler.Instances.ContainsKey(uuid))
             {
-                context.Send(new SentPacket("event", "disconnection", new Result(Result.TimeoutInVerification)).ToString());
+                context.Send(
+                    new SentPacket(
+                        "event",
+                        "disconnection",
+                        new Result(Result.TimeoutInVerification)
+                    ).ToString()
+                );
                 context.Close();
             }
             verifyTimer.Stop();
@@ -59,16 +69,19 @@ public static class VerificationHandler
     /// <param name="packet">数据包</param>
     public static void Check(IWebSocketContext context, ReceivedPacket packet)
     {
-        if (packet.Type != "request" ||
-            packet.SubType != "verify")
+        if (packet.Type != "request" || packet.SubType != "verify")
         {
-            context.Send(new SentPacket("event", "disconnection", new Result(Result.NotVerifyYet)).ToString());
+            context.Send(
+                new SentPacket("event", "disconnection", new Result(Result.NotVerifyYet)).ToString()
+            );
             context.Close();
             return;
         }
         if (!Verify(context, packet.Data))
         {
-            context.Send(new SentPacket("event", "disconnection", new Result(Result.FailToVerify)).ToString());
+            context.Send(
+                new SentPacket("event", "disconnection", new Result(Result.FailToVerify)).ToString()
+            );
             context.Close();
         }
     }
@@ -124,7 +137,12 @@ public static class VerificationHandler
     /// 验证实例
     /// </summary>
     /// <returns>验证结果</returns>
-    private static bool VerifyInstance(IWebSocketContext context, string clientUrl, string uuid, VerifyBody verifyBody)
+    private static bool VerifyInstance(
+        IWebSocketContext context,
+        string clientUrl,
+        string uuid,
+        VerifyBody verifyBody
+    )
     {
         if (verifyBody.Token != General.GetMD5(uuid + Program.Setting.InstancePassword))
         {
@@ -132,25 +150,31 @@ public static class VerificationHandler
             return false;
         }
 
-        if (string.IsNullOrEmpty(verifyBody.InstanceID) || !Regex.IsMatch(verifyBody.InstanceID, @"^\w{32}$"))
+        if (
+            string.IsNullOrEmpty(verifyBody.InstanceID)
+            || !Regex.IsMatch(verifyBody.InstanceID, @"^\w{32}$")
+        )
         {
             SendVerifyResultPacket(context, Result.IncorrectInstanceID);
             return false;
         }
 
-        if (MainHandler.Instances.Values.Select((i) => i.InstanceID).Contains(verifyBody.InstanceID))
+        if (
+            MainHandler.Instances.Values.Select((i) => i.InstanceID).Contains(verifyBody.InstanceID)
+        )
         {
             SendVerifyResultPacket(context, Result.DuplicateInstanceID);
             return false;
         }
 
-        Instance instance = new(uuid)
-        {
-            Context = context,
-            CustomName = verifyBody.CustomName,
-            InstanceID = verifyBody.InstanceID,
-            Metadata = verifyBody.MetaData,
-        };
+        Instance instance =
+            new(uuid)
+            {
+                Context = context,
+                CustomName = verifyBody.CustomName,
+                InstanceID = verifyBody.InstanceID,
+                Metadata = verifyBody.MetaData,
+            };
         MainHandler.Instances.Add(uuid, instance);
         context.Send(new VerifyResultPacket(true).ToString());
         Logger.Info($"<{clientUrl}> 验证成功（实例），自定义名称为：{verifyBody.CustomName ?? "null"}");
@@ -161,7 +185,12 @@ public static class VerificationHandler
     /// 验证控制台
     /// </summary>
     /// <returns>验证结果</returns>
-    private static bool VerifyConsole(IWebSocketContext context, string clientUrl, string uuid, VerifyBody verifyBody)
+    private static bool VerifyConsole(
+        IWebSocketContext context,
+        string clientUrl,
+        string uuid,
+        VerifyBody verifyBody
+    )
     {
         if (string.IsNullOrEmpty(verifyBody.Account))
         {
@@ -169,8 +198,12 @@ public static class VerificationHandler
             return false;
         }
 
-        if (!(UserManager.Users.TryGetValue(verifyBody.Account!, out User? user) &&
-              verifyBody.Token == General.GetMD5(uuid + verifyBody.Account! + user.Password)))
+        if (
+            !(
+                UserManager.Users.TryGetValue(verifyBody.Account!, out User? user)
+                && verifyBody.Token == General.GetMD5(uuid + verifyBody.Account! + user.Password)
+            )
+        )
         {
             SendVerifyResultPacket(context, Result.IncorrectAccountOrPassword);
             return false;
@@ -183,11 +216,7 @@ public static class VerificationHandler
             user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
         }
 
-        Console console = new(uuid)
-        {
-            Context = context,
-            User = user
-        };
+        Console console = new(uuid) { Context = context, User = user };
 
         MainHandler.Consoles.Add(uuid, console);
         SendVerifyResultPacket(context);
@@ -212,4 +241,3 @@ public static class VerificationHandler
         Logger.Warn($"<{context.RemoteEndPoint}> 验证失败：{reason}");
     }
 }
-

@@ -39,8 +39,8 @@ public class Sender
     /// <summary>
     /// 作为发送者
     /// </summary>
-    public static Sender From(Instance instance)
-        => new()
+    public static Sender From(Instance instance) =>
+        new()
         {
             Name = instance.CustomName,
             Type = "instance",
@@ -53,8 +53,8 @@ public class Sender
     /// <summary>
     /// 作为发送者
     /// </summary>
-    public static Sender From(Console console)
-        => new()
+    public static Sender From(Console console) =>
+        new()
         {
             Type = "console",
             Address = console.Address,

@@ -3,7 +3,7 @@ namespace iPanelHost.Base.Packets.Event;
 public enum ResultTypes
 {
     Unknown = -1,
-    None,
+    Success,
     DataAnomaly,
     DuplicateInstanceID,
     EmptyAccount,
@@ -13,9 +13,11 @@ public enum ResultTypes
     IncorrectClientType,
     IncorrectInstanceID,
     InternalDataError,
+    InvalidArgs,
     InvalidConsole,
     InvalidTarget,
     InvalidUser,
+    LostArgs,
     NotVerifyYet,
     PermissionDenied,
     TimeoutInVerification,

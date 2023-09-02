@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -10,15 +8,15 @@ namespace iPanelHost.Base;
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 public class SafeUser
 {
-    public DateTime? LastLoginTime;
+    public readonly DateTime? LastLoginTime;
 
-    public int Level = 0;
+    public readonly int Level;
 
-    public string[] Instances = Array.Empty<string>();
+    public readonly string[] Instances = Array.Empty<string>();
 
-    public string? Description;
+    public readonly string? Description;
 
-    public List<string> IPAddresses = new();
+    public readonly List<string> IPAddresses = new();
 
     public SafeUser(User user)
     {

@@ -8,7 +8,7 @@ public static class Initialization
 {
     /// <summary>
     /// 初始化环境
-    /// </summary> 
+    /// </summary>
     public static void InitEnv()
     {
         // 基础
@@ -33,7 +33,6 @@ public static class Initialization
         Prompt.ColorSchema.Select = ConsoleColor.DarkGray;
         Prompt.ColorSchema.Answer = ConsoleColor.Gray;
     }
-
 
     /// <summary>
     /// 上一次触发时间

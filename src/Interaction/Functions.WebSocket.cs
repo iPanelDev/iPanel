@@ -23,10 +23,15 @@ public static partial class Funcions
         }
         try
         {
-            KeyValuePair<string, Instance> keyValuePair = Prompt.Select("请选择要断开的实例", MainHandler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
-            keyValuePair.Value?.Send(new SentPacket("event", "disconnection", new Result("被用户手动断开")));
+            KeyValuePair<string, Instance> keyValuePair = Prompt.Select(
+                "请选择要断开的实例",
+                MainHandler.Instances.ToList(),
+                textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}"
+            );
+            keyValuePair.Value?.Send(
+                new SentPacket("event", "disconnection", new Result("被用户手动断开"))
+            );
             keyValuePair.Value?.Close();
-            return;
         }
         catch (PromptCanceledException)
         {
@@ -50,17 +55,24 @@ public static partial class Funcions
         }
         try
         {
-            KeyValuePair<string, Instance> keyValuePair = Prompt.Select("请选择要修改名称的实例", MainHandler.Instances.ToList(), textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}");
+            KeyValuePair<string, Instance> keyValuePair = Prompt.Select(
+                "请选择要修改名称的实例",
+                MainHandler.Instances.ToList(),
+                textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}"
+            );
             if (MainHandler.Instances.ContainsKey(keyValuePair.Key))
             {
-                string? newName = Prompt.Input<string>("请输入新的名称", null, MainHandler.Instances[keyValuePair.Key].CustomName);
+                string? newName = Prompt.Input<string>(
+                    "请输入新的名称",
+                    null,
+                    MainHandler.Instances[keyValuePair.Key].CustomName
+                );
                 if (MainHandler.Instances.ContainsKey(keyValuePair.Key))
                 {
                     MainHandler.Instances[keyValuePair.Key].CustomName = newName;
                     Logger.Info("实例修改成功");
                     return;
                 }
-
             }
         }
         catch (PromptCanceledException)
