@@ -4,6 +4,11 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: write
+  checks: write
+
 jobs:
   Build:
     runs-on: windows-latest
