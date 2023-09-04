@@ -8,10 +8,8 @@ namespace iPanelHost.Base.Packets.DataBody;
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 public class VerifyBody
 {
-    /// <summary>
-    /// 会话ID
-    /// </summary>
-    public string? SessionId { get; init; }
+    [JsonProperty("uuid")]
+    public string? UUID { get; init; }
 
     public string? Token { get; init; }
 

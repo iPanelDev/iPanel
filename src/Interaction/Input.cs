@@ -1,4 +1,5 @@
 using iPanelHost.Base;
+using iPanelHost.Server;
 using iPanelHost.Service.Handlers;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
@@ -6,8 +7,8 @@ using Sharprompt;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-
 using System.Linq;
+using System.Reflection;
 
 namespace iPanelHost.Interaction;
 
@@ -31,6 +32,7 @@ public static class Input
   
 其他
   ?/h/help      显示此页面
+  r/reload      重新读取设置文件并重启服务器
   v/version     查看当前版本
   cls/clear     清屏
   logo          显示iPanel的Logo
@@ -103,7 +105,16 @@ public static class Input
 
             case "v":
             case "version":
-                Logger.Info(Constant.VERSION);
+                Logger.Info($"Name={Assembly.GetExecutingAssembly().GetName().Name}");
+                Logger.Info($"Version={Assembly.GetExecutingAssembly().GetName().Version}");
+                string[] commandlineArgs = Environment.GetCommandLineArgs();
+                if (commandlineArgs.Length > 0 && File.Exists(commandlineArgs[0]))
+                {
+                    Logger.Info($"FileName={Path.GetFileName(commandlineArgs[0])}");
+                    Logger.Info($"MD5={General.GetMD5(File.ReadAllBytes(commandlineArgs[0]))}");
+                    Logger.Info($"LastWriteTime={File.GetLastWriteTime(commandlineArgs[0]):o}");
+                    Logger.Info($"CreationTime={File.GetCreationTime(commandlineArgs[0]):o}");
+                }
                 break;
 
             case "?":
@@ -116,6 +127,20 @@ public static class Input
             case "u":
             case "user":
                 Funcions.ManageUsers(args);
+                break;
+
+            case "r":
+            case "reload":
+                try
+                {
+                    Program.ReadSetting();
+                    Logger.Info("设置已更新");
+                    HttpServer.Restart();
+                }
+                catch (Exception e)
+                {
+                    Logger.Warn(e.Message);
+                }
                 break;
 
             default:
@@ -142,6 +167,11 @@ public static class Input
     /// </summary>
     public static Setting CreateSetting()
     {
+        if (EnsureOutputNotRedirected())
+        {
+            Logger.Warn("请打开设置文件自行修改");
+            return new();
+        }
         try
         {
             bool toPublic = Prompt.Confirm("将Http服务器开放到公网", false);

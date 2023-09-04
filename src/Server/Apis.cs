@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Specialized;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,8 +30,35 @@ public class Apis : WebApiController
     [Route(HttpVerbs.Any, "/")]
     public void Root() => throw HttpException.Redirect("/");
 
-    [Route(HttpVerbs.Any, "/ping")]
-    public string Ping() => DateTime.Now.ToString("o");
+    [Route(HttpVerbs.Get, "/ping")]
+    public async Task Ping()
+    {
+        await HttpContext.SendStringAsync(DateTime.Now.ToString("o"), "text/plain", UTF8);
+    }
+
+    [Route(HttpVerbs.Get, "/status")]
+    public async Task Status()
+    {
+        if (
+            HttpContext.Session.TryGetValue("user", out object? value)
+            && value is User
+            && value is not null
+        )
+        {
+            await SendJson(
+                HttpContext,
+                new Status { IsVerified = true, Duration = HttpContext.Session.Duration }
+            );
+        }
+        else
+        {
+            await SendJson(
+                HttpContext,
+                new Status { IsVerified = false },
+                HttpStatusCode.Unauthorized
+            );
+        }
+    }
 
     /// <summary>
     /// 上传文件
@@ -46,7 +74,12 @@ public class Apis : WebApiController
             )
         )
         {
-            await SendJson(HttpContext, ResultTypes.NotVerifyYet.ToString(), false, 401);
+            await SendJson(
+                HttpContext,
+                ResultTypes.NotVerifyYet.ToString(),
+                false,
+                HttpStatusCode.Unauthorized
+            );
             return;
         }
         Logger.Info($"<{HttpContext.RemoteEndPoint}> 正在上传文件");
@@ -67,14 +100,20 @@ public class Apis : WebApiController
             )
         )
         {
-            await SendJson(HttpContext, ResultTypes.NotVerifyYet.ToString(), false, 401);
+            await SendJson(
+                HttpContext,
+                ResultTypes.NotVerifyYet.ToString(),
+                false,
+                HttpStatusCode.Unauthorized
+            );
             return;
         }
         Logger.Info($"<{HttpContext.RemoteEndPoint}> 正在上传文件");
         await FileTransferStation.StreamUpload(HttpContext);
     }
 
-    [Route(HttpVerbs.Any, "/verify")]
+    [Route(HttpVerbs.Get, "/verify")]
+    [Route(HttpVerbs.Post, "/verify")]
     public async Task Verify()
     {
         if (
@@ -83,24 +122,38 @@ public class Apis : WebApiController
             && value is not null
         )
         {
-            await SendJson(HttpContext, null, true);
+            await SendJson(HttpContext, true);
             return;
         }
         VerifyBody? verifyBody = await ConvertRequsetTo<VerifyBody>();
-        if (string.IsNullOrEmpty(verifyBody?.Account))
+        if (
+            verifyBody is null
+            || string.IsNullOrEmpty(verifyBody?.Token)
+            || string.IsNullOrEmpty(verifyBody?.UUID)
+        )
         {
-            await SendJson(HttpContext, ResultTypes.EmptyAccount.ToString(), false, 400);
+            await SendJson(
+                HttpContext,
+                ResultTypes.LostArgs.ToString(),
+                false,
+                HttpStatusCode.BadRequest
+            );
             return;
         }
-        if (string.IsNullOrEmpty(verifyBody.Token) || string.IsNullOrEmpty(verifyBody.SessionId))
+        if (string.IsNullOrEmpty(verifyBody?.Account))
         {
-            await SendJson(HttpContext, ResultTypes.LostArgs.ToString(), false, 400);
+            await SendJson(
+                HttpContext,
+                ResultTypes.EmptyAccount.ToString(),
+                false,
+                HttpStatusCode.BadRequest
+            );
             return;
         }
         if (
-            !MainHandler.Consoles.ContainsKey(verifyBody.SessionId)
-            || !UserManager.Users.TryGetValue(verifyBody.Account, out User? user)
-            || General.GetMD5(verifyBody.SessionId + verifyBody.Account! + user.Password)
+            !MainHandler.Consoles.ContainsKey(verifyBody.UUID!)
+            || !UserManager.Users.TryGetValue(verifyBody.Account!, out User? user)
+            || General.GetMD5(verifyBody.UUID + verifyBody.Account! + user.Password)
                 != verifyBody.Token
         )
         {
@@ -108,13 +161,13 @@ public class Apis : WebApiController
                 HttpContext,
                 ResultTypes.IncorrectAccountOrPassword.ToString(),
                 false,
-                400
+                HttpStatusCode.BadRequest
             );
             return;
         }
 
         HttpContext.Session["user"] = user;
-        await SendJson(HttpContext, null, true);
+        await SendJson(HttpContext, true);
     }
 
     /// <summary>
@@ -159,18 +212,29 @@ public class Apis : WebApiController
     public static async Task SendJson(
         IHttpContext httpContext,
         object? data,
-        bool? success = null,
-        int statusCode = 200
+        HttpStatusCode statusCode = HttpStatusCode.OK
+    ) => await SendJson(httpContext, data, null, statusCode);
+
+    /// <summary>
+    /// 发送json
+    /// </summary>
+    /// <param name="data">数据字段</param>
+    /// <param name="statusCode">状态码</param>
+    public static async Task SendJson(
+        IHttpContext httpContext,
+        object? data,
+        bool? success,
+        HttpStatusCode statusCode = HttpStatusCode.OK
     )
     {
-        httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.StatusCode = (int)statusCode;
         await httpContext.SendStringAsync(
             JsonConvert.SerializeObject(
                 new SimplePacket()
                 {
                     Data = data,
                     Success = success,
-                    Code = statusCode,
+                    Code = (int)statusCode,
                 }
             ),
             "text/json",

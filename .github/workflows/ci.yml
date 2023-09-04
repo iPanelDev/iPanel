@@ -61,7 +61,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Tests
+          name: Tests Result
           path: test/TestResults/*/iPanel-Host.Tests.trx
           reporter: dotnet-trx
 
@@ -89,6 +89,6 @@ jobs:
       - uses: EndBug/add-and-commit@v9
         continue-on-error: true
         with:
-          message: "style: auto format from ${{ github.head_ref }}"
+          message: "style: auto format"
           committer_name: GitHub Actions
           committer_email: 41898282+github-actions[bot]@users.noreply.github.com

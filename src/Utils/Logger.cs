@@ -1,6 +1,7 @@
-﻿using System;
-using Swan.Logging;
+﻿using Swan.Logging;
+using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace iPanelHost.Utils;
 
@@ -17,11 +18,14 @@ public class Logger : ILogger
     {
         string line = string.Empty;
         line += e.Message;
+        if (e.Exception is null)
+        {
+            Log(e.MessageType, line);
+            return;
+        }
         Log(
             e.MessageType,
-            e.Exception is null
-                ? line
-                : $"{e.Exception.InnerException?.Message ?? e.Exception.Message}\n  at {e.CallerFilePath}"
+            $"{e.Exception.InnerException?.Message ?? e.Exception.Message}\n  in {e.CallerFilePath} L{e.CallerLineNumber}"
         );
     }
 
@@ -72,6 +76,15 @@ public class Logger : ILogger
             return;
         }
         Console.WriteLine($"{DateTime.Now:T} \x1b[33m[Warn] {line}\x1b[0m");
+    }
+
+    public static void Error(
+        Exception e,
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int line = -1
+    )
+    {
+        Error($"{e.InnerException?.Message ?? e.Message}\n  in {path} L{line}");
     }
 
     public static void Error(string line)

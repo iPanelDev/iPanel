@@ -87,7 +87,7 @@ public class Setting
         /// <summary>
         /// URL前缀
         /// </summary>
-        public string[] UrlPrefixes { get; init; } = { "http://127.0.0.1:30001" };
+        public string[] UrlPrefixes { get; init; } = { "http://127.0.0.1:30000" };
 
         /// <summary>
         /// 本地网页文件夹

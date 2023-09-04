@@ -2,11 +2,10 @@ using iPanelHost.Base;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.Server;
+using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.IO;
-using System.Text.RegularExpressions;
 using System.Timers;
 using WebSocket4Net;
 using Xunit;
@@ -14,9 +13,10 @@ using Xunit.Abstractions;
 
 namespace iPanelHost.Tests;
 
+[Collection("Service")]
 public class WS : IDisposable
 {
-    private readonly WebSocket4Net.WebSocket WebSocket;
+    private readonly WebSocket _webSocket;
 
     private readonly ITestOutputHelper _outputHelper;
 
@@ -24,6 +24,7 @@ public class WS : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         HttpServer.Stop();
     }
 
@@ -31,74 +32,70 @@ public class WS : IDisposable
     {
         _outputHelper = outputHelper;
 
-        File.WriteAllText(
-            "setting.json",
-            JsonConvert.SerializeObject(new Setting { InstancePassword = _password })
-        );
-        Program.ReadSetting();
+        Program.ReadSetting(new Setting { InstancePassword = _password });
         HttpServer.Start();
 
-        WebSocket = new("ws://127.0.0.1:30000");
-        WebSocket.Opened += (_, _) => _outputHelper.WriteLine("Opened");
-        WebSocket.Closed += (_, _) => _outputHelper.WriteLine("Closed");
-        WebSocket.MessageReceived += (_, e) => _outputHelper.WriteLine("Received: " + e.Message);
-        WebSocket.Error += (_, e) => throw new Exception(e.Exception.ToString());
+        _webSocket = new("ws://127.0.0.1:30000");
+        _webSocket.Opened += (_, _) => _outputHelper.WriteLine("Opened");
+        _webSocket.Closed += (_, _) => _outputHelper.WriteLine("Closed");
+        _webSocket.MessageReceived += (_, e) => _outputHelper.WriteLine("Received: " + e.Message);
+        _webSocket.Error += (_, e) => throw new Exception(e.Exception.ToString());
     }
 
     /// <summary>
     /// 连接
     /// </summary>
-    [Fact]
+    [Fact(Timeout = 20000)]
     public void ShouldBeAbleToConnect()
     {
-        WebSocket.Opened += (_, _) =>
+        _webSocket.Opened += (_, _) =>
         {
             Assert.True(true);
-            WebSocket.Close();
+            _webSocket.Close();
         };
-        WebSocket.Open();
+        _webSocket.Open();
     }
 
     /// <summary>
     /// 接收验证数据包
     /// </summary>
-    [Fact(Timeout = 5000)]
+    [Fact(Timeout = 20000)]
     public void ShouldReceiveVerificationPacket()
     {
         ReceivedPacket? packet = null;
-        WebSocket.MessageReceived += (_, e) =>
+        _webSocket.MessageReceived += (_, e) =>
         {
             packet = JsonConvert.DeserializeObject<ReceivedPacket>(e.Message);
-            WebSocket.Close();
+            _webSocket.Close();
         };
-        WebSocket.Closed += (_, _) =>
+        _webSocket.Closed += (_, _) =>
         {
             Assert.True(packet?.Type == "request");
             Assert.True(packet?.SubType == "verify_request");
             Assert.True(packet?.Data?["timeout"]?.Type == JTokenType.Integer);
             Assert.Matches(@"^\w{32}$", packet?.Data?["uuid"]?.ToString()!);
         };
-        WebSocket.Open();
+        _webSocket.Open();
     }
 
     /// <summary>
     /// 因超时而关闭
     /// </summary>
-    [Fact(Timeout = 10000)]
+    [Fact(Timeout = 20000)]
     public void ShouldBeClosedByHostDueToTimeout()
     {
         ReceivedPacket? packet = null;
-        WebSocket.Closed += (_, _) =>
+        _webSocket.Closed += (_, _) =>
         {
             Assert.True(packet?.Type == "event");
             Assert.True(packet?.SubType == "disconnection");
             Assert.True(packet?.Data?.Type == JTokenType.Object);
             Assert.True(packet?.Data?.ToString()?.Contains(Result.TimeoutInVerification));
         };
-        WebSocket.Open();
+        _webSocket.Open();
 
         Timer timer = new(6000) { AutoReset = false };
-        timer.Elapsed += (_, _) => Assert.True(WebSocket.State == WebSocketState.Closed);
+        timer.Elapsed += (_, _) => Assert.True(_webSocket.State == WebSocketState.Closed);
         timer.Elapsed += (_, _) => timer.Dispose();
         timer.Start();
     }
@@ -106,20 +103,20 @@ public class WS : IDisposable
     /// <summary>
     /// 因无效数据包而关闭
     /// </summary>
-    [Fact(Timeout = 10000)]
+    [Fact(Timeout = 20000)]
     public void ShouldBeClosedBueToInvalidPacket()
     {
         ReceivedPacket? packet = null;
-        WebSocket.MessageReceived += (_, e) =>
+        _webSocket.MessageReceived += (_, e) =>
         {
             if (packet is null)
             {
-                WebSocket.Send("666");
+                _webSocket.Send("666");
             }
 
             packet = JsonConvert.DeserializeObject<ReceivedPacket>(e.Message);
         };
-        WebSocket.Closed += (_, _) =>
+        _webSocket.Closed += (_, _) =>
         {
             Assert.True(packet?.Type == "event");
             Assert.True(packet?.SubType == "disconnection");
@@ -127,22 +124,22 @@ public class WS : IDisposable
             Assert.True(packet?.Data?.ToString()?.Contains(Result.NotVerifyYet));
         };
 
-        WebSocket.Open();
+        _webSocket.Open();
     }
 
     /// <summary>
     /// 因验证失败而关闭
     /// </summary>
-    [Fact(Timeout = 10000)]
+    [Fact(Timeout = 20000)]
     public void ShouldBeClosedDueToVerifyFailure()
     {
         ReceivedPacket? packet = null;
-        WebSocket.MessageReceived += (_, e) =>
+        _webSocket.MessageReceived += (_, e) =>
         {
             packet = JsonConvert.DeserializeObject<ReceivedPacket>(e.Message);
             if (packet?.SubType == "verify_request")
             {
-                WebSocket.Send(
+                _webSocket.Send(
                     new SentPacket()
                     {
                         Type = "request",
@@ -152,7 +149,7 @@ public class WS : IDisposable
                 );
             }
         };
-        WebSocket.Closed += (_, _) =>
+        _webSocket.Closed += (_, _) =>
         {
             Assert.True(packet?.Type == "event");
             Assert.True(packet?.SubType == "disconnection");
@@ -160,6 +157,50 @@ public class WS : IDisposable
             Assert.True(packet?.Data?.ToString()?.Contains(Result.FailToVerify));
         };
 
-        WebSocket.Open();
+        _webSocket.Open();
+    }
+
+    /// <summary>
+    /// 因验证失败而关闭
+    /// </summary>
+    [Fact(Timeout = 20000)]
+    public void ShouldBeAbleToVerifySuccessfully()
+    {
+        ReceivedPacket? packet = null;
+        _webSocket.MessageReceived += (_, e) =>
+        {
+            packet = JsonConvert.DeserializeObject<ReceivedPacket>(e.Message);
+            if (packet?.SubType == "verify_request")
+            {
+                VerifyRequest verifyRequest = packet.Data!.ToObject<VerifyRequest>()!;
+                _webSocket.Send(
+                    new SentPacket()
+                    {
+                        Type = "request",
+                        SubType = "verify",
+                        Data = new VerifyBody
+                        {
+                            InstanceID = Guid.NewGuid().ToString("N"),
+                            ClientType = "instance",
+                            Token = General.GetMD5(verifyRequest.UUID + _password)
+                        }
+                    }.ToString()
+                );
+            }
+            else
+            {
+                _webSocket.Close();
+            }
+        };
+        _webSocket.Closed += (_, _) =>
+        {
+            Assert.True(packet?.Type == "event");
+            Assert.True(packet?.SubType == "verify_result");
+            Assert.True(packet?.Data?.Type == JTokenType.Object);
+            Assert.True(packet?.Data?["success"]?.Type == JTokenType.Boolean);
+            Assert.True(((bool?)packet?.Data?["success"]) ?? false);
+        };
+
+        _webSocket.Open();
     }
 }

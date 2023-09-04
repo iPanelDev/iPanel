@@ -1,4 +1,4 @@
-using System;
+using System.Reflection;
 
 namespace iPanelHost;
 
@@ -7,7 +7,10 @@ public static class Constant
     /// <summary>
     /// 版本
     /// </summary>
-    public static readonly string VERSION = new Version(2, 2, 0).ToString();
+    public static readonly string VERSION = Assembly
+        .GetExecutingAssembly()
+        .GetName()
+        .Version!.ToString();
 
     /// <summary>
     /// 内部版本

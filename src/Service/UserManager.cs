@@ -55,8 +55,8 @@ public static class UserManager
         }
         catch (Exception e)
         {
-            Logger.Fatal($"加载用户文件{_path}时出错");
-            Logger.Fatal(e.ToString());
+            Logger.Error($"加载用户文件{_path}时出错");
+            Logger.Error(e);
             General.SafeReadKey();
             Runtime.Exit();
         }

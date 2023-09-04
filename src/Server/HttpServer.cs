@@ -1,5 +1,6 @@
 using EmbedIO;
 using EmbedIO.WebApi;
+using iPanelHost.Base.Packets;
 using iPanelHost.Utils;
 using System;
 using System.IO;
@@ -44,7 +45,17 @@ public static class HttpServer
             Logger.Warn("静态网页目录不存在");
         }
 
+        _server.OnUnhandledException += HandleException;
         _server.RunAsync();
+    }
+
+    /// <summary>
+    /// 处理异常
+    /// </summary>
+    private static async Task HandleException(IHttpContext httpContext, Exception e)
+    {
+        Logger.Fatal($"[{httpContext.Id}] {e}");
+        await Task.CompletedTask;
     }
 
     /// <summary>
@@ -80,7 +91,7 @@ public static class HttpServer
         }
         catch (Exception e)
         {
-            Logger.Fatal(e.ToString());
+            Logger.Error(e);
         }
 
         if (Program.Setting.WebServer.Certificate.Enable)

@@ -45,6 +45,7 @@ public static class Initialization
     public static void HandleCancelEvent(object? sender, ConsoleCancelEventArgs e)
     {
         e.Cancel = true;
+        Console.WriteLine("^C");
         if ((DateTime.Now - _lastTime).TotalSeconds > 1)
         {
             Logger.Warn("请在1s内再次按下`Ctrl+C`以退出。");

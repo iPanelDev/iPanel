@@ -124,10 +124,7 @@ public static class FileTransferStation
         {
             foreach (var kv in dict)
             {
-                files.Add(
-                    kv.Key,
-                    new(General.GetMD5String(MD5.Create().ComputeHash(kv.Value)), kv.Value.Length)
-                );
+                files.Add(kv.Key, new(General.GetMD5(kv.Value), kv.Value.Length));
                 kv.Value.Close();
             }
             timer.Stop();
@@ -191,10 +188,7 @@ public static class FileTransferStation
 
             time += timeSpan;
             byteCount += file.Data.Length;
-            files.Add(
-                file.FileName,
-                new(General.GetMD5String(MD5.Create().ComputeHash(fileStream)), file.Data.Length)
-            );
+            files.Add(file.FileName, new(General.GetMD5(fileStream), file.Data.Length));
         }
 
         foreach (var kv in files)

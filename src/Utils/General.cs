@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -12,14 +13,28 @@ public static class General
     /// <param name="text">文本</param>
     /// <returns>MD5文本</returns>
     public static string GetMD5(string text) =>
-        GetMD5String(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(text)));
+        GetHexString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(text)));
 
     /// <summary>
     /// 获取MD5
     /// </summary>
     /// <param name="bytes">字节数组</param>
     /// <returns>MD5文本</returns>
-    public static string GetMD5String(byte[] targetData)
+    public static string GetMD5(byte[] bytes) => GetHexString(MD5.Create().ComputeHash(bytes));
+
+    /// <summary>
+    /// 获取MD5
+    /// </summary>
+    /// <param name="stream">流</param>
+    /// <returns>MD5文本</returns>
+    public static string GetMD5(Stream stream) => GetHexString(MD5.Create().ComputeHash(stream));
+
+    /// <summary>
+    /// 获取MD5
+    /// </summary>
+    /// <param name="bytes">字节数组</param>
+    /// <returns>MD5文本</returns>
+    public static string GetHexString(byte[] targetData)
     {
         StringBuilder stringBuilder = new();
         for (int i = 0; i < targetData.Length; i++)

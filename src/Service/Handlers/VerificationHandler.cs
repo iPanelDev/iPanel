@@ -109,7 +109,7 @@ public static class VerificationHandler
         catch (Sys.Exception e)
         {
             SendVerifyResultPacket(context, Result.ErrorWhenGettingPacketContent);
-            Logger.Fatal(e.ToString());
+            Logger.Error(e);
             return false;
         }
 

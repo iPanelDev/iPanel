@@ -59,10 +59,10 @@ public static class Program
         Runtime.StartHandleInput();
     }
 
-    public static void ReadSetting()
+    public static void ReadSetting(Setting? setting = null)
     {
         if (
-            !File.Exists("setting.json")
+            !File.Exists("setting.json") && setting is not null
             || Environment.GetCommandLineArgs().Contains("-i")
             || Environment.GetCommandLineArgs().Contains("--init")
         )
@@ -73,6 +73,7 @@ public static class Program
             return;
         }
         _setting =
+            setting ??
             JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json"))
             ?? throw new SettingsException("转换出现异常空值");
         _setting.Check();
