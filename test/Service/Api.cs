@@ -163,18 +163,18 @@ public class Api : IDisposable
                     $"{_baseRoot}/api/verify?token={token}&user=test&uuid={verifyRequest.UUID}"
                 );
 
-                MultipartFormDataContent multipartFormDataContent = new()
-                {
-                    Headers = { ContentType = new("multipart/form-data") }
-                };
+                MultipartFormDataContent multipartFormDataContent =
+                    new() { Headers = { ContentType = new("multipart/form-data") } };
 
                 List<byte> bytes = new();
                 Enumerable.Range(1, 114514).ToList().ForEach((_) => bytes.Add(0));
                 multipartFormDataContent.Add(new ByteArrayContent(bytes.ToArray()), "test.test");
-                HttpResponseMessage responseMessage = await _httpClient.PostAsync($"{_baseRoot}/api/{endPoint}", multipartFormDataContent);
+                HttpResponseMessage responseMessage = await _httpClient.PostAsync(
+                    $"{_baseRoot}/api/{endPoint}",
+                    multipartFormDataContent
+                );
 
                 Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-
             }
             else
             {

@@ -73,8 +73,8 @@ public static class Program
             return;
         }
         _setting =
-            setting ??
-            JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json"))
+            setting
+            ?? JsonConvert.DeserializeObject<Setting>(File.ReadAllText("setting.json"))
             ?? throw new SettingsException("转换出现异常空值");
         _setting.Check();
     }
