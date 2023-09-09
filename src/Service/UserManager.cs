@@ -252,8 +252,7 @@ public static class UserManager
                 all,
                 minimum: 0,
                 defaultValues: dict,
-                textSelector: (kv) =>
-                    $"{kv.Value.InstanceID}\t自定义名称：{kv.Value?.CustomName}"
+                textSelector: (kv) => $"{kv.Value.InstanceID}\t自定义名称：{kv.Value?.CustomName}"
             )
             .Select(kv => kv.Value.InstanceID)
             .Where(instanceID => !string.IsNullOrEmpty(instanceID))
