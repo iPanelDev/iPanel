@@ -140,11 +140,11 @@ public class Apis : WebApiController
             );
             return;
         }
-        if (string.IsNullOrEmpty(verifyBody?.Account))
+        if (string.IsNullOrEmpty(verifyBody?.UserName))
         {
             await SendJson(
                 HttpContext,
-                ResultTypes.EmptyAccount.ToString(),
+                ResultTypes.EmptyUserName.ToString(),
                 false,
                 HttpStatusCode.BadRequest
             );
@@ -152,14 +152,14 @@ public class Apis : WebApiController
         }
         if (
             !MainHandler.Consoles.ContainsKey(verifyBody.UUID!)
-            || !UserManager.Users.TryGetValue(verifyBody.Account!, out User? user)
-            || General.GetMD5(verifyBody.UUID + verifyBody.Account! + user.Password)
+            || !UserManager.Users.TryGetValue(verifyBody.UserName!, out User? user)
+            || General.GetMD5(verifyBody.UUID + verifyBody.UserName! + user.Password)
                 != verifyBody.Token
         )
         {
             await SendJson(
                 HttpContext,
-                ResultTypes.IncorrectAccountOrPassword.ToString(),
+                ResultTypes.IncorrectUserNameOrPassword.ToString(),
                 false,
                 HttpStatusCode.BadRequest
             );

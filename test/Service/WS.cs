@@ -1,6 +1,7 @@
 using iPanelHost.Base;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
+using iPanelHost.Base.Packets.Event;
 using iPanelHost.Server;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
@@ -90,7 +91,7 @@ public class WS : IDisposable
             Assert.True(packet?.Type == "event");
             Assert.True(packet?.SubType == "disconnection");
             Assert.True(packet?.Data?.Type == JTokenType.Object);
-            Assert.True(packet?.Data?.ToString()?.Contains(Result.TimeoutInVerification));
+            Assert.Equal(ResultTypes.TimeoutInVerification.ToString(), packet?.Data?.ToString());
         };
         _webSocket.Open();
 
@@ -121,7 +122,7 @@ public class WS : IDisposable
             Assert.True(packet?.Type == "event");
             Assert.True(packet?.SubType == "disconnection");
             Assert.True(packet?.Data?.Type == JTokenType.Object);
-            Assert.True(packet?.Data?.ToString()?.Contains(Result.NotVerifyYet));
+            Assert.Equal(ResultTypes.NotVerifyYet.ToString(), packet?.Data?.ToString());
         };
 
         _webSocket.Open();
@@ -140,7 +141,7 @@ public class WS : IDisposable
             if (packet?.SubType == "verify_request")
             {
                 _webSocket.Send(
-                    new SentPacket()
+                    new SentPacket
                     {
                         Type = "request",
                         SubType = "verify",
@@ -154,7 +155,7 @@ public class WS : IDisposable
             Assert.True(packet?.Type == "event");
             Assert.True(packet?.SubType == "disconnection");
             Assert.True(packet?.Data?.Type == JTokenType.Object);
-            Assert.True(packet?.Data?.ToString()?.Contains(Result.FailToVerify));
+            Assert.Equal(ResultTypes.FailToVerify.ToString(), packet?.Data?.ToString());
         };
 
         _webSocket.Open();
@@ -174,7 +175,7 @@ public class WS : IDisposable
             {
                 VerifyRequest verifyRequest = packet.Data!.ToObject<VerifyRequest>()!;
                 _webSocket.Send(
-                    new SentPacket()
+                    new SentPacket
                     {
                         Type = "request",
                         SubType = "verify",

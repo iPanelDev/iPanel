@@ -1,6 +1,7 @@
 using iPanelHost.Base.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
+using iPanelHost.Service;
 using iPanelHost.Service.Handlers;
 using iPanelHost.Utils;
 using Sharprompt;
@@ -9,7 +10,7 @@ using System.Linq;
 
 namespace iPanelHost.Interaction;
 
-public static partial class Funcions
+public static partial class SubCommnadHandler
 {
     /// <summary>
     /// 断开连接
@@ -84,5 +85,52 @@ public static partial class Funcions
             return;
         }
         Logger.Warn("所选实例无效");
+    }
+
+    public static void ManageUsers(string[] args)
+    {
+        if (args.Length == 1)
+        {
+            Logger.Warn("缺少参数");
+            return;
+        }
+
+        switch (args[1].ToLowerInvariant())
+        {
+            case "c":
+            case "create":
+                UserManager.Create();
+                break;
+
+            case "r":
+            case "reload":
+                UserManager.Read();
+                Logger.Info("重新加载成功");
+                break;
+
+            case "ei":
+            case "editinstances":
+                UserManager.EditUserInstances();
+                break;
+
+            case "d":
+            case "delete":
+                UserManager.Delete();
+                break;
+
+            case "ls":
+            case "list":
+                UserManager.PrintAll();
+                break;
+
+            case "e":
+            case "edit":
+                UserManager.Edit();
+                break;
+
+            default:
+                Logger.Warn("参数<operation>无效");
+                break;
+        }
     }
 }

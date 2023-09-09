@@ -12,6 +12,11 @@ public class Console : Client
     [JsonIgnore]
     public User? User;
 
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    public string? UserName { init; get; }
+
     public Console(string? uuid)
         : base(uuid) { }
 }

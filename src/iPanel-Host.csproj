@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConsoleTables" Version="2.4.2" />
     <PackageReference Include="Costura.Fody" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
@@ -21,8 +20,11 @@
     <PackageReference Include="HttpMultipartParser" Version="8.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Sharprompt" Version="2.4.5" />
+    <PackageReference Include="Spectre.Console" Version="0.47.0" />
 
     <Content Include="Sources/logo.ico" />
+
+    <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
   </ItemGroup>
 
 </Project>

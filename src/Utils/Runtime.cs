@@ -21,7 +21,7 @@ public static class Runtime
                 continue;
             }
 
-            Input.ReadLine(line);
+            Input.Parse(line);
         }
     }
 
@@ -29,17 +29,17 @@ public static class Runtime
     /// 退出
     /// </summary>
     /// <param name="code">退出代码</param>
-    public static void Exit(int code = 0)
+    public static void Exit()
     {
         Logger.Warn("退出中...");
-        ExitQuietly(code);
+        ExitQuietly(0);
     }
 
     /// <summary>
     /// 安静退出
     /// </summary>
     /// <param name="code">退出代码</param>
-    public static void ExitQuietly(int code = 0)
+    public static void ExitQuietly(int code)
     {
         MainHandler.Instances.Values.ToList().ForEach((instance) => instance.Close());
         MainHandler.Consoles.Values.ToList().ForEach((console) => console.Close());

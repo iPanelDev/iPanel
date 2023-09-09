@@ -7,6 +7,7 @@ using iPanelHost.Server;
 using iPanelHost.Base.Client;
 using iPanelHost.Utils;
 using Newtonsoft.Json.Linq;
+using Spectre.Console;
 using Sys = System;
 using System.Linq;
 using System.Timers;
@@ -52,7 +53,7 @@ public static class VerificationHandler
                     new SentPacket(
                         "event",
                         "disconnection",
-                        new Result(Result.TimeoutInVerification)
+                        new Result(ResultTypes.TimeoutInVerification)
                     ).ToString()
                 );
                 context.Close();
@@ -72,7 +73,11 @@ public static class VerificationHandler
         if (packet.Type != "request" || packet.SubType != "verify")
         {
             context.Send(
-                new SentPacket("event", "disconnection", new Result(Result.NotVerifyYet)).ToString()
+                new SentPacket(
+                    "event",
+                    "disconnection",
+                    new Result(ResultTypes.NotVerifyYet)
+                ).ToString()
             );
             context.Close();
             return;
@@ -80,7 +85,11 @@ public static class VerificationHandler
         if (!Verify(context, packet.Data))
         {
             context.Send(
-                new SentPacket("event", "disconnection", new Result(Result.FailToVerify)).ToString()
+                new SentPacket(
+                    "event",
+                    "disconnection",
+                    new Result(ResultTypes.FailToVerify)
+                ).ToString()
             );
             context.Close();
         }
@@ -97,7 +106,7 @@ public static class VerificationHandler
         string clientUrl = context.RemoteEndPoint.ToString();
         if (data is null)
         {
-            SendVerifyResultPacket(context, Result.DataAnomaly);
+            SendVerifyResultPacket(context, ResultTypes.DataAnomaly);
             return false;
         }
 
@@ -108,14 +117,14 @@ public static class VerificationHandler
         }
         catch (Sys.Exception e)
         {
-            SendVerifyResultPacket(context, Result.ErrorWhenGettingPacketContent);
+            SendVerifyResultPacket(context, ResultTypes.ErrorWhenGettingPacketContent);
             Logger.Error(e);
             return false;
         }
 
         if (!MainHandler.UUIDs.TryGetValue(clientUrl, out string? uuid))
         {
-            SendVerifyResultPacket(context, Result.InternalDataError);
+            SendVerifyResultPacket(context, ResultTypes.InternalDataError);
             return false;
         }
 
@@ -128,7 +137,7 @@ public static class VerificationHandler
                 return VerifyConsole(context, clientUrl, uuid, verifyBody);
 
             default:
-                SendVerifyResultPacket(context, Result.IncorrectClientType);
+                SendVerifyResultPacket(context, ResultTypes.IncorrectClientType);
                 return false;
         }
     }
@@ -146,7 +155,7 @@ public static class VerificationHandler
     {
         if (verifyBody.Token != General.GetMD5(uuid + Program.Setting.InstancePassword))
         {
-            SendVerifyResultPacket(context, Result.FailToVerify);
+            SendVerifyResultPacket(context, ResultTypes.FailToVerify);
             return false;
         }
 
@@ -155,7 +164,7 @@ public static class VerificationHandler
             || !Regex.IsMatch(verifyBody.InstanceID, @"^\w{32}$")
         )
         {
-            SendVerifyResultPacket(context, Result.IncorrectInstanceID);
+            SendVerifyResultPacket(context, ResultTypes.IncorrectInstanceID);
             return false;
         }
 
@@ -163,7 +172,7 @@ public static class VerificationHandler
             MainHandler.Instances.Values.Select((i) => i.InstanceID).Contains(verifyBody.InstanceID)
         )
         {
-            SendVerifyResultPacket(context, Result.DuplicateInstanceID);
+            SendVerifyResultPacket(context, ResultTypes.DuplicateInstanceID);
             return false;
         }
 
@@ -177,7 +186,23 @@ public static class VerificationHandler
             };
         MainHandler.Instances.Add(uuid, instance);
         context.Send(new VerifyResultPacket(true).ToString());
-        Logger.Info($"<{clientUrl}> 验证成功（实例），自定义名称为：{verifyBody.CustomName ?? "null"}");
+        Logger.Info($"<{clientUrl}> 验证成功");
+
+        AnsiConsole.Write(
+            new Table()
+                .AddColumns(
+                    new TableColumn("类型") { Alignment = Justify.Center },
+                    new("实例") { Alignment = Justify.Center }
+                )
+                .AddRow("地址", context.RemoteEndPoint.ToString())
+                .AddRow("自定义名称", Markup.Escape(verifyBody.CustomName ?? string.Empty))
+                .AddRow("实例ID", Markup.Escape(verifyBody.InstanceID))
+                .AddRow("实例类型", Markup.Escape(verifyBody.MetaData?.Type ?? string.Empty))
+                .AddRow("实例名称", Markup.Escape(verifyBody.MetaData?.Name ?? string.Empty))
+                .AddRow("实例版本", Markup.Escape(verifyBody.MetaData?.Version ?? string.Empty))
+                .RoundedBorder()
+        );
+        AnsiConsole.WriteLine();
         return true;
     }
 
@@ -192,20 +217,20 @@ public static class VerificationHandler
         VerifyBody verifyBody
     )
     {
-        if (string.IsNullOrEmpty(verifyBody.Account))
+        if (string.IsNullOrEmpty(verifyBody.UserName))
         {
-            SendVerifyResultPacket(context, Result.EmptyAccount);
+            SendVerifyResultPacket(context, ResultTypes.EmptyUserName);
             return false;
         }
 
         if (
             !(
-                UserManager.Users.TryGetValue(verifyBody.Account!, out User? user)
-                && verifyBody.Token == General.GetMD5(uuid + verifyBody.Account! + user.Password)
+                UserManager.Users.TryGetValue(verifyBody.UserName!, out User? user)
+                && verifyBody.Token == General.GetMD5(uuid + verifyBody.UserName! + user.Password)
             )
         )
         {
-            SendVerifyResultPacket(context, Result.IncorrectAccountOrPassword);
+            SendVerifyResultPacket(context, ResultTypes.IncorrectUserNameOrPassword);
             return false;
         }
 
@@ -220,7 +245,21 @@ public static class VerificationHandler
 
         MainHandler.Consoles.Add(uuid, console);
         SendVerifyResultPacket(context);
-        Logger.Info($"<{clientUrl}> 验证成功（控制台）");
+        Logger.Info($"<{clientUrl}> 验证成功");
+
+        AnsiConsole.Write(
+            new Table()
+                .AddColumns(
+                    new TableColumn("类型") { Alignment = Justify.Center },
+                    new("控制台") { Alignment = Justify.Center }
+                )
+                .AddRow("地址", context.RemoteEndPoint.ToString())
+                .AddRow("用户名", Markup.Escape(verifyBody.UserName))
+                .AddRow("权限等级", UserManager.LevelNames[user.Level])
+                .AddRow("描述", Markup.Escape(user.Description ?? string.Empty))
+                .RoundedBorder()
+        );
+        AnsiConsole.WriteLine();
         return true;
     }
 
@@ -230,14 +269,17 @@ public static class VerificationHandler
     /// <param name="clientUrl"></param>
     /// <param name="context"></param>
     /// <param name="reason"></param>
-    private static void SendVerifyResultPacket(IWebSocketContext context, string? reason = null)
+    private static void SendVerifyResultPacket(
+        IWebSocketContext context,
+        ResultTypes reason = ResultTypes.Success
+    )
     {
-        if (string.IsNullOrEmpty(reason))
+        if (reason == ResultTypes.Success)
         {
             context.Send(new VerifyResultPacket(true).ToString());
             return;
         }
-        context.Send(new VerifyResultPacket(false, reason).ToString());
+        context.Send(new VerifyResultPacket(false, reason.ToString()).ToString());
         Logger.Warn($"<{context.RemoteEndPoint}> 验证失败：{reason}");
     }
 }

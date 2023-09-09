@@ -13,14 +13,14 @@ public class Base
 
         // 子设置项判断
         Assert.Throws<SettingsException>(
-            () => new Setting() { InstancePassword = "6", WebServer = null!, }.Check()
+            () => new Setting { InstancePassword = "6", WebServer = null!, }.Check()
         );
         Assert.Throws<SettingsException>(
-            () => new Setting() { InstancePassword = "6", Win32Console = null!, }.Check()
+            () => new Setting { InstancePassword = "6", Win32Console = null!, }.Check()
         );
         Assert.Throws<SettingsException>(
             () =>
-                new Setting()
+                new Setting
                 {
                     InstancePassword = "6",
                     WebServer = new() { Certificate = null! },
@@ -30,7 +30,7 @@ public class Base
         // 目录判断
         Assert.Throws<SettingsException>(
             () =>
-                new Setting()
+                new Setting
                 {
                     InstancePassword = "6",
                     WebServer = new() { Directory = string.Empty },
@@ -38,7 +38,7 @@ public class Base
         );
         Assert.Throws<SettingsException>(
             () =>
-                new Setting()
+                new Setting
                 {
                     InstancePassword = "6",
                     WebServer = new() { Directory = null! },
@@ -48,7 +48,7 @@ public class Base
         // 404页面路径判断
         Assert.Throws<SettingsException>(
             () =>
-                new Setting()
+                new Setting
                 {
                     InstancePassword = "6",
                     WebServer = new() { Page404 = string.Empty },
@@ -56,7 +56,7 @@ public class Base
         );
         Assert.Throws<SettingsException>(
             () =>
-                new Setting()
+                new Setting
                 {
                     InstancePassword = "6",
                     WebServer = new() { Page404 = null! },
@@ -66,7 +66,7 @@ public class Base
         // Url列表判断
         Assert.Throws<SettingsException>(
             () =>
-                new Setting()
+                new Setting
                 {
                     InstancePassword = "6",
                     WebServer = new() { UrlPrefixes = Array.Empty<string>() },
@@ -74,7 +74,7 @@ public class Base
         );
         Assert.Throws<SettingsException>(
             () =>
-                new Setting()
+                new Setting
                 {
                     InstancePassword = "6",
                     WebServer = new() { UrlPrefixes = null! },
@@ -82,6 +82,6 @@ public class Base
         );
 
         // 实例密码判断
-        Assert.Throws<SettingsException>(() => new Setting() { InstancePassword = null!, }.Check());
+        Assert.Throws<SettingsException>(() => new Setting { InstancePassword = null!, }.Check());
     }
 }

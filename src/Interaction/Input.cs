@@ -1,11 +1,12 @@
+using System.Collections.Generic;
 using iPanelHost.Base;
 using iPanelHost.Server;
 using iPanelHost.Service.Handlers;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Sharprompt;
+using Spectre.Console;
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -39,7 +40,11 @@ public static class Input
   exit/^C       退出
   ";
 
-    public static void ReadLine(string line)
+    /// <summary>
+    /// 解析输入
+    /// </summary>
+    /// <param name="line"></param>
+    public static void Parse(string line)
     {
 #if NET
         string[] args = line.Split(
@@ -54,40 +59,54 @@ public static class Input
             case "ls":
             case "list":
                 Logger.Info(
-                    $"当前有{MainHandler.Consoles.Count}个控制台和{MainHandler.Instances.Count}个面板在线"
+                    $"当前有{MainHandler.Consoles.Count}个控制台和{MainHandler.Instances.Count}个实例在线"
                 );
+
+                Table table = new();
+                table.AddColumns("类型", "地址", "自定义名称/用户名").RoundedBorder();
+
+                table.Columns[0].Centered();
+                table.Columns[1].Centered();
+                table.Columns[2].Centered();
+
                 lock (MainHandler.Consoles)
                 {
-                    MainHandler.Consoles.Keys
+                    MainHandler.Consoles
                         .ToList()
                         .ForEach(
-                            (key) =>
-                                Logger.Info(
-                                    $"{"[控制台]", -5}{MainHandler.Consoles[key].Address, -20}"
+                            (kv) =>
+                                table.AddRow(
+                                    "控制台",
+                                    kv.Value.Address ?? string.Empty,
+                                    kv.Value.UserName ?? string.Empty
                                 )
                         );
                 }
                 lock (MainHandler.Instances)
                 {
-                    MainHandler.Instances.Keys
+                    MainHandler.Instances
                         .ToList()
                         .ForEach(
-                            (key) =>
-                                Logger.Info(
-                                    $"{"[实例]", -5}{MainHandler.Instances[key].Address, -20}{MainHandler.Instances[key].CustomName}"
+                            (kv) =>
+                                table.AddRow(
+                                    "实例",
+                                    kv.Value.Address ?? string.Empty,
+                                    kv.Value.CustomName ?? string.Empty
                                 )
                         );
                 }
+
+                AnsiConsole.Write(table);
                 break;
 
             case "d":
             case "disconnect":
-                Funcions.Disconnect();
+                SubCommnadHandler.Disconnect();
                 break;
 
             case "cn":
             case "changename":
-                Funcions.ChangeCustomName();
+                SubCommnadHandler.ChangeCustomName();
                 break;
 
             case "cls":
@@ -105,16 +124,34 @@ public static class Input
 
             case "v":
             case "version":
-                Logger.Info($"Name={Assembly.GetExecutingAssembly().GetName().Name}");
-                Logger.Info($"Version={Assembly.GetExecutingAssembly().GetName().Version}");
+                Logger.Info("Repo: https://github.com/iPanelDev/iPanel-Host");
+
+                Table versionTable = new();
+                versionTable
+                    .RoundedBorder()
+                    .AddColumns(
+                        new TableColumn("名称") { Alignment = Justify.Center },
+                        new(Assembly.GetExecutingAssembly().GetName().Name ?? string.Empty)
+                        {
+                            Alignment = Justify.Center
+                        }
+                    )
+                    .AddRow(
+                        "版本",
+                        Assembly.GetExecutingAssembly().GetName().Version?.ToString()
+                            ?? string.Empty
+                    );
+
                 string[] commandlineArgs = Environment.GetCommandLineArgs();
                 if (commandlineArgs.Length > 0 && File.Exists(commandlineArgs[0]))
                 {
-                    Logger.Info($"FileName={Path.GetFileName(commandlineArgs[0])}");
-                    Logger.Info($"MD5={General.GetMD5(File.ReadAllBytes(commandlineArgs[0]))}");
-                    Logger.Info($"LastWriteTime={File.GetLastWriteTime(commandlineArgs[0]):o}");
-                    Logger.Info($"CreationTime={File.GetCreationTime(commandlineArgs[0]):o}");
+                    versionTable
+                        .AddRow("文件名", Path.GetFileName(commandlineArgs[0]))
+                        .AddRow("MD5", General.GetMD5(File.ReadAllBytes(commandlineArgs[0])))
+                        .AddRow("创建时间", File.GetCreationTime(commandlineArgs[0]).ToString("o"))
+                        .AddRow("修改时间", File.GetLastWriteTime(commandlineArgs[0]).ToString("o"));
                 }
+                AnsiConsole.Write(versionTable);
                 break;
 
             case "?":
@@ -126,7 +163,7 @@ public static class Input
 
             case "u":
             case "user":
-                Funcions.ManageUsers(args);
+                SubCommnadHandler.ManageUsers(args);
                 break;
 
             case "r":
@@ -174,55 +211,11 @@ public static class Input
         }
         try
         {
-            bool toPublic = Prompt.Confirm("将Http服务器开放到公网", false);
-            int port = Prompt.Input<int>(
-                "Http服务器的端口",
-                30000,
-                "1~65535",
-                new[]
-                {
-                    (object obj) =>
-                        obj is int value && value > 0 && value <= 65535
-                            ? ValidationResult.Success
-                            : new("端口无效")
-                }
-            );
-
-            Setting setting =
-                new()
-                {
-                    InstancePassword = Prompt.Password(
-                        "实例连接密码",
-                        placeholder: "不要与QQ或服务器等密码重复；推荐大小写字母数字结合",
-                        validators: new[]
-                        {
-                            Validators.Required("密码不可为空"),
-                            Validators.MinLength(6, "密码长度过短"),
-                            Validators.RegularExpression(@"^[^\s]+$", "密码不得含有空格"),
-                        }
-                    ),
-                    WebServer = new()
-                    {
-                        UrlPrefixes = new[] { $"http://{(toPublic ? "+" : "127.0.0.1")}:{port}" },
-                        AllowCrossOrigin = Prompt.Confirm("允许跨源资源共享（CORS）", false)
-                    }
-                };
-
-            File.WriteAllText(
-                "setting.json",
-                JsonConvert.SerializeObject(setting, Formatting.Indented)
-            );
-            Directory.CreateDirectory("logs");
-            Directory.CreateDirectory("dist");
-
-            Console.WriteLine(Environment.NewLine);
-            Logger.Info("初始化设置成功");
-
-            return setting;
+            return AdvancedInput.NewSetting;
         }
         catch (PromptCanceledException)
         {
-            Runtime.ExitQuietly();
+            Runtime.ExitQuietly(-1);
             return null!;
         }
     }

@@ -14,14 +14,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using WebSocket4Net;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace iPanelHost.Tests;
 
 [Collection("Service")]
 public class Api : IDisposable
 {
-    private readonly HttpClient _httpClient = new(new HttpClientHandler() { UseCookies = true });
+    private readonly HttpClient _httpClient = new(new HttpClientHandler { UseCookies = true });
 
     private const string _password = "123456";
 
@@ -47,7 +46,7 @@ public class Api : IDisposable
     /// 应返回当前日期
     /// </summary>
     [Fact]
-    public async void ShouldBeAbleToReturnDateTime()
+    public async Task ShouldBeAbleToReturnDateTime()
     {
         HttpResponseMessage responseMessage = await _httpClient.GetAsync($"{_baseRoot}/api/ping");
         DateTime dateTime = DateTime.Parse(await responseMessage.Content.ReadAsStringAsync());
@@ -60,7 +59,7 @@ public class Api : IDisposable
     /// 在空的参数时应验证失败
     /// </summary>
     [Fact]
-    public async void ShouldBeNotAbleToVerifyWithEmptyInput()
+    public async Task ShouldBeNotAbleToVerifyWithEmptyInput()
     {
         HttpResponseMessage responseMessage = await _httpClient.GetAsync($"{_baseRoot}/api/verify");
         Assert.Equal(HttpStatusCode.BadRequest, responseMessage.StatusCode);
@@ -74,7 +73,7 @@ public class Api : IDisposable
     [InlineData("user=114514")]
     [InlineData("token=114514")]
     [InlineData("uuid=114514&user=114514&token=114514")]
-    public async void ShouldBeNotAbleToVerifyWithWrongArgs(string arg)
+    public async Task ShouldBeNotAbleToVerifyWithWrongArgs(string arg)
     {
         HttpResponseMessage responseMessage = await _httpClient.GetAsync(
             $"{_baseRoot}/api/verify?{arg}"

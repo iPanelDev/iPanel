@@ -21,7 +21,7 @@ public class User
     /// <summary>
     /// 权限等级
     /// </summary>
-    public PermissonLevel Level = 0;
+    public PermissionLevel Level = 0;
 
     /// <summary>
     /// 允许的实例

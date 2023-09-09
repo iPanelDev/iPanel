@@ -6,6 +6,8 @@ using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.Server;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
+using Spectre.Console;
+using Spectre.Console.Json;
 using Sys = System;
 using System.Collections.Generic;
 using System.Linq;
@@ -104,16 +106,39 @@ public static class MainHandler
         bool isConsole = Consoles.TryGetValue(uuid, out Console? console) && console is not null,
             isInstance =
                 Instances.TryGetValue(uuid, out Instance? instance) && instance is not null;
+
         ReceivedPacket? packet;
         try
         {
             packet =
                 JsonConvert.DeserializeObject<ReceivedPacket>(message)
                 ?? throw new PacketException("空数据包");
+
+            if (Program.Setting.Debug)
+            {
+                Logger.Debug($"<{clientUrl}> 收到数据");
+                AnsiConsole.Write(
+                    new JsonText(message)
+                        .BracesColor(Color.White) // 中括号
+                        .BracketColor(Color.White) // 大括号
+                        .CommaColor(Color.White) // 逗号
+                        .MemberColor(Color.SkyBlue1)
+                        .StringColor(Color.LightSalmon3_1)
+                        .NumberColor(Color.DarkSeaGreen2)
+                        .BooleanColor(Color.DodgerBlue3)
+                        .NullColor(Color.DodgerBlue3)
+                );
+                AnsiConsole.WriteLine();
+            }
         }
         catch (Sys.Exception e)
         {
-            Logger.Warn($"<{clientUrl}>处理数据包异常\n{e}");
+            if (Program.Setting.Debug)
+            {
+                Logger.Debug($"<{clientUrl}> 收到数据：{message}");
+            }
+
+            Logger.Warn($"<{clientUrl}> 处理数据包异常\n{e}");
             context.Send(
                 new SentPacket(
                     "event",

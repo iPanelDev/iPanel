@@ -1,22 +1,13 @@
-using iPanelHost.Base;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
-using iPanelHost.Server;
-using iPanelHost.Service;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using WebSocket4Net;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace iPanelHost.Tests;
 
-public class Utils
+public static class Utils
 {
     public static WebSocket CreateConsoleWebSocket(string user, string password)
     {
@@ -33,7 +24,7 @@ public class Utils
                 string token = General.GetMD5(verifyRequest.UUID + user + password);
 
                 webSocket.Send(
-                    new SentPacket()
+                    new SentPacket
                     {
                         Type = "request",
                         SubType = "verify",

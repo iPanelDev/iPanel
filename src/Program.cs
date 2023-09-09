@@ -41,7 +41,6 @@ public static class Program
         Initialization.InitEnv();
 
         ReadSetting();
-        UserManager.Read();
 
         Win32.SetConsoleMode();
         if (!_hasShownLogo)
@@ -55,6 +54,8 @@ public static class Program
                 Logger.Info(Constant.LogoIco.Replace("\\x1b", "\x1b"));
             }
         }
+
+        UserManager.Read();
         HttpServer.Start();
         Runtime.StartHandleInput();
     }

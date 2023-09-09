@@ -9,12 +9,12 @@ public class VerifyRequest
     /// <summary>
     /// 超时
     /// </summary>
-    public readonly int Timeout;
+    public int Timeout { get; init; }
 
     /// <summary>
     /// 唯一标识ID
     /// </summary>
-    public readonly string UUID;
+    public string UUID { get; init; }
 
     /// <summary>
     /// 当前版本

@@ -29,9 +29,9 @@ public class VerifyBody
     public Meta? MetaData { get; init; }
 
     /// <summary>
-    /// 帐号
+    /// 用户名
     /// </summary>
-    public string? Account { get; init; }
+    public string? UserName { get; init; }
 
     /// <summary>
     /// 客户端类型

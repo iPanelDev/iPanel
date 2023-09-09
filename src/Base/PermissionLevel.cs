@@ -1,6 +1,6 @@
 namespace iPanelHost.Base;
 
-public enum PermissonLevel
+public enum PermissionLevel
 {
     Guest,
     ReadOnly,

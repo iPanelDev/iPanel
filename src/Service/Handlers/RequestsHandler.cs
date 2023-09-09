@@ -3,7 +3,6 @@ using iPanelHost.Base.Client;
 using iPanelHost.Base.Client.Info;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.Event;
-using iPanelHost.Service;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -49,7 +48,7 @@ public static class RequestsHandler
                 }
                 if (packet.Data is null || packet.Data.Type != JTokenType.Array)
                 {
-                    console.Send(new InvalidDataPacket("“data”字段类型错误") { Echo = packet.Echo });
+                    console.Send(new InvalidDataPacket(nameof(packet.Data)) { Echo = packet.Echo });
                     break;
                 }
                 Send(console, packet.SubType, packet.Data, subAll, instance);
@@ -83,18 +82,17 @@ public static class RequestsHandler
                 if (target == "*")
                 {
                     console.SubscribingTarget = target;
+                    return;
                 }
-                else if (
+                instance = MainHandler.Instances.Values.FirstOrDefault(
+                    (i) => i.InstanceID == target
+                );
+                if (
                     !string.IsNullOrEmpty(target)
+                    && instance is not null
                     && (
-                        instance = MainHandler.Instances.Values.FirstOrDefault(
-                            (i) => i.InstanceID == target
-                        )
-                    )
-                        is not null
-                    && (
-                        console.User?.Level == PermissonLevel.Assistant
-                        || console.User?.Level == PermissonLevel.Administrator
+                        console.User?.Level == PermissionLevel.Assistant
+                        || console.User?.Level == PermissionLevel.Administrator
                         || (console.User?.Instances.Contains(target) ?? false)
                     )
                 )
@@ -108,7 +106,7 @@ public static class RequestsHandler
                             new JObject
                             {
                                 { "instance_id", target },
-                                { "info", JObject.FromObject(instance.FullInfo!) }
+                                { "info", JObject.FromObject(instance.FullInfo ?? new()) }
                             }
                         )
                     );
@@ -172,7 +170,7 @@ public static class RequestsHandler
                 break;
 
             case "get_all_users":
-                if (console.User?.Level != PermissonLevel.Administrator)
+                if (console.User?.Level != PermissionLevel.Administrator)
                 {
                     console.Send(
                         new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied)
@@ -192,7 +190,7 @@ public static class RequestsHandler
                 break;
 
             case "delete_user":
-                if (console.User?.Level != PermissonLevel.Administrator)
+                if (console.User?.Level != PermissionLevel.Administrator)
                 {
                     console.Send(
                         new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied)
@@ -201,7 +199,7 @@ public static class RequestsHandler
                 }
                 if (packet.Data is null)
                 {
-                    console.Send(new InvalidDataPacket("“data”字段为null") { Echo = packet.Echo });
+                    console.Send(new InvalidDataPacket(nameof(packet.Data)) { Echo = packet.Echo });
                     break;
                 }
 
@@ -214,22 +212,44 @@ public static class RequestsHandler
                     )
                 );
                 UserManager.Save();
-                console.Send(
-                    new SentPacket(
-                        "return",
-                        "user_dict",
-                        packet.Echo,
-                        UserManager.Users
-                            .Select((kv) => new KeyValuePair<string, SafeUser>(kv.Key, kv.Value))
-                            .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
-                    )
-                );
+                break;
+
+            case "edit_user":
+                if (console.User?.Level != PermissionLevel.Administrator)
+                {
+                    console.Send(
+                        new OperationResultPacket(packet.Echo, ResultTypes.PermissionDenied)
+                    );
+                    break;
+                }
+
+                User? user = packet.Data?["user"]?.ToObject<User>();
+                if (packet.Data?["userName"] is null || user is null)
+                {
+                    console.Send(new InvalidDataPacket(nameof(packet.Data)) { Echo = packet.Echo });
+                    break;
+                }
+
+                string? userName = packet.Data["userName"]?.ToString();
+                if (string.IsNullOrEmpty(userName) || !UserManager.Users.ContainsKey(userName!))
+                {
+                    console.Send(new OperationResultPacket(packet.Echo, ResultTypes.InvalidUser));
+                    break;
+                }
+
+                lock (UserManager.Users)
+                {
+                    UserManager.Users[userName] = user;
+                }
+
+                console.Send(new OperationResultPacket(packet.Echo, ResultTypes.Success));
+                UserManager.Save();
                 break;
 
             case "get_dir_info":
                 if (
-                    console.User?.Level != PermissonLevel.Assistant
-                    && console.User?.Level != PermissonLevel.Administrator
+                    console.User?.Level != PermissionLevel.Assistant
+                    && console.User?.Level != PermissionLevel.Administrator
                 )
                 {
                     console.Send(
@@ -251,12 +271,7 @@ public static class RequestsHandler
                 break;
 
             default:
-                console.Send(
-                    new InvalidParamPacket($"所请求的“{packet.SubType}”类型不存在或无法调用")
-                    {
-                        Echo = packet.Echo
-                    }
-                );
+                console.Send(new InvalidParamPacket(nameof(packet.SubType)) { Echo = packet.Echo });
                 break;
         }
     }

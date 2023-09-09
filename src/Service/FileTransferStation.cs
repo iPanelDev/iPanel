@@ -54,14 +54,12 @@ public static class FileTransferStation
             if (!File.Exists(keyValuePair.Key))
             {
                 FileItemInfos.Remove(keyValuePair.Key);
-                continue;
             }
-            if (keyValuePair.Value.Expires < DateTime.Now)
+            else if (keyValuePair.Value.Expires < DateTime.Now)
             {
                 File.Delete(keyValuePair.Key);
                 Logger.Warn($"上传的文件“{keyValuePair.Key}”过期，已被删除");
                 FileItemInfos.Remove(keyValuePair.Key);
-                continue;
             }
         }
         File.WriteAllText(
@@ -100,7 +98,7 @@ public static class FileTransferStation
         try
         {
             StreamingMultipartFormDataParser parser = new(httpContext.Request.InputStream);
-            parser.FileHandler += (_, fileName, _, _, buffer, bytes, partNumber, _) =>
+            parser.FileHandler += (_, fileName, _, _, buffer, bytes, _, _) =>
             {
                 if (string.IsNullOrEmpty(fileName))
                 {
@@ -141,7 +139,7 @@ public static class FileTransferStation
         Logger.Info($"<{httpContext.RemoteEndPoint}> 一共接收了{dict.Count}个文件，用时{time}s，平均速度{speed}");
         await Apis.SendJson(
             httpContext,
-            new UploadResult()
+            new UploadResult
             {
                 ID = id,
                 Files = files,
@@ -201,7 +199,7 @@ public static class FileTransferStation
 
         await Apis.SendJson(
             httpContext,
-            new UploadResult()
+            new UploadResult
             {
                 ID = id,
                 Files = files,

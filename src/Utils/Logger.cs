@@ -9,6 +9,8 @@ public class Logger : ILogger
 {
     public LogLevel LogLevel => LogLevel.Info;
 
+    private static readonly object _lock = new();
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);
@@ -58,6 +60,8 @@ public class Logger : ILogger
         }
     }
 
+    public static void Info() => Info(string.Empty);
+
     public static void Info(string line)
     {
         if (line.Contains('\n'))
@@ -65,7 +69,8 @@ public class Logger : ILogger
             line.Split('\n').ToList().ForEach((singleLine) => Info(singleLine.Trim('\r')));
             return;
         }
-        Console.WriteLine($"{DateTime.Now:T} \x1b[96m[Info]\x1b[0m {line}");
+        lock (_lock)
+            Console.WriteLine($"{DateTime.Now:T} \x1b[96m[Info]\x1b[0m {line}");
     }
 
     public static void Warn(string line)
@@ -75,7 +80,8 @@ public class Logger : ILogger
             line.Split('\n').ToList().ForEach((singleLine) => Warn(singleLine.Trim('\r')));
             return;
         }
-        Console.WriteLine($"{DateTime.Now:T} \x1b[33m[Warn] {line}\x1b[0m");
+        lock (_lock)
+            Console.WriteLine($"{DateTime.Now:T} \x1b[33m[Warn] {line}\x1b[0m");
     }
 
     public static void Error(
@@ -94,7 +100,8 @@ public class Logger : ILogger
             line.Split('\n').ToList().ForEach((singleLine) => Error(singleLine.Trim('\r')));
             return;
         }
-        Console.WriteLine($"{DateTime.Now:T} \x1b[91m[Error]{line}\x1b[0m");
+        lock (_lock)
+            Console.WriteLine($"{DateTime.Now:T} \x1b[91m[Error]{line}\x1b[0m");
     }
 
     public static void Fatal(string line)
@@ -104,7 +111,8 @@ public class Logger : ILogger
             line.Split('\n').ToList().ForEach((singleLine) => Fatal(singleLine.Trim('\r')));
             return;
         }
-        Console.WriteLine($"{DateTime.Now:T} \x1b[31m[Fatal]{line}\x1b[0m");
+        lock (_lock)
+            Console.WriteLine($"{DateTime.Now:T} \x1b[31m[Fatal]{line}\x1b[0m");
     }
 
     public static void Debug(string line)
@@ -119,6 +127,7 @@ public class Logger : ILogger
             line.Split('\n').ToList().ForEach((singleLine) => Debug(singleLine.Trim('\r')));
             return;
         }
-        Console.WriteLine($"{DateTime.Now:T} \x1b[95m[Debug]{line}\x1b[0m");
+        lock (_lock)
+            Console.WriteLine($"{DateTime.Now:T} \x1b[95m[Debug]{line}\x1b[0m");
     }
 }
