@@ -12,7 +12,6 @@ public class IPBannerModule : IPBanningModule
     {
         this.WithMaxRequestsPerSecond(Program.Setting.WebServer.MaxRequestsPerSecond);
         OnHttpException = Handle403;
-        
     }
 
     /// <summary>

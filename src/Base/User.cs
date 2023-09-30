@@ -32,6 +32,7 @@ public class User
     /// 描述
     /// </summary>
     public string? Description;
+
     /// Cookie
     public readonly List<string> IPAddresses = new();
 
