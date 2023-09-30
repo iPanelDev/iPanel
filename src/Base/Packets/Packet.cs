@@ -16,5 +16,11 @@ public abstract class Packet
     /// </summary>
     public string SubType { init; get; } = string.Empty;
 
+    /// <summary>
+    /// 请求ID
+    /// </summary>
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public string? RequestId { init; get; }
+
     public override string ToString() => JsonConvert.SerializeObject(this);
 }

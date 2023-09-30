@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 namespace iPanelHost.Base.Client;
 
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-public class Meta
+public class InstanceMetadata
 {
     /// <summary>
     /// 版本
@@ -15,9 +15,4 @@ public class Meta
     /// 名称
     /// </summary>
     public string? Name { get; init; }
-
-    /// <summary>
-    /// 类型
-    /// </summary>
-    public string? Type { get; init; }
 }

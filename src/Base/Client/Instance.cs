@@ -24,14 +24,16 @@ public class Instance : Client
     /// <summary>
     /// 实例ID
     /// </summary>
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public string? InstanceID;
+    public string InstanceID;
 
     /// <summary>
     /// 实例元数据
     /// </summary>
-    public Meta? Metadata;
+    public InstanceMetadata? Metadata;
 
-    public Instance(string? uuid)
-        : base(uuid) { }
+    public Instance(string instanceId, string uuid)
+        : base(uuid)
+    {
+        InstanceID = instanceId;
+    }
 }

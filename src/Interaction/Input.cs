@@ -28,9 +28,9 @@ public static class Input
     a/add         添加用户
     d/delete      删除用户
     e/edit        编辑用户
-    p/perm        管理用户权限
+    ei            管理用户允许订阅的实例
     r/reload      重新加载文件
-  
+
 其他
   ?/h/help      显示此页面
   r/reload      重新读取设置文件并重启服务器
@@ -178,6 +178,10 @@ public static class Input
                 {
                     Logger.Warn(e.Message);
                 }
+                break;
+
+            case "ban":
+                SubCommnadHandler.ManageBanModule(args);
                 break;
 
             default:

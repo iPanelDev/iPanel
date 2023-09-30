@@ -33,44 +33,60 @@ public static class UserManager
         _timer.Start();
     }
 
+    /// <summary>
+    /// 用户字典
+    /// </summary>
     public static Dictionary<string, User> Users { get; private set; } = new();
 
+    /// <summary>
+    ///保存路径
+    /// </summary>
     private const string _path = "users.json";
+
+    public static readonly object _lock = new();
 
     /// <summary>
     /// 读取用户文件
     /// </summary>
     public static void Read()
     {
-        if (!File.Exists(_path))
+        lock (_lock)
         {
-            Save();
-            return;
-        }
-
-        try
-        {
-            Users =
-                JsonConvert.DeserializeObject<Dictionary<string, User>>(File.ReadAllText(_path))
-                ?? throw new FileLoadException("文件数据异常");
-
-            if (Users.Count == 0)
+            if (!File.Exists(_path))
             {
-                Logger.Warn("用户列表为空。请输入“user create”或“u c”添加一个用户");
+                Save();
+                return;
             }
-        }
-        catch (Exception e)
-        {
-            Logger.Error($"加载用户文件{_path}时出错");
-            Logger.Error(e);
+
+            try
+            {
+                Users =
+                    JsonConvert.DeserializeObject<Dictionary<string, User>>(File.ReadAllText(_path))
+                    ?? throw new FileLoadException("文件数据异常");
+
+                if (Users.Count == 0)
+                {
+                    Logger.Warn("用户列表为空。请输入“user create”或“u c”添加一个用户");
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"加载用户文件{_path}时出错");
+                Logger.Error(e);
+            }
         }
     }
 
     /// <summary>
     /// 保存
     /// </summary>
-    public static void Save() =>
-        File.WriteAllText(_path, JsonConvert.SerializeObject(Users, Formatting.Indented));
+    public static void Save()
+    {
+        lock (_lock)
+        {
+            File.WriteAllText(_path, JsonConvert.SerializeObject(Users, Formatting.Indented));
+        }
+    }
 
     /// <summary>
     /// 创建用户
@@ -214,10 +230,10 @@ public static class UserManager
         Dictionary<string, Instance> dict = user.Instances
             .Distinct()
             .Select(
-                i =>
+                id =>
                     new KeyValuePair<string, Instance>(
                         Guid.NewGuid().ToString("N"),
-                        new(string.Empty) { InstanceID = i }
+                        new(id, string.Empty)
                     )
             )
             .ToDictionary(kv => kv.Key, kv => kv.Value);
@@ -246,17 +262,24 @@ public static class UserManager
             return;
         }
 
-        user.Instances = Prompt
-            .MultiSelect(
-                "选择实例",
-                all,
-                minimum: 0,
-                defaultValues: dict,
-                textSelector: (kv) => $"{kv.Value.InstanceID}\t自定义名称：{kv.Value?.CustomName}"
-            )
-            .Select(kv => kv.Value.InstanceID)
-            .Where(instanceID => !string.IsNullOrEmpty(instanceID))
-            .ToArray()!;
+        try
+        {
+            user.Instances = Prompt
+                .MultiSelect(
+                    "选择实例",
+                    all,
+                    minimum: 0,
+                    defaultValues: dict,
+                    textSelector: (kv) => $"{kv.Value.InstanceID}\t自定义名称：{kv.Value?.CustomName}"
+                )
+                .Select(kv => kv.Value.InstanceID)
+                .Where(instanceID => !string.IsNullOrEmpty(instanceID))
+                .ToArray()!;
+        }
+        catch (PromptCanceledException)
+        {
+            return;
+        }
 
         if (Users.ContainsKey(key))
         {

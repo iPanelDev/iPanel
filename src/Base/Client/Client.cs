@@ -13,22 +13,22 @@ public abstract class Client
     /// 连接对象
     /// </summary>
     [JsonIgnore]
-    public IWebSocketContext? Context { get; init; }
+    public IWebSocketContext Context { get; init; } = null!;
 
     /// <summary>
     /// 地址
     /// </summary>
-    public string? Address => Context?.RemoteEndPoint.ToString();
+    public string? Address => Context.RemoteEndPoint.ToString();
 
     /// <summary>
     /// 唯一标识符
     /// </summary>
-    public string UUID { init; get; }
+    public string UUID { get; init; }
 
     /// <summary>
     /// 关闭连接
     /// </summary>
-    public void Close() => Context?.Close();
+    public void Close() => Context.Close();
 
     /// <summary>
     /// 发送文本
@@ -36,7 +36,7 @@ public abstract class Client
     /// <param name="text">发送内容</param>
     public void Send(string text)
     {
-        Context?.Send(text);
+        Context.Send(text);
     }
 
     /// <summary>

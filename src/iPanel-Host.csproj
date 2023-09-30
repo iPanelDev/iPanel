@@ -21,10 +21,10 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Sharprompt" Version="2.4.5" />
     <PackageReference Include="Spectre.Console" Version="0.47.0" />
+    <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
 
     <Content Include="Sources/logo.ico" />
 
-    <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
   </ItemGroup>
 
 </Project>

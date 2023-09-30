@@ -1,12 +1,14 @@
+using iPanelHost.Base;
 using iPanelHost.Base.Packets;
+using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.Base.Packets.Event;
 using iPanelHost.Utils;
 using iPanelHost.Base.Client;
 using iPanelHost.Base.Client.Info;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Sys = System;
 using System.Linq;
-using iPanelHost.Base.Packets.DataBody;
 
 namespace iPanelHost.Service.Handlers;
 
@@ -31,8 +33,8 @@ public static class ReturnHandler
                     MainHandler.Consoles
                         .Where(
                             (kv) =>
-                                kv.Value.SubscribingTarget == "*"
-                                || kv.Value.SubscribingTarget == instance.InstanceID
+                                kv.Value.InstanceIdSubscribed == "*"
+                                || kv.Value.InstanceIdSubscribed == instance.InstanceID
                         )
                         .Select((kv) => kv.Value)
                         .ToList()
@@ -54,15 +56,9 @@ public static class ReturnHandler
                 break;
 
             case "dir_info":
-                DirInfo? dirInfo = packet.Data?["dir_info"]?.ToObject<DirInfo>();
-                string? uuid = packet.Data?["uuid"]?.ToString();
-                if (string.IsNullOrEmpty(uuid))
-                {
-                    instance.Send(new InvalidDataPacket("“data”字段为null或缺少指定值"));
-                    break;
-                }
-
-                Send(instance, "dir_info", uuid, dirInfo, packet.Echo);
+                DirInfo dirInfo =
+                    packet.Data?.ToObject<DirInfo>() ?? throw new Sys.NullReferenceException();
+                HandleReturnPacket(instance, packet, dirInfo);
                 break;
 
             default:
@@ -72,29 +68,38 @@ public static class ReturnHandler
     }
 
     /// <summary>
-    /// 发送事件数据包
+    /// 处理返回数据包
     /// </summary>
-    /// <param name="instance">实例客户端</param>
-    /// <param name="subType">子类型</param>
-    /// <param name="data">数据主体</param>
-    private static void Send(
+    /// <param name="instance">实例</param>
+    /// <param name="packet">数据包</param>
+    public static void HandleReturnPacket(
         Instance instance,
-        string subType,
-        string? uuid,
-        object? data,
-        JToken? echo
+        ReceivedPacket packet,
+        object? data = null
     )
     {
         if (
-            string.IsNullOrEmpty(uuid)
-            || !MainHandler.Consoles.TryGetValue(uuid!, out Console? console)
+            string.IsNullOrEmpty(packet.RequestId)
+            || !RequestsHandler.ReuqestsDict.TryGetValue(packet.RequestId, out Request? request)
+            || request.InstanceID != instance.InstanceID
         )
         {
-            instance.Send(new OperationResultPacket(echo, ResultTypes.InvalidConsole));
             return;
         }
-        console.Send(
-            new SentPacket("return", subType, echo, data) { Sender = Sender.From(instance) }
-        );
+
+        if (MainHandler.Consoles.TryGetValue(request.CallerUUID, out Console? console))
+        {
+            console.Send(
+                new SentPacket
+                {
+                    Type = packet.Type,
+                    SubType = packet.SubType,
+                    Echo = request.Echo,
+                    Data = data,
+                    Sender = Sender.From(instance)
+                }
+            );
+            RequestsHandler.ReuqestsDict.Remove(packet.RequestId);
+        }
     }
 }

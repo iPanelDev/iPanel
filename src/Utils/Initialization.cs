@@ -17,7 +17,6 @@ public static class Initialization
 
         // 控制台
         Console.BackgroundColor = ConsoleColor.Black;
-        Console.ForegroundColor = ConsoleColor.White;
         Console.OutputEncoding = Encoding.UTF8;
         Console.CancelKeyPress += HandleCancelEvent;
         Win32.EnableVirtualTerminal();

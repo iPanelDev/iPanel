@@ -15,10 +15,11 @@ public enum ResultTypes
     InternalDataError,
     InvalidArgs,
     InvalidConsole,
-    InvalidTarget,
+    InvalidSubscription,
     InvalidUser,
     LostArgs,
     NotVerifyYet,
     PermissionDenied,
     TimeoutInVerification,
+    Timeout
 }

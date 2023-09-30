@@ -157,35 +157,10 @@ public static class MainHandler
         {
             VerificationHandler.Check(context, packet);
         }
-        else if (isConsole)
-        {
-            Handle(console!, packet);
-        }
-        else
+        else if (isInstance)
         {
             Handle(instance!, packet);
         }
-    }
-
-    /// <summary>
-    /// 处理数据包（控制台）
-    /// </summary>
-    /// <param name="console">控制台上下文</param>
-    /// <param name="packet">数据包</param>
-    private static void Handle(Console console, ReceivedPacket packet)
-    {
-        if (packet.Type != "request")
-        {
-            console.Send(
-                new SentPacket(
-                    "event",
-                    "invalid_param",
-                    new Result($"所请求的“{packet.Type}”类型不存在或无法调用")
-                ).ToString()
-            );
-            return;
-        }
-        RequestsHandler.Handle(console, packet);
     }
 
     /// <summary>

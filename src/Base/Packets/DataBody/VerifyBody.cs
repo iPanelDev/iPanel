@@ -1,7 +1,6 @@
 using iPanelHost.Base.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
 
 namespace iPanelHost.Base.Packets.DataBody;
 
@@ -26,7 +25,7 @@ public class VerifyBody
     /// <summary>
     /// 元数据
     /// </summary>
-    public Meta? MetaData { get; init; }
+    public InstanceMetadata? Metadata { get; init; }
 
     /// <summary>
     /// 用户名

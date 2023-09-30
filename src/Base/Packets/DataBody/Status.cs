@@ -8,7 +8,9 @@ namespace iPanelHost.Base.Packets.DataBody;
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 public class Status
 {
-    public bool IsVerified;
+    public bool Logined;
 
-    public TimeSpan Duration;
+    public TimeSpan SessionDuration;
+
+    public object? User;
 }

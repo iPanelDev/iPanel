@@ -177,12 +177,11 @@ public static class VerificationHandler
         }
 
         Instance instance =
-            new(uuid)
+            new(verifyBody.InstanceID, uuid)
             {
                 Context = context,
                 CustomName = verifyBody.CustomName,
-                InstanceID = verifyBody.InstanceID,
-                Metadata = verifyBody.MetaData,
+                Metadata = verifyBody.Metadata,
             };
         MainHandler.Instances.Add(uuid, instance);
         context.Send(new VerifyResultPacket(true).ToString());
@@ -197,9 +196,8 @@ public static class VerificationHandler
                 .AddRow("地址", context.RemoteEndPoint.ToString())
                 .AddRow("自定义名称", Markup.Escape(verifyBody.CustomName ?? string.Empty))
                 .AddRow("实例ID", Markup.Escape(verifyBody.InstanceID))
-                .AddRow("实例类型", Markup.Escape(verifyBody.MetaData?.Type ?? string.Empty))
-                .AddRow("实例名称", Markup.Escape(verifyBody.MetaData?.Name ?? string.Empty))
-                .AddRow("实例版本", Markup.Escape(verifyBody.MetaData?.Version ?? string.Empty))
+                .AddRow("实例名称", Markup.Escape(verifyBody.Metadata?.Name ?? string.Empty))
+                .AddRow("实例版本", Markup.Escape(verifyBody.Metadata?.Version ?? string.Empty))
                 .RoundedBorder()
         );
         AnsiConsole.WriteLine();
@@ -241,7 +239,7 @@ public static class VerificationHandler
             user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
         }
 
-        Console console = new(uuid) { Context = context, User = user };
+        Console console = new(verifyBody.UserName!, uuid) { Context = context, User = user };
 
         MainHandler.Consoles.Add(uuid, console);
         SendVerifyResultPacket(context);

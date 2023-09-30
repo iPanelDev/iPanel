@@ -1,6 +1,5 @@
 using EmbedIO;
 using EmbedIO.WebApi;
-using iPanelHost.Base.Packets;
 using iPanelHost.Utils;
 using System;
 using System.IO;
@@ -20,16 +19,34 @@ public static class HttpServer
     public static void Start()
     {
         _server = new(CreateOptions());
-        if (Program.Setting.WebServer.AllowCrossOrigin) // 允许跨源
+
+        if (Program.Setting.WebServer.AllowCrossOrigin)
         {
+            // 允许跨源
             _server.WithCors();
         }
 
-        _server.WithLocalSessionManager();
-        _server.WithModule(new IPBannerModule());
+        // 本地会话管理
+        _server.WithLocalSessionManager((module) => module.CookieHttpOnly = false);
 
-        _server.WithModule(new WsModule("/ws"));
-        _server.WithWebApi("/api", (module) => module.WithController<Apis>());
+        //
+        _server.WithModule(nameof(CookieManager), new CookieManager());
+
+        // IP封禁模块
+        _server.WithModule(nameof(IPBannerModule), new IPBannerModule());
+
+        // WS模块
+        _server.WithModule(nameof(WsModule), new WsModule("/ws"));
+
+        // 网页API模块
+        _server.WithWebApi(
+            "/api",
+            (module) =>
+                module
+                    .WithController<ApiMap>()
+                    .HandleHttpException(ApiHelper.HandleHttpException)
+                    .HandleUnhandledException(ApiHelper.HandleException)
+        );
 
         if (Directory.Exists(Program.Setting.WebServer.Directory))
         {

@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
 
@@ -10,11 +9,8 @@ public class SimplePacket
 {
     public int Code { get; init; } = 200;
 
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public bool? Success { get; init; }
+    public object? Data { get; init; }
 
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public object? Data { get; set; }
-
-    public readonly long Time = (long)DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+    public long Time { get; init; } =
+        (long)DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
 }

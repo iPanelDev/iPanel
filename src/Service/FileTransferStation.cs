@@ -137,15 +137,14 @@ public static class FileTransferStation
         string speed = General.GetSizeString(byteCount / time) + "/s";
 
         Logger.Info($"<{httpContext.RemoteEndPoint}> 一共接收了{dict.Count}个文件，用时{time}s，平均速度{speed}");
-        await Apis.SendJson(
+        await ApiHelper.SendJsonAsync(
             httpContext,
             new UploadResult
             {
                 ID = id,
                 Files = files,
                 Speed = speed
-            },
-            true
+            }
         );
     }
 
@@ -197,15 +196,14 @@ public static class FileTransferStation
         string speed = General.GetSizeString(byteCount / time) + "/s";
         Logger.Info($"<{httpContext.RemoteEndPoint}> 一共接收了{files.Count}个文件，用时{time}s，平均速度{speed}");
 
-        await Apis.SendJson(
+        await ApiHelper.SendJsonAsync(
             httpContext,
             new UploadResult
             {
                 ID = id,
                 Files = files,
                 Speed = speed
-            },
-            true
+            }
         );
     }
 }

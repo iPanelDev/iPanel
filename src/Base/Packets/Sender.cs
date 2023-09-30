@@ -15,7 +15,7 @@ public class Sender
     public string? Address { init; get; }
 
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public Meta? Metadata { init; get; }
+    public InstanceMetadata? Metadata { init; get; }
 
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? UUID { init; get; }
@@ -28,7 +28,7 @@ public class Sender
         Type = "unknown";
     }
 
-    public Sender(string name, string type, string? address, Meta metadata)
+    public Sender(string name, string type, string? address, InstanceMetadata metadata)
     {
         Name = name;
         Type = type;

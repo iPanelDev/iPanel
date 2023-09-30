@@ -5,5 +5,5 @@ namespace iPanelHost.Base.Packets.Event;
 public class InvalidTargetPacket : SentPacket
 {
     public InvalidTargetPacket()
-        : base("event", "invalid_target", new Result(ResultTypes.InvalidTarget)) { }
+        : base("event", "invalid_target", new Result(ResultTypes.InvalidSubscription)) { }
 }

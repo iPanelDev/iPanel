@@ -1,3 +1,4 @@
+using EmbedIO.Security;
 using iPanelHost.Base.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
@@ -5,12 +6,13 @@ using iPanelHost.Service;
 using iPanelHost.Service.Handlers;
 using iPanelHost.Utils;
 using Sharprompt;
+using Spectre.Console;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace iPanelHost.Interaction;
 
-public static partial class SubCommnadHandler
+public static class SubCommnadHandler
 {
     /// <summary>
     /// 断开连接
@@ -87,6 +89,10 @@ public static partial class SubCommnadHandler
         Logger.Warn("所选实例无效");
     }
 
+    /// <summary>
+    /// 管理用户
+    /// </summary>
+    /// <param name="args">命令参数</param>
     public static void ManageUsers(string[] args)
     {
         if (args.Length == 1)
@@ -130,6 +136,43 @@ public static partial class SubCommnadHandler
 
             default:
                 Logger.Warn("参数<operation>无效");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 管理IP封禁模块
+    /// </summary>
+    /// <param name="args">命令参数</param>
+    public static void ManageBanModule(string[] args)
+    {
+        if (args.Length == 1)
+        {
+            Logger.Warn("缺少参数");
+            return;
+        }
+
+        switch (args[1].ToLowerInvariant())
+        {
+            case "ls":
+            case "list":
+                Table table = new();
+                table
+                    .RoundedBorder()
+                    .AddColumns(
+                        new TableColumn("IP地址") { Alignment = Justify.Center },
+                        new("手动封禁") { Alignment = Justify.Center }
+                    );
+
+                foreach (BanInfo banInfo in IPBanningModule.GetBannedIPs())
+                {
+                    table.AddRow(banInfo.IPAddress.ToString(), banInfo.IsExplicit ? "是" : "否");
+                }
+                AnsiConsole.Write(table);
+                break;
+
+            default:
+
                 break;
         }
     }

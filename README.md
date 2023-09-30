@@ -13,7 +13,7 @@
 
 ## 相关链接
 
-- [**文档**](https://ipanel.serein.cc)
+- [**文档**](https://ipaneldev.github.io/)
 - [前端 - 网页控制台](https://github.com/iPanelDev/WebConsole)
 
 ## 编译

@@ -60,7 +60,10 @@ public static class BroadcastHandler
         {
             foreach (Console console in MainHandler.Consoles.Values)
             {
-                if (console.SubscribingTarget == instanceID || console.SubscribingTarget == "*")
+                if (
+                    console.InstanceIdSubscribed == instanceID
+                    || console.InstanceIdSubscribed == "*"
+                )
                 {
                     console.Send(
                         new SentPacket("broadcast", subType, data, Sender.From(instance)).ToString()
