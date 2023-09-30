@@ -56,6 +56,7 @@ public static class Program
         }
 
         UserManager.Read();
+        Initialization.ReleaseResourceFile();
         HttpServer.Start();
         Runtime.StartHandleInput();
     }

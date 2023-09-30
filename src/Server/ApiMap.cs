@@ -9,6 +9,7 @@ using iPanelHost.Service.Handlers;
 using iPanelHost.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -41,14 +42,17 @@ public class ApiMap : WebApiController
                 {
                     Logined = true,
                     SessionDuration = HttpContext.Session.Duration,
-                    User = new SafeUser((HttpContext.Session["user"] as User)!)
+                    User = new SafeUser((HttpContext.Session["user"] as User)!),
+                    UUID = HttpContext.Session[UUIDKEY]
                 },
                 HttpStatusCode.OK
             );
             return;
         }
 
-        await HttpContext.SendJsonAsync(new Status { Logined = false });
+        await HttpContext.SendJsonAsync(
+            new Status { Logined = false, UUID = HttpContext.Session[UUIDKEY] }
+        );
     }
 
     /// <summary>
@@ -104,7 +108,8 @@ public class ApiMap : WebApiController
                 {
                     Logined = true,
                     SessionDuration = HttpContext.Session.Duration,
-                    User = new SafeUser((HttpContext.Session["user"] as User)!)
+                    User = new SafeUser((HttpContext.Session["user"] as User)!),
+                    UUID = HttpContext.Session[UUIDKEY]
                 }
             );
             return;
@@ -120,10 +125,53 @@ public class ApiMap : WebApiController
             {
                 Logined = true,
                 SessionDuration = HttpContext.Session.Duration,
-                User = new SafeUser((HttpContext.Session["user"] as User)!)
+                User = new SafeUser((HttpContext.Session["user"] as User)!),
+                UUID = HttpContext.Session[UUIDKEY]
             }
         );
     }
+
+    #region 用户
+
+    /// <summary>
+    /// 获取当前用户信息
+    /// </summary>
+    [Route(HttpVerbs.Get, "/user/current")]
+    public async Task GetCurrentUser()
+    {
+        HttpContext.EnsureLogined();
+        await HttpContext.SendJsonAsync(new SafeUser((HttpContext.Session["user"] as User)!));
+    }
+
+    /// <summary>
+    /// 获取当前用户的UUID
+    /// </summary>
+    [Route(HttpVerbs.Get, "/user/current/uuid")]
+    public async Task GetCurrentUserUUID()
+    {
+        HttpContext.EnsureLogined();
+        await HttpContext.SendJsonAsync(HttpContext.Session[UUIDKEY]);
+    }
+
+    /// <summary>
+    /// 列出所有用户
+    /// </summary>
+    [Route(HttpVerbs.Get, "/user/all")]
+    public async Task ListUsers()
+    {
+        HttpContext.EnsureLevel(PermissionLevel.Administrator);
+
+        await HttpContext.SendJsonAsync(
+            UserManager.Users
+                .Select((kv) => new KeyValuePair<string, SafeUser>(kv.Key, new SafeUser(kv.Value)))
+                .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
+        );
+    }
+
+    #endregion
+
+
+    #region 实例
 
     [Route(HttpVerbs.Get, "/instance/all")]
     public async Task ListInstances()
@@ -156,4 +204,6 @@ public class ApiMap : WebApiController
 
         await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
     }
+
+    #endregion
 }

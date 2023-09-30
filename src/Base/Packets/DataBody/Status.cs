@@ -13,4 +13,7 @@ public class Status
     public TimeSpan SessionDuration;
 
     public object? User;
+
+    [JsonProperty("uuid")]
+    public object? UUID;
 }

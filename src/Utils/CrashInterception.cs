@@ -25,7 +25,7 @@ public static class CrashInterception
         Logger.Fatal(exceptionMsg);
         Directory.CreateDirectory("logs/crash");
         File.AppendAllText(
-            $"log/crash/{DateTime.Now:yyyy-MM-dd}.txt",
+            $"logs/crash/{DateTime.Now:yyyy-MM-dd}.txt",
             $"{DateTime.Now:T} | iPanel@{Constant.VERSION} | NET@{Environment.Version}{Environment.NewLine}{exceptionMsg}{Environment.NewLine}"
         );
         Logger.Fatal(

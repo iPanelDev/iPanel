@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace iPanelHost.Base.Client.Info;
@@ -6,6 +7,8 @@ namespace iPanelHost.Base.Client.Info;
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 public class FullInfo
 {
+    public DateTime UpdateTime = DateTime.Now;
+
     public SysInfo Sys { get; init; } = new();
 
     public ServerInfo Server { get; init; } = new();

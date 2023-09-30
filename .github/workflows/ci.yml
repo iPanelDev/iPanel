@@ -18,6 +18,26 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Download artifact
+        uses: Legit-Labs/action-download-artifact@v2
+        with:
+          repo: "iPanelDev/WebConsole"
+          workflow: "deploy.yml"
+          workflow_conclusion: success
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          event: push
+          name: "github-pages"
+          path: ${{ github.workspace }}
+          check_artifacts: true
+
+      - name: Extract files
+        shell: powershell
+        run: |
+          cd "${{ github.workspace }}"
+          7z e -odist -y github-pages/artifact.tar
+          7z a -y dist.zip ./dist/*
+          copy dist.zip src/Sources/dist.zip
+
       - name: Install .NET
         uses: actions/setup-dotnet@v2
         with:
@@ -40,20 +60,6 @@ jobs:
           name: net6.0
           path: ${{ github.workspace }}\src\bin\debug\net6.0
 
-  Test:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
-
-      - name: Install .NET
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 6.0.x
-
       - name: Run tests
         run: dotnet test
 
@@ -64,7 +70,6 @@ jobs:
           name: Tests Result
           path: test/TestResults/*/iPanel-Host.Tests.trx
           reporter: dotnet-trx
-
 
   Format:
     runs-on: windows-latest

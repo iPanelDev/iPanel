@@ -15,7 +15,7 @@ public class CookieManager : WebModuleBase
     public static readonly Dictionary<string, DateTime> Cookies = new();
 
     public CookieManager()
-        : base("/") { }
+        : base("/api") { }
 
     public const string UserCookieKey = "user";
 

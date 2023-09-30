@@ -62,8 +62,7 @@ public static class ApiHelper
     public static bool IsLogined(this IHttpContext httpContext)
     {
         if (
-            !httpContext.Session.Exists
-            && httpContext.Session.TryGetValue("user", out object? value)
+            httpContext.Session.TryGetValue("user", out object? value)
             && value is User user
             && user is not null
             && user.Level != PermissionLevel.Guest
@@ -92,8 +91,7 @@ public static class ApiHelper
     public static void EnsureLevel(this IHttpContext httpContext, PermissionLevel permissionLevel)
     {
         if (
-            httpContext.Session.Exists
-            && httpContext.Session.TryGetValue("user", out object? value)
+            httpContext.Session.TryGetValue("user", out object? value)
             && value is User user
             && (int)user.Level >= (int)permissionLevel
         )
@@ -109,8 +107,7 @@ public static class ApiHelper
     public static void EnsureAccess(this IHttpContext httpContext, string instanceId)
     {
         if (
-            httpContext.Session.Exists
-            && httpContext.Session.TryGetValue("user", out object? value)
+            httpContext.Session.TryGetValue("user", out object? value)
             && value is User user
             && (
                 user.Level == PermissionLevel.Administrator
