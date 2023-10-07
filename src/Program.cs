@@ -64,7 +64,7 @@ public static class Program
     public static void ReadSetting(Setting? setting = null)
     {
         if (
-            !File.Exists("setting.json") && setting is not null
+            !File.Exists("setting.json") && setting is null
             || Environment.GetCommandLineArgs().Contains("-i")
             || Environment.GetCommandLineArgs().Contains("--init")
         )
