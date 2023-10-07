@@ -53,9 +53,5 @@ public class Sender
     /// <summary>
     /// 作为发送者
     /// </summary>
-    public static Sender FromUser() =>
-        new()
-        {
-            Type = "user",
-        };
+    public static Sender FromUser() => new() { Type = "user", };
 }

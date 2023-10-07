@@ -56,9 +56,7 @@ public static class Input
         {
             case "ls":
             case "list":
-                Logger.Info(
-                    $"当前有{MainHandler.Instances.Count}个实例在线"
-                );
+                Logger.Info($"当前有{MainHandler.Instances.Count}个实例在线");
 
                 Table table = new();
                 table.AddColumns("地址", "自定义名称").RoundedBorder();
