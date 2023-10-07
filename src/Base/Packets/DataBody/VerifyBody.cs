@@ -31,9 +31,4 @@ public class VerifyBody
     /// 用户名
     /// </summary>
     public string? UserName { get; init; }
-
-    /// <summary>
-    /// 客户端类型
-    /// </summary>
-    public string? ClientType { get; init; }
 }

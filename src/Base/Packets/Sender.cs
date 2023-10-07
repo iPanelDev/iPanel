@@ -53,11 +53,9 @@ public class Sender
     /// <summary>
     /// 作为发送者
     /// </summary>
-    public static Sender From(Console console) =>
+    public static Sender FromUser() =>
         new()
         {
-            Type = "console",
-            Address = console.Address,
-            UUID = console.UUID,
+            Type = "user",
         };
 }

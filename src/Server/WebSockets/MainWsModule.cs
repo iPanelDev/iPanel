@@ -1,22 +1,22 @@
 using EmbedIO.WebSockets;
-using iPanelHost.Service.Handlers;
+using iPanelHost.Server.WebSocket.Handlers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 
-namespace iPanelHost.Server;
+namespace iPanelHost.Server.WebSocket;
 
-public class WsModule : WebSocketModule
+public class MainWsModule : WebSocketModule
 {
-    public static WsModule? Instance;
+    public static MainWsModule? Instance;
 
     /// <summary>
     /// 心跳计时器
     /// </summary>
     private static readonly System.Timers.Timer _heartbeatTimer = new(5000);
 
-    public WsModule(string urlPath)
-        : base(urlPath, true)
+    public MainWsModule()
+        : base("/ws", true)
     {
         Instance = this;
         Encoding = new UTF8Encoding(false);
@@ -44,9 +44,4 @@ public class WsModule : WebSocketModule
 
     protected override Task OnClientDisconnectedAsync(IWebSocketContext context) =>
         Task.Run(() => MainHandler.OnClose(context));
-
-    public void Send(IWebSocketContext context, string payload) =>
-        SendAsync(context, payload).Wait();
-
-    public void Close(IWebSocketContext context) => CloseAsync(context).Wait();
 }

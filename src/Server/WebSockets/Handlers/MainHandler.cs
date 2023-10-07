@@ -3,25 +3,19 @@ using iPanelHost.Base;
 using iPanelHost.Base.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
-using iPanelHost.Server;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Spectre.Console;
 using Spectre.Console.Json;
-using Sys = System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 
-namespace iPanelHost.Service.Handlers;
+namespace iPanelHost.Server.WebSocket.Handlers;
 
 public static class MainHandler
 {
-    /// <summary>
-    /// 控制台字典
-    /// </summary>
-    public static readonly Dictionary<string, Console> Consoles = new();
-
     /// <summary>
     /// 实例字典
     /// </summary>
@@ -80,7 +74,6 @@ public static class MainHandler
 
         Logger.Info($"<{clientUrl}> 断开了连接");
         Instances.Remove(uuid);
-        Consoles.Remove(uuid);
         UUIDs.Remove(clientUrl);
         UpdateTitle();
     }
@@ -103,9 +96,8 @@ public static class MainHandler
         {
             return;
         }
-        bool isConsole = Consoles.TryGetValue(uuid, out Console? console) && console is not null,
-            isInstance =
-                Instances.TryGetValue(uuid, out Instance? instance) && instance is not null;
+        bool isInstance =
+            Instances.TryGetValue(uuid, out Instance? instance) && instance is not null;
 
         ReceivedPacket? packet;
         try
@@ -131,7 +123,7 @@ public static class MainHandler
                 AnsiConsole.WriteLine();
             }
         }
-        catch (Sys.Exception e)
+        catch (Exception e)
         {
             if (Program.Setting.Debug)
             {
@@ -142,22 +134,22 @@ public static class MainHandler
             context.Send(
                 new SentPacket(
                     "event",
-                    (isConsole || isInstance) ? "invalid_packet" : "disconnection",
+                    isInstance ? "invalid_packet" : "disconnection",
                     new Result($"发送的数据包存在问题：{e.Message}")
                 ).ToString()
             );
-            if (!isConsole && !isInstance)
+            if (!isInstance)
             {
                 context.Close();
             }
             return;
         }
 
-        if (!isConsole && !isInstance) // 对未记录的的上下文进行校验
+        if (!isInstance) // 对未记录的的上下文进行校验
         {
             VerificationHandler.Check(context, packet);
         }
-        else if (isInstance)
+        else
         {
             Handle(instance!, packet);
         }
@@ -197,10 +189,10 @@ public static class MainHandler
     /// </summary>
     private static void UpdateTitle()
     {
-        if (Sys.Environment.OSVersion.Platform == Sys.PlatformID.Win32NT)
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
         {
-            Sys.Console.Title =
-                $"iPanel Host {Constant.VERSION} [{WsModule.Instance?.ActiveContextsCount ?? 0} 连接]";
+            Console.Title =
+                $"iPanel Host {Constant.VERSION} [{MainWsModule.Instance?.ActiveContextsCount ?? 0} 连接]";
         }
     }
 }

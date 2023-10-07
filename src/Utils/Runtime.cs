@@ -1,6 +1,6 @@
 using iPanelHost.Server;
 using iPanelHost.Interaction;
-using iPanelHost.Service.Handlers;
+using iPanelHost.Server.WebSocket.Handlers;
 using System;
 using System.Linq;
 
@@ -42,7 +42,6 @@ public static class Runtime
     public static void ExitQuietly(int code)
     {
         MainHandler.Instances.Values.ToList().ForEach((instance) => instance.Close());
-        MainHandler.Consoles.Values.ToList().ForEach((console) => console.Close());
         HttpServer.Stop();
         Environment.Exit(code);
     }

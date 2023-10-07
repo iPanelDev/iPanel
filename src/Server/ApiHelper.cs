@@ -1,7 +1,6 @@
 using EmbedIO;
 using iPanelHost.Base;
 using iPanelHost.Base.Packets;
-using iPanelHost.Service;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,13 +18,17 @@ namespace iPanelHost.Server;
 
 public static class ApiHelper
 {
+    public const string UUIDKEY = "uuid";
+    public const string USERKEY = "user";
+    public const string INSTANCEIDKEY = "instanceId";
+
     public static readonly Encoding UTF8 = new UTF8Encoding(false);
 
     /// <summary>
     /// 将请求内容转为对象
     /// </summary>
     /// <typeparam name="T">要转化的类型</typeparam>
-    public static async Task<T?> ConvertRequsetTo<T>(this IHttpContext httpContext)
+    public static async Task<T?> ConvertRequestTo<T>(this IHttpContext httpContext)
     {
         try
         {

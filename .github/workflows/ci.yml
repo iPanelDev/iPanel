@@ -34,7 +34,7 @@ jobs:
         shell: powershell
         run: |
           cd "${{ github.workspace }}"
-          7z e -odist -y github-pages/artifact.tar
+          7z e -odist -y artifact.tar
           7z a -y dist.zip ./dist/*
           copy dist.zip src/Sources/dist.zip
 

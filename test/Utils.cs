@@ -31,7 +31,6 @@ public static class Utils
                         Data = new VerifyBody
                         {
                             InstanceID = Guid.NewGuid().ToString("N"),
-                            ClientType = "console",
                             Token = token
                         }
                     }.ToString()

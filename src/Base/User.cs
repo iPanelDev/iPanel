@@ -11,7 +11,7 @@ public class User
     /// <summary>
     /// 密码
     /// </summary>
-    public string? Password { get; init; }
+    public string? Password;
 
     /// <summary>
     /// 上一次登录

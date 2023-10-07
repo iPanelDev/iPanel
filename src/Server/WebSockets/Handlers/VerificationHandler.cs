@@ -1,19 +1,17 @@
 using EmbedIO.WebSockets;
-using iPanelHost.Base;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.Base.Packets.Event;
-using iPanelHost.Server;
 using iPanelHost.Base.Client;
 using iPanelHost.Utils;
 using Newtonsoft.Json.Linq;
 using Spectre.Console;
-using Sys = System;
+using System;
 using System.Linq;
 using System.Timers;
 using System.Text.RegularExpressions;
 
-namespace iPanelHost.Service.Handlers;
+namespace iPanelHost.Server.WebSocket.Handlers;
 
 public static class VerificationHandler
 {
@@ -32,7 +30,7 @@ public static class VerificationHandler
         {
             return;
         }
-        string uuid = Sys.Guid.NewGuid().ToString("N");
+        string uuid = Guid.NewGuid().ToString("N");
         MainHandler.UUIDs.Add(clientUrl, uuid);
 
         context.Send(
@@ -47,7 +45,7 @@ public static class VerificationHandler
         verifyTimer.Start();
         verifyTimer.Elapsed += (_, _) =>
         {
-            if (!MainHandler.Consoles.ContainsKey(uuid) && !MainHandler.Instances.ContainsKey(uuid))
+            if (!MainHandler.Instances.ContainsKey(uuid))
             {
                 context.Send(
                     new SentPacket(
@@ -113,9 +111,9 @@ public static class VerificationHandler
         VerifyBody verifyBody;
         try
         {
-            verifyBody = data.ToObject<VerifyBody?>() ?? throw new Sys.NullReferenceException();
+            verifyBody = data.ToObject<VerifyBody?>() ?? throw new NullReferenceException();
         }
-        catch (Sys.Exception e)
+        catch (Exception e)
         {
             SendVerifyResultPacket(context, ResultTypes.ErrorWhenGettingPacketContent);
             Logger.Error(e);
@@ -128,18 +126,7 @@ public static class VerificationHandler
             return false;
         }
 
-        switch (verifyBody.ClientType?.ToLowerInvariant())
-        {
-            case "instance":
-                return VerifyInstance(context, clientUrl, uuid, verifyBody);
-
-            case "console":
-                return VerifyConsole(context, clientUrl, uuid, verifyBody);
-
-            default:
-                SendVerifyResultPacket(context, ResultTypes.IncorrectClientType);
-                return false;
-        }
+        return VerifyInstance(context, clientUrl, uuid, verifyBody);
     }
 
     /// <summary>
@@ -198,63 +185,6 @@ public static class VerificationHandler
                 .AddRow("实例ID", Markup.Escape(verifyBody.InstanceID))
                 .AddRow("实例名称", Markup.Escape(verifyBody.Metadata?.Name ?? string.Empty))
                 .AddRow("实例版本", Markup.Escape(verifyBody.Metadata?.Version ?? string.Empty))
-                .RoundedBorder()
-        );
-        AnsiConsole.WriteLine();
-        return true;
-    }
-
-    /// <summary>
-    /// 验证控制台
-    /// </summary>
-    /// <returns>验证结果</returns>
-    private static bool VerifyConsole(
-        IWebSocketContext context,
-        string clientUrl,
-        string uuid,
-        VerifyBody verifyBody
-    )
-    {
-        if (string.IsNullOrEmpty(verifyBody.UserName))
-        {
-            SendVerifyResultPacket(context, ResultTypes.EmptyUserName);
-            return false;
-        }
-
-        if (
-            !(
-                UserManager.Users.TryGetValue(verifyBody.UserName!, out User? user)
-                && verifyBody.Token == General.GetMD5(uuid + verifyBody.UserName! + user.Password)
-            )
-        )
-        {
-            SendVerifyResultPacket(context, ResultTypes.IncorrectUserNameOrPassword);
-            return false;
-        }
-
-        user.LastLoginTime = Sys.DateTime.Now;
-        user.IPAddresses.Insert(0, context.RemoteEndPoint.ToString());
-        if (user.IPAddresses.Count > 10)
-        {
-            user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
-        }
-
-        Console console = new(verifyBody.UserName!, uuid) { Context = context, User = user };
-
-        MainHandler.Consoles.Add(uuid, console);
-        SendVerifyResultPacket(context);
-        Logger.Info($"<{clientUrl}> 验证成功");
-
-        AnsiConsole.Write(
-            new Table()
-                .AddColumns(
-                    new TableColumn("类型") { Alignment = Justify.Center },
-                    new("控制台") { Alignment = Justify.Center }
-                )
-                .AddRow("地址", context.RemoteEndPoint.ToString())
-                .AddRow("用户名", Markup.Escape(verifyBody.UserName))
-                .AddRow("权限等级", UserManager.LevelNames[user.Level])
-                .AddRow("描述", Markup.Escape(user.Description ?? string.Empty))
                 .RoundedBorder()
         );
         AnsiConsole.WriteLine();

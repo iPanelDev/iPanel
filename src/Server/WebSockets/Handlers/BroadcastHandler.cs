@@ -5,7 +5,7 @@ using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace iPanelHost.Service.Handlers;
+namespace iPanelHost.Server.WebSocket.Handlers;
 
 public static class BroadcastHandler
 {
@@ -56,9 +56,9 @@ public static class BroadcastHandler
         string instanceID =
             instance.InstanceID
             ?? throw new System.NullReferenceException($"{nameof(instance.InstanceID)}为空");
-        lock (MainHandler.Consoles)
+        lock (BroadcastWsModule.Listeners)
         {
-            foreach (Console console in MainHandler.Consoles.Values)
+            foreach (ConsoleListener console in BroadcastWsModule.Listeners.Values)
             {
                 if (
                     console.InstanceIdSubscribed == instanceID

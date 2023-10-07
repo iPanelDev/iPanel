@@ -25,6 +25,9 @@
 		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
 
     <Content Include="Sources/logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('Sources/dist.zip')">
 		<EmbeddedResource Include="Sources/dist.zip" />
   </ItemGroup>
 

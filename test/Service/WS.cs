@@ -182,7 +182,6 @@ public class WS : IDisposable
                         Data = new VerifyBody
                         {
                             InstanceID = Guid.NewGuid().ToString("N"),
-                            ClientType = "instance",
                             Token = General.GetMD5(verifyRequest.UUID + _password)
                         }
                     }.ToString()

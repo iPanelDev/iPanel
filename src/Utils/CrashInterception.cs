@@ -13,7 +13,7 @@ public static class CrashInterception
     {
         AppDomain.CurrentDomain.UnhandledException += PrintException;
         TaskScheduler.UnobservedTaskException += (_, e) =>
-            Logger.Fatal(e.Exception.ToString() ?? string.Empty);
+            Logger.Error(e.Exception.ToString() ?? string.Empty);
     }
 
     /// <summary>

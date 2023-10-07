@@ -1,7 +1,7 @@
 using iPanelHost.Base;
 using iPanelHost.Base.Client;
 using iPanelHost.Interaction;
-using iPanelHost.Service.Handlers;
+using iPanelHost.Server.WebSocket.Handlers;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Sharprompt;

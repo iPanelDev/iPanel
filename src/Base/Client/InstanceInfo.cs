@@ -2,10 +2,10 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace iPanelHost.Base.Client.Info;
+namespace iPanelHost.Base.Client;
 
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-public class FullInfo
+public class InstanceInfo
 {
     public DateTime UpdateTime = DateTime.Now;
 

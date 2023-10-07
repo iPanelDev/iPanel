@@ -1,5 +1,4 @@
-using iPanelHost.Base.Client.Info;
-using Newtonsoft.Json;
+using System;
 
 namespace iPanelHost.Base.Client;
 
@@ -8,13 +7,7 @@ public class Instance : Client
     /// <summary>
     /// 完整信息
     /// </summary>
-    [JsonIgnore]
-    public FullInfo? FullInfo;
-
-    /// <summary>
-    /// 短信息
-    /// </summary>
-    public ShortInfo ShortInfo => new(FullInfo);
+    public InstanceInfo? Info = new();
 
     /// <summary>
     /// 自定义名称
@@ -27,13 +20,18 @@ public class Instance : Client
     public string InstanceID;
 
     /// <summary>
+    /// 唯一标识符
+    /// </summary>
+    public string UUID { get; init; }
+
+    /// <summary>
     /// 实例元数据
     /// </summary>
     public InstanceMetadata? Metadata;
 
-    public Instance(string instanceId, string uuid)
-        : base(uuid)
+    public Instance(string instanceId, string? uuid)
     {
         InstanceID = instanceId;
+        UUID = uuid ?? throw new ArgumentNullException(nameof(uuid));
     }
 }

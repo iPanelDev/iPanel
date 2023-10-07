@@ -5,11 +5,15 @@ using Spectre.Console.Json;
 
 namespace iPanelHost.Server;
 
-public static class WsModuleExtension
+public static class WebSocketExtension
 {
+    /// <summary>
+    /// 发送文本
+    /// </summary>
+    /// <param name="payload">载荷</param>
     public static void Send(this IWebSocketContext context, string payload)
     {
-        WsModule.Instance?.Send(context, payload);
+        context.WebSocket.SendAsync(ApiHelper.UTF8.GetBytes(payload), true);
 
         if (Program.Setting.Debug)
         {
@@ -29,5 +33,15 @@ public static class WsModuleExtension
         }
     }
 
-    public static void Close(this IWebSocketContext context) => WsModule.Instance?.Close(context);
+    /// <summary>
+    /// 关闭连接
+    /// </summary>
+    public static void Close(this IWebSocketContext context) =>
+        context.WebSocket.CloseAsync().GetAwaiter().GetResult();
+
+    /// <summary>
+    /// 关闭连接
+    /// </summary>
+    public static void Close(this IWebSocketContext context, string reason) =>
+        context.WebSocket.CloseAsync(CloseStatusCode.Normal, reason).GetAwaiter().GetResult();
 }

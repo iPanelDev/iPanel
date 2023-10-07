@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using iPanelHost.Base;
 using iPanelHost.Server;
-using iPanelHost.Service.Handlers;
+using iPanelHost.Server.WebSocket.Handlers;
 using iPanelHost.Utils;
-using Newtonsoft.Json;
 using Sharprompt;
 using Spectre.Console;
 using System;
@@ -59,29 +57,15 @@ public static class Input
             case "ls":
             case "list":
                 Logger.Info(
-                    $"当前有{MainHandler.Consoles.Count}个控制台和{MainHandler.Instances.Count}个实例在线"
+                    $"当前有{MainHandler.Instances.Count}个实例在线"
                 );
 
                 Table table = new();
-                table.AddColumns("类型", "地址", "自定义名称/用户名").RoundedBorder();
+                table.AddColumns("地址", "自定义名称").RoundedBorder();
 
                 table.Columns[0].Centered();
                 table.Columns[1].Centered();
-                table.Columns[2].Centered();
 
-                lock (MainHandler.Consoles)
-                {
-                    MainHandler.Consoles
-                        .ToList()
-                        .ForEach(
-                            (kv) =>
-                                table.AddRow(
-                                    "控制台",
-                                    kv.Value.Address ?? string.Empty,
-                                    kv.Value.UserName ?? string.Empty
-                                )
-                        );
-                }
                 lock (MainHandler.Instances)
                 {
                     MainHandler.Instances
@@ -89,7 +73,6 @@ public static class Input
                         .ForEach(
                             (kv) =>
                                 table.AddRow(
-                                    "实例",
                                     kv.Value.Address ?? string.Empty,
                                     kv.Value.CustomName ?? string.Empty
                                 )

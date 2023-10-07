@@ -1,5 +1,6 @@
 using EmbedIO;
 using EmbedIO.WebApi;
+using iPanelHost.Server.WebSocket;
 using iPanelHost.Utils;
 using System;
 using System.IO;
@@ -36,7 +37,8 @@ public static class HttpServer
         _server.WithModule(nameof(IPBannerModule), new IPBannerModule());
 
         // WS模块
-        _server.WithModule(nameof(WsModule), new WsModule("/ws"));
+        _server.WithModule(nameof(MainWsModule), new MainWsModule());
+        _server.WithModule(nameof(BroadcastWsModule), new BroadcastWsModule());
 
         // 网页API模块
         _server.WithWebApi(

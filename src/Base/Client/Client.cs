@@ -21,11 +21,6 @@ public abstract class Client
     public string? Address => Context.RemoteEndPoint.ToString();
 
     /// <summary>
-    /// 唯一标识符
-    /// </summary>
-    public string UUID { get; init; }
-
-    /// <summary>
     /// 关闭连接
     /// </summary>
     public void Close() => Context.Close();
@@ -46,18 +41,5 @@ public abstract class Client
     public void Send(object obj)
     {
         Send(JsonConvert.SerializeObject(obj));
-    }
-
-    protected Client()
-    {
-        if (UUID is null)
-        {
-            throw new InvalidOperationException();
-        }
-    }
-
-    protected Client(string? uuid)
-    {
-        UUID = uuid ?? throw new ArgumentNullException(nameof(uuid));
     }
 }
