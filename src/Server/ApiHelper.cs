@@ -120,7 +120,9 @@ public static class ApiHelper
             && (
                 user.Level == PermissionLevel.Administrator
                 || user.Instances.Contains(instanceId) && user.Level == PermissionLevel.Assistant
-                || user.Instances.Contains(instanceId) && user.Level == PermissionLevel.ReadOnly && !strict
+                || user.Instances.Contains(instanceId)
+                    && user.Level == PermissionLevel.ReadOnly
+                    && !strict
             )
         )
         {
