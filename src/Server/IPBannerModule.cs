@@ -1,6 +1,5 @@
 using EmbedIO;
 using EmbedIO.Security;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace iPanelHost.Server;

@@ -2,7 +2,7 @@ using EmbedIO.Security;
 using iPanelHost.Base.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
-using iPanelHost.Server.WebSocket.Handlers;
+using iPanelHost.Server.WebSocket;
 using iPanelHost.Service;
 using iPanelHost.Utils;
 using Sharprompt;
@@ -19,7 +19,7 @@ public static class SubCommnadHandler
     /// </summary>
     public static void Disconnect()
     {
-        if (MainHandler.Instances.Count == 0)
+        if (MainWsModule.Instances.Count == 0)
         {
             Logger.Warn("当前没有实例在线");
             return;
@@ -28,7 +28,7 @@ public static class SubCommnadHandler
         {
             KeyValuePair<string, Instance> keyValuePair = Prompt.Select(
                 "请选择要断开的实例",
-                MainHandler.Instances.ToList(),
+                MainWsModule.Instances.ToList(),
                 textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}"
             );
             keyValuePair.Value?.Send(
@@ -51,7 +51,7 @@ public static class SubCommnadHandler
     /// </summary>
     public static void ChangeCustomName()
     {
-        if (MainHandler.Instances.Count == 0)
+        if (MainWsModule.Instances.Count == 0)
         {
             Logger.Warn("当前没有实例在线");
             return;
@@ -60,19 +60,19 @@ public static class SubCommnadHandler
         {
             KeyValuePair<string, Instance> keyValuePair = Prompt.Select(
                 "请选择要修改名称的实例",
-                MainHandler.Instances.ToList(),
+                MainWsModule.Instances.ToList(),
                 textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}"
             );
-            if (MainHandler.Instances.ContainsKey(keyValuePair.Key))
+            if (MainWsModule.Instances.ContainsKey(keyValuePair.Key))
             {
                 string? newName = Prompt.Input<string>(
                     "请输入新的名称",
                     null,
-                    MainHandler.Instances[keyValuePair.Key].CustomName
+                    MainWsModule.Instances[keyValuePair.Key].CustomName
                 );
-                if (MainHandler.Instances.ContainsKey(keyValuePair.Key))
+                if (MainWsModule.Instances.ContainsKey(keyValuePair.Key))
                 {
-                    MainHandler.Instances[keyValuePair.Key].CustomName = newName;
+                    MainWsModule.Instances[keyValuePair.Key].CustomName = newName;
                     Logger.Info("实例修改成功");
                     return;
                 }
@@ -135,7 +135,7 @@ public static class SubCommnadHandler
                 break;
 
             default:
-                Logger.Warn("参数<operation>无效");
+                Logger.Warn("参数<...>无效");
                 break;
         }
     }
@@ -172,7 +172,7 @@ public static class SubCommnadHandler
                 break;
 
             default:
-
+                Logger.Warn("参数<...>无效");
                 break;
         }
     }

@@ -24,7 +24,7 @@ public class InstanceInfo
 
         public long FreeRAM { get; init; }
 
-        public double RAMUsage => (1 - (double)FreeRAM / TotalRAM) * 100;
+        public double RAMUsage => TotalRAM == 0 ? 0 : (1 - (double)FreeRAM / TotalRAM) * 100;
 
         public double CPUUsage { get; init; }
     }

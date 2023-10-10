@@ -80,12 +80,13 @@ public static class ApiHelper
     /// <summary>
     /// 确保已登录
     /// </summary>
-    public static void EnsureLogined(this IHttpContext httpContext)
+    public static User EnsureLogined(this IHttpContext httpContext)
     {
         if (!httpContext.IsLogined())
         {
             throw HttpException.Unauthorized();
         }
+        return (httpContext.Session[USERKEY] as User)!;
     }
 
     /// <summary>
@@ -107,14 +108,19 @@ public static class ApiHelper
     /// <summary>
     /// 确保权限等级
     /// </summary>
-    public static void EnsureAccess(this IHttpContext httpContext, string instanceId)
+    public static void EnsureAccess(
+        this IHttpContext httpContext,
+        string instanceId,
+        bool strict = true
+    )
     {
         if (
             httpContext.Session.TryGetValue("user", out object? value)
             && value is User user
             && (
                 user.Level == PermissionLevel.Administrator
-                || user.Level == PermissionLevel.Assistant && user.Instances.Contains(instanceId)
+                || user.Instances.Contains(instanceId) && user.Level == PermissionLevel.Assistant
+                || user.Instances.Contains(instanceId) && user.Level == PermissionLevel.ReadOnly && !strict
             )
         )
         {
@@ -131,18 +137,29 @@ public static class ApiHelper
     public static async Task SendJsonAsync(
         this IHttpContext httpContext,
         object? data,
-        HttpStatusCode statusCode = HttpStatusCode.OK
+        int statusCode
     )
     {
-        httpContext.Response.StatusCode = (int)statusCode;
+        httpContext.Response.StatusCode = statusCode;
         await httpContext.SendStringAsync(
-            JsonConvert.SerializeObject(new SimplePacket { Data = data, Code = (int)statusCode }),
+            JsonConvert.SerializeObject(new SimplePacket { Data = data, Code = statusCode }),
             "text/json",
             UTF8
         );
 
         httpContext.SetHandled();
     }
+
+    /// <summary>
+    /// 发送Json
+    /// </summary>
+    /// <param name="data">数据字段</param>
+    /// <param name="statusCode">状态码</param>
+    public static async Task SendJsonAsync(
+        this IHttpContext httpContext,
+        object? data,
+        HttpStatusCode statusCode = HttpStatusCode.OK
+    ) => await SendJsonAsync(httpContext, data, (int)statusCode);
 
     /// <summary>
     /// 处理Http异常

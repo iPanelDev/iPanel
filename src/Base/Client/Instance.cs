@@ -20,18 +20,12 @@ public class Instance : Client
     public string InstanceID;
 
     /// <summary>
-    /// 唯一标识符
-    /// </summary>
-    public string UUID { get; init; }
-
-    /// <summary>
     /// 实例元数据
     /// </summary>
     public InstanceMetadata? Metadata;
 
-    public Instance(string instanceId, string? uuid)
+    public Instance(string instanceId)
     {
         InstanceID = instanceId;
-        UUID = uuid ?? throw new ArgumentNullException(nameof(uuid));
     }
 }

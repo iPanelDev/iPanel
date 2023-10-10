@@ -1,6 +1,6 @@
 using iPanelHost.Base;
 using iPanelHost.Server;
-using iPanelHost.Server.WebSocket.Handlers;
+using iPanelHost.Server.WebSocket;
 using iPanelHost.Utils;
 using Sharprompt;
 using Spectre.Console;
@@ -56,23 +56,25 @@ public static class Input
         {
             case "ls":
             case "list":
-                Logger.Info($"当前有{MainHandler.Instances.Count}个实例在线");
+                Logger.Info($"当前有{MainWsModule.Instances.Count}个实例在线");
 
                 Table table = new();
-                table.AddColumns("地址", "自定义名称").RoundedBorder();
+                table.AddColumns("地址", "自定义名称", "实例信息").RoundedBorder();
 
                 table.Columns[0].Centered();
                 table.Columns[1].Centered();
+                table.Columns[2].Centered();
 
-                lock (MainHandler.Instances)
+                lock (MainWsModule.Instances)
                 {
-                    MainHandler.Instances
+                    MainWsModule.Instances
                         .ToList()
                         .ForEach(
                             (kv) =>
                                 table.AddRow(
                                     kv.Value.Address ?? string.Empty,
-                                    kv.Value.CustomName ?? string.Empty
+                                    kv.Value.CustomName ?? string.Empty,
+                                    $"{kv.Value.Metadata?.Name ?? "未知名称"}({kv.Value.Metadata?.Version ?? "?"})"
                                 )
                         );
                 }

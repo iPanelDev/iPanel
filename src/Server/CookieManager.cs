@@ -95,6 +95,7 @@ public class CookieManager : WebModuleBase
             )
             {
                 httpContext.Session["user"] = user;
+                httpContext.Session["uuid"] = userFlag.Split('_').LastOrDefault()!;
                 Logger.Info($"[{httpContext.Id}] 已从Cookie中恢复登录状态");
                 return true;
             }

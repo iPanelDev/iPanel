@@ -41,7 +41,6 @@ public static class Runtime
     /// <param name="code">退出代码</param>
     public static void ExitQuietly(int code)
     {
-        MainHandler.Instances.Values.ToList().ForEach((instance) => instance.Close());
         HttpServer.Stop();
         Environment.Exit(code);
     }

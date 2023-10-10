@@ -72,6 +72,7 @@ public static class Program
             Console.WriteLine(Constant.LogoIco.Replace("\\x1b", "\x1b"));
             _hasShownLogo = true;
             _setting = Input.CreateSetting();
+            File.WriteAllText("setting.json", JsonConvert.SerializeObject(_setting));
             return;
         }
         _setting =

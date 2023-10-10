@@ -23,22 +23,10 @@ public class SentPacket : Packet
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public Sender? Sender { init; get; }
 
-    /// <summary>
-    /// 回声
-    /// </summary>
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public JToken? Echo { init; get; }
-
     public SentPacket() { }
 
     public SentPacket(string type, string sub_type, object? data = null)
         : this(type, sub_type, data, _selfSender) { }
-
-    public SentPacket(string type, string sub_type, JToken? echo, object? data = null)
-        : this(type, sub_type, data, _selfSender)
-    {
-        Echo = echo;
-    }
 
     public SentPacket(string type, string sub_type, object? data, Sender sender)
     {

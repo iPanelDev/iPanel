@@ -18,9 +18,6 @@ public class Sender
     public InstanceMetadata? Metadata { init; get; }
 
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-    public string? UUID { init; get; }
-
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? InstanceID { init; get; }
 
     protected Sender()
@@ -46,12 +43,11 @@ public class Sender
             Type = "instance",
             Address = instance.Address,
             InstanceID = instance.InstanceID,
-            UUID = instance.UUID,
             Metadata = instance.Metadata
         };
 
     /// <summary>
     /// 作为发送者
     /// </summary>
-    public static Sender FromUser() => new() { Type = "user", };
+    public static Sender FromUser() => new() { Type = "user" };
 }

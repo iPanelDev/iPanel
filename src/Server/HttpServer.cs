@@ -30,9 +30,6 @@ public static class HttpServer
         // 本地会话管理
         _server.WithLocalSessionManager((module) => module.CookieHttpOnly = false);
 
-        //
-        _server.WithModule(nameof(CookieManager), new CookieManager());
-
         // IP封禁模块
         _server.WithModule(nameof(IPBannerModule), new IPBannerModule());
 

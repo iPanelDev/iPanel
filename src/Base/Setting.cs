@@ -112,7 +112,7 @@ public class Setting
         /// <summary>
         /// 每秒最大请求数量
         /// </summary>
-        public int MaxRequestsPerSecond { get; init; } = 30;
+        public int MaxRequestsPerSecond { get; init; } = 50;
 
         /// <summary>
         /// 封禁时长（分钟）

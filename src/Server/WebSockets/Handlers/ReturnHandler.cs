@@ -3,6 +3,7 @@ using iPanelHost.Base.Packets.Event;
 using iPanelHost.Utils;
 using iPanelHost.Base.Client;
 using Newtonsoft.Json;
+using System;
 
 namespace iPanelHost.Server.WebSocket.Handlers;
 
@@ -26,9 +27,29 @@ public static class ReturnHandler
 
                 break;
 
+            case "dir_info":
+                HandleAsRequest(instance, packet);
+                break;
+
             default:
                 instance.Send(new InvalidParamPacket($"所请求的“{packet.SubType}”类型不存在或无法调用"));
                 break;
+        }
+    }
+
+    private static void HandleAsRequest(Instance instance, ReceivedPacket packet)
+    {
+        if (string.IsNullOrEmpty(packet.RequestId))
+        {
+            return;
+        }
+        try
+        {
+            RequestsFactory.MarkAsReceived(packet.RequestId, instance.InstanceID, packet.Data);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e);
         }
     }
 }

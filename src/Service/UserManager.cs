@@ -1,7 +1,7 @@
 using iPanelHost.Base;
 using iPanelHost.Base.Client;
 using iPanelHost.Interaction;
-using iPanelHost.Server.WebSocket.Handlers;
+using iPanelHost.Server.WebSocket;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Sharprompt;
@@ -54,6 +54,7 @@ public static class UserManager
         {
             if (!File.Exists(_path))
             {
+                Logger.Warn("用户列表为空。请输入“user create”或“u c”添加一个用户");
                 Save();
                 return;
             }
@@ -229,22 +230,16 @@ public static class UserManager
 
         Dictionary<string, Instance> dict = user.Instances
             .Distinct()
-            .Select(
-                id =>
-                    new KeyValuePair<string, Instance>(
-                        Guid.NewGuid().ToString("N"),
-                        new(id, string.Empty)
-                    )
-            )
+            .Select(id => new KeyValuePair<string, Instance>(Guid.NewGuid().ToString("N"), new(id)))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-        lock (MainHandler.Instances)
+        lock (MainWsModule.Instances)
         {
-            foreach (KeyValuePair<string, Instance> online in MainHandler.Instances)
+            foreach (KeyValuePair<string, Instance> online in MainWsModule.Instances)
             {
                 foreach (KeyValuePair<string, Instance> loaded in dict)
                 {
-                    if (online.Value.InstanceID == loaded.Value.InstanceID)
+                    if (online.Key == loaded.Key)
                     {
                         dict.Remove(loaded.Key);
                         dict.Add(online.Key, online.Value);
@@ -253,7 +248,7 @@ public static class UserManager
                 }
             }
         }
-        IEnumerable<KeyValuePair<string, Instance>> all = dict.Concat(MainHandler.Instances)
+        IEnumerable<KeyValuePair<string, Instance>> all = dict.Concat(MainWsModule.Instances)
             .Distinct();
 
         if (!all.Any())
@@ -270,9 +265,9 @@ public static class UserManager
                     all,
                     minimum: 0,
                     defaultValues: dict,
-                    textSelector: (kv) => $"{kv.Value.InstanceID}\t自定义名称：{kv.Value?.CustomName}"
+                    textSelector: (kv) => $"{kv.Key}\t自定义名称：{kv.Value?.CustomName}"
                 )
-                .Select(kv => kv.Value.InstanceID)
+                .Select(kv => kv.Key)
                 .Where(instanceID => !string.IsNullOrEmpty(instanceID))
                 .ToArray()!;
         }

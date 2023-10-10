@@ -26,12 +26,8 @@ public static class VerificationHandler
             return;
         }
         string clientUrl = context.RemoteEndPoint.ToString();
-        if (MainHandler.UUIDs.ContainsKey(clientUrl))
-        {
-            return;
-        }
         string uuid = Guid.NewGuid().ToString("N");
-        MainHandler.UUIDs.Add(clientUrl, uuid);
+        context.Session["uuid"] = uuid;
 
         context.Send(
             new SentPacket("request", "verify_request", new VerifyRequest(5000, uuid)).ToString()
@@ -45,7 +41,7 @@ public static class VerificationHandler
         verifyTimer.Start();
         verifyTimer.Elapsed += (_, _) =>
         {
-            if (!MainHandler.Instances.ContainsKey(uuid))
+            if (string.IsNullOrEmpty(context.Session["instanceId"]?.ToString()))
             {
                 context.Send(
                     new SentPacket(
@@ -102,7 +98,9 @@ public static class VerificationHandler
     private static bool Verify(IWebSocketContext context, JToken? data)
     {
         string clientUrl = context.RemoteEndPoint.ToString();
-        if (data is null)
+        string? uuid = context.Session["uuid"]?.ToString();
+
+        if (data is null || string.IsNullOrEmpty(uuid) || uuid.Length != 32)
         {
             SendVerifyResultPacket(context, ResultTypes.DataAnomaly);
             return false;
@@ -119,27 +117,6 @@ public static class VerificationHandler
             Logger.Error(e);
             return false;
         }
-
-        if (!MainHandler.UUIDs.TryGetValue(clientUrl, out string? uuid))
-        {
-            SendVerifyResultPacket(context, ResultTypes.InternalDataError);
-            return false;
-        }
-
-        return VerifyInstance(context, clientUrl, uuid, verifyBody);
-    }
-
-    /// <summary>
-    /// 验证实例
-    /// </summary>
-    /// <returns>验证结果</returns>
-    private static bool VerifyInstance(
-        IWebSocketContext context,
-        string clientUrl,
-        string uuid,
-        VerifyBody verifyBody
-    )
-    {
         if (verifyBody.Token != General.GetMD5(uuid + Program.Setting.InstancePassword))
         {
             SendVerifyResultPacket(context, ResultTypes.FailToVerify);
@@ -156,7 +133,9 @@ public static class VerificationHandler
         }
 
         if (
-            MainHandler.Instances.Values.Select((i) => i.InstanceID).Contains(verifyBody.InstanceID)
+            MainWsModule.Instances.Values
+                .Select((i) => i.InstanceID)
+                .Contains(verifyBody.InstanceID)
         )
         {
             SendVerifyResultPacket(context, ResultTypes.DuplicateInstanceID);
@@ -164,13 +143,14 @@ public static class VerificationHandler
         }
 
         Instance instance =
-            new(verifyBody.InstanceID, uuid)
+            new(verifyBody.InstanceID)
             {
                 Context = context,
                 CustomName = verifyBody.CustomName,
                 Metadata = verifyBody.Metadata,
             };
-        MainHandler.Instances.Add(uuid, instance);
+        MainWsModule.Instances.Add(verifyBody.InstanceID, instance);
+        context.Session["instanceId"] = verifyBody.InstanceID;
         context.Send(new VerifyResultPacket(true).ToString());
         Logger.Info($"<{clientUrl}> 验证成功");
 

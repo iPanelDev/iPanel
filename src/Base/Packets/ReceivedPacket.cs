@@ -8,6 +8,4 @@ namespace iPanelHost.Base.Packets;
 public sealed class ReceivedPacket : Packet
 {
     public JToken? Data { init; get; }
-
-    public JToken? Echo { init; get; }
 }

@@ -20,11 +20,6 @@ public class BroadcastWsModule : WebSocketModule
         Encoding = new UTF8Encoding(false);
     }
 
-    /// <summary>
-    /// 活跃数量
-    /// </summary>
-    public int ActiveContextsCount => ActiveContexts.Count;
-
     protected override void OnStart(CancellationToken cancellationToken)
     {
         foreach (var keyValuePair in Listeners)

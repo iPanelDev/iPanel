@@ -5,17 +5,16 @@ namespace iPanelHost.Base;
 
 public class Request
 {
-    public string CallerUUID;
-
     public string InstanceID;
 
     public DateTime StartTime = DateTime.Now;
 
-    public JToken? Echo;
+    public JToken? Data;
 
-    public Request(string uuid, string instanceId)
+    public bool HasReceived;
+
+    public Request(string instanceId)
     {
-        CallerUUID = uuid;
         InstanceID = instanceId;
     }
 }
