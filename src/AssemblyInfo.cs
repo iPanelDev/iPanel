@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("iPanel Host")]
@@ -9,3 +10,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("2.2.0.2")]
 [assembly: AssemblyFileVersion("2.2.0.2")]
+[assembly: InternalsVisibleTo("iPanelHost.Tests")] 

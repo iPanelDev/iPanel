@@ -33,7 +33,9 @@ public class User
     /// </summary>
     public string? Description;
 
-    /// Cookie
+    /// <summary>
+    /// 最近登录的IP地址
+    /// </summary>
     public readonly List<string> IPAddresses = new();
 
     public User()

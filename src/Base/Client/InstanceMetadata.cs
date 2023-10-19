@@ -15,4 +15,9 @@ public class InstanceMetadata
     /// 名称
     /// </summary>
     public string? Name { get; init; }
+
+    /// <summary>
+    /// 环境
+    /// </summary>
+    public string? Environment { get; init; }
 }

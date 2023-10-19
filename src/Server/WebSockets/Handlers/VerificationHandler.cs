@@ -147,7 +147,7 @@ public static class VerificationHandler
             {
                 Context = context,
                 CustomName = verifyBody.CustomName,
-                Metadata = verifyBody.Metadata,
+                Metadata = verifyBody.Metadata ?? new(),
             };
         MainWsModule.Instances.Add(verifyBody.InstanceID, instance);
         context.Session["instanceId"] = verifyBody.InstanceID;

@@ -29,17 +29,11 @@ public abstract class Client
     /// 发送文本
     /// </summary>
     /// <param name="text">发送内容</param>
-    public void Send(string text)
-    {
-        Context.Send(text);
-    }
+    public void Send(string text) => Context.Send(text);
 
     /// <summary>
-    /// 发送文本
+    /// 作为JSON发送
     /// </summary>
-    /// <param name="text">发送内容</param>
-    public void Send(object obj)
-    {
-        Send(JsonConvert.SerializeObject(obj));
-    }
+    /// <param name="obj">发送内容</param>
+    public void Send(object obj) => Send(JsonConvert.SerializeObject(obj));
 }

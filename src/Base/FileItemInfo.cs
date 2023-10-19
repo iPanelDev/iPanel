@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 
-namespace iPanelHost.Base.Packets.DataBody;
+namespace iPanelHost.Base;
 
 [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 public class FileItemInfo

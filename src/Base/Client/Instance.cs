@@ -1,5 +1,3 @@
-using System;
-
 namespace iPanelHost.Base.Client;
 
 public class Instance : Client
@@ -22,10 +20,11 @@ public class Instance : Client
     /// <summary>
     /// 实例元数据
     /// </summary>
-    public InstanceMetadata? Metadata;
+    public InstanceMetadata Metadata;
 
     public Instance(string instanceId)
     {
         InstanceID = instanceId;
+        Metadata ??= new();
     }
 }

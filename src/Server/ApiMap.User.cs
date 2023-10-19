@@ -77,7 +77,7 @@ public partial class ApiMap
         }
 
         user.LastLoginTime = DateTime.Now;
-        user.IPAddresses.Insert(0, HttpContext.RemoteEndPoint.ToString());
+        user.IPAddresses.Insert(0, HttpContext.RemoteEndPoint.Address.ToString());
         if (user.IPAddresses.Count > 10)
         {
             user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
