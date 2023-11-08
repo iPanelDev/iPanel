@@ -1,9 +1,9 @@
+using System;
+using iPanelHost.Base.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.Event;
 using iPanelHost.Utils;
-using iPanelHost.Base.Client;
 using Newtonsoft.Json;
-using System;
 
 namespace iPanelHost.Server.WebSocket.Handlers;
 

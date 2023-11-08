@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.Utilities;
@@ -5,11 +10,6 @@ using iPanelHost.Base;
 using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.Service;
 using iPanelHost.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace iPanelHost.Server;
 
@@ -86,9 +86,9 @@ public partial class ApiMap
         HttpContext.Session["user"] = user;
 
         string token = UniqueIdGenerator.GetNext();
-        HttpContext.Response.SetCookie(
-            new(ApiHelper.USERKEY, $"{verifyBody.UserName}_{token}", "/")
-        );
+        HttpContext
+            .Response
+            .SetCookie(new(ApiHelper.USERKEY, $"{verifyBody.UserName}_{token}", "/"));
         CookieManager.Cookies.Add($"{verifyBody.UserName}_{token}", DateTime.Now.AddHours(24));
 
         Logger.Info($"[{HttpContext.Id}] 验证成功");
@@ -125,7 +125,8 @@ public partial class ApiMap
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
         await HttpContext.SendJsonAsync(
-            UserManager.Users
+            UserManager
+                .Users
                 .Select((kv) => new KeyValuePair<string, SafeUser>(kv.Key, new SafeUser(kv.Value)))
                 .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
         );

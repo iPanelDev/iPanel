@@ -1,12 +1,12 @@
-using EmbedIO;
-using EmbedIO.WebApi;
-using iPanelHost.Server.WebSocket;
-using iPanelHost.Utils;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EmbedIO;
+using EmbedIO.WebApi;
+using iPanelHost.Server.WebSocket;
+using iPanelHost.Utils;
 
 namespace iPanelHost.Server;
 
@@ -101,7 +101,10 @@ public static class HttpServer
 
         try
         {
-            Program.Setting.WebServer.UrlPrefixes
+            Program
+                .Setting
+                .WebServer
+                .UrlPrefixes
                 .ToList()
                 .ForEach((url) => options.AddUrlPrefix(url));
         }

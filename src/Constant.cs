@@ -10,7 +10,8 @@ public static class Constant
     public static readonly string VERSION = Assembly
         .GetExecutingAssembly()
         .GetName()
-        .Version!.ToString();
+        .Version!
+        .ToString();
 
     /// <summary>
     /// 内部版本

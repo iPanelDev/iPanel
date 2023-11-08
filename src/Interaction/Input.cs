@@ -1,13 +1,13 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using iPanelHost.Base;
 using iPanelHost.Server;
 using iPanelHost.Server.WebSocket;
 using iPanelHost.Utils;
 using Sharprompt;
 using Spectre.Console;
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace iPanelHost.Interaction;
 
@@ -67,7 +67,8 @@ public static class Input
 
                 lock (MainWsModule.Instances)
                 {
-                    MainWsModule.Instances
+                    MainWsModule
+                        .Instances
                         .ToList()
                         .ForEach(
                             (kv) =>

@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
 using EmbedIO.WebSockets;
 using iPanelHost.Base;
 using iPanelHost.Base.Client;
@@ -8,13 +15,6 @@ using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Spectre.Console;
 using Spectre.Console.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
 
 namespace iPanelHost.Server.WebSocket;
 
@@ -43,7 +43,8 @@ public class MainWsModule : WebSocketModule
     {
         lock (Instances)
         {
-            Instances.Values
+            Instances
+                .Values
                 .ToList()
                 .ForEach(
                     (instance) => instance?.Send(new SentPacket("request", "heartbeat").ToString())

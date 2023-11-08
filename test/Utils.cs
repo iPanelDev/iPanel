@@ -1,8 +1,8 @@
+using System;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
-using System;
 using WebSocket4Net;
 
 namespace iPanelHost.Tests;

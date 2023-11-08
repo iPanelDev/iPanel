@@ -1,15 +1,15 @@
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Timers;
 using EmbedIO.WebSockets;
+using iPanelHost.Base.Client;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
 using iPanelHost.Base.Packets.Event;
-using iPanelHost.Base.Client;
 using iPanelHost.Utils;
 using Newtonsoft.Json.Linq;
 using Spectre.Console;
-using System;
-using System.Linq;
-using System.Timers;
-using System.Text.RegularExpressions;
 
 namespace iPanelHost.Server.WebSocket.Handlers;
 
@@ -133,7 +133,9 @@ public static class VerificationHandler
         }
 
         if (
-            MainWsModule.Instances.Values
+            MainWsModule
+                .Instances
+                .Values
                 .Select((i) => i.InstanceID)
                 .Contains(verifyBody.InstanceID)
         )

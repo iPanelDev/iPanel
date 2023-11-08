@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using EmbedIO.Security;
 using iPanelHost.Base.Client;
 using iPanelHost.Base.Packets;
@@ -7,8 +9,6 @@ using iPanelHost.Service;
 using iPanelHost.Utils;
 using Sharprompt;
 using Spectre.Console;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace iPanelHost.Interaction;
 
@@ -31,9 +31,9 @@ public static class SubCommnadHandler
                 MainWsModule.Instances.ToList(),
                 textSelector: (kv) => $"{kv.Value.Address}\t自定义名称：{kv.Value.CustomName ?? "未知名称"}"
             );
-            keyValuePair.Value?.Send(
-                new SentPacket("event", "disconnection", new Result("被用户手动断开"))
-            );
+            keyValuePair
+                .Value
+                ?.Send(new SentPacket("event", "disconnection", new Result("被用户手动断开")));
             keyValuePair.Value?.Close();
         }
         catch (PromptCanceledException)

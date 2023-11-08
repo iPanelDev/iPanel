@@ -1,3 +1,7 @@
+using System;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
@@ -8,10 +12,6 @@ using iPanelHost.Server.WebSocket;
 using iPanelHost.Server.WebSocket.Handlers;
 using iPanelHost.Utils;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace iPanelHost.Server;
 
@@ -26,7 +26,9 @@ public partial class ApiMap
         User user = HttpContext.EnsureLogined();
         await HttpContext.SendJsonAsync(
             JArray.FromObject(
-                MainWsModule.Instances.Values
+                MainWsModule
+                    .Instances
+                    .Values
                     .Where(
                         (instance) =>
                             user.Level == PermissionLevel.Administrator

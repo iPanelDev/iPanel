@@ -1,3 +1,5 @@
+using System;
+using System.Timers;
 using iPanelHost.Base;
 using iPanelHost.Base.Packets;
 using iPanelHost.Base.Packets.DataBody;
@@ -6,8 +8,6 @@ using iPanelHost.Server;
 using iPanelHost.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Timers;
 using WebSocket4Net;
 using Xunit;
 using Xunit.Abstractions;
