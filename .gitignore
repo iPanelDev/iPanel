@@ -1,0 +1,14 @@
+bin/
+obj/
+.vs/
+
+FodyWeavers.xsd
+
+node_modules
+*.mcdr
+__pycache__/**
+*.pyc
+
+LocalTest/
+TestResults/
+dist.zip

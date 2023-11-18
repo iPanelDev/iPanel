@@ -1,0 +1,32 @@
+name: iPanel.Tests Run tests
+
+on:
+  push:
+    paths:
+      - "**.cs"
+  pull_request:
+    paths:
+      - "**.cs"
+
+permissions:
+  id-token: write
+  contents: write
+  checks: write
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: dotnet test
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Tests Result
+          path: iPanel.Tests/TestResults/*/iPanel.Tests.trx
+          reporter: dotnet-trx

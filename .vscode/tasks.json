@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "./iPanel",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary",
+                "/p:WarningLevel=0"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "format",
+            "command": "dotnet-csharpier",
+            "type": "shell",
+            "args": [
+                "."
+            ],
+            "group": "none",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,32 @@
+﻿[*.{cs,vb}]
+
+# IDE0044: 添加只读修饰符
+dotnet_style_readonly_field = true
+dotnet_diagnostic.CS7035.severity = none
+
+# 从未对字段“...”赋值，字段将一直保持其默认值 ...
+dotnet_diagnostic.CS0649.severity = none
+
+# This call site is reachable on all platforms. 
+dotnet_diagnostic.CA1416.severity = none
+
+# 由于此调用不会等待，因此在此调用完成之前将会继续执行当前方法。请考虑将 "await" 运算符应用于调用结果
+dotnet_diagnostic.CS4014.severity = none
+
+# 换行
+end_of_line = crlf 
+
+# 字符集
+charset = utf-8
+
+# 缩进长度
+indent_size = 4
+
+# 插入新行
+insert_final_newline = true
+
+# 裁切尾随空格
+trim_trailing_whitespace = true
+
+# 缩进方式
+indent_style = space

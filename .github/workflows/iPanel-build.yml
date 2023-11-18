@@ -1,0 +1,68 @@
+name: iPanel Build
+
+on:
+  push:
+    paths:
+      - "**.cs"
+  pull_request:
+    paths:
+      - "**.cs"
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+  checks: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        runtimeIdentifier: [ win-x64, win-x86, linux-x64, linux-arm, linux-arm64, osx-x64, osx-arm64 ]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Download artifact
+        uses: Legit-Labs/action-download-artifact@v2
+        continue-on-error: true
+        id: download
+        with:
+          repo: "iPanelDev/WebConsole"
+          workflow: "deploy.yml"
+          workflow_conclusion: success
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          event: push
+          name: "github-pages"
+          path: ${{ github.workspace }}
+          check_artifacts: true
+
+      - name: Extract files
+        if: ${{ steps.download.outcome == 'success' }}
+        continue-on-error: true
+        shell: powershell
+        run: |
+          cd "${{ github.workspace }}"
+          7z x -odist -y artifact.tar
+          7z a -y dist.zip ./dist/*
+          copy dist.zip iPanel/Sources/dist.zip
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Build iPanel
+        shell: powershell
+        run: |
+          dotnet publish iPanel/iPanel.csproj --no-self-contained -p:PublishSingleFile=true -p:IncludeContentInSingleFile=true -p:RuntimeIdentifier=${{ matrix.runtimeIdentifier }} -f net6.0
+
+      - name: Upload binary files(${{ matrix.runtimeIdentifier }})
+        uses: actions/upload-artifact@v3
+        with:
+          name: iPanel_${{ matrix.runtimeIdentifier }}
+          path: iPanel/bin/Debug/net6.0/${{ matrix.runtimeIdentifier }}/publish
