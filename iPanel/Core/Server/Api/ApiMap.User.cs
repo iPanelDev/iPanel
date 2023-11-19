@@ -87,7 +87,7 @@ public partial class ApiMap
         if (user.IPAddresses.Count > 10)
             user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
 
-        HttpContext.Session["user"] = user;
+        HttpContext.Session[SessionKeyConstants.User] = user;
 
         var token = UniqueIdGenerator.GetNext();
         HttpContext.Response.SetCookie(
@@ -157,7 +157,7 @@ public partial class ApiMap
         if (userName == "@self")
             throw HttpException.Forbidden();
 
-        if (_app.UserManager.Users.Remove(userName))
+        if (_app.UserManager.Remove(userName))
         {
             _app.UserManager.Save();
             await HttpContext.SendJsonAsync(null);
@@ -186,7 +186,7 @@ public partial class ApiMap
             throw HttpException.BadRequest("用户对象不正确");
         }
 
-        _app.UserManager.Users.Add(userName, user);
+        _app.UserManager.Add(userName, user);
         _app.UserManager.Save();
 
         await HttpContext.SendJsonAsync(null);

@@ -17,10 +17,10 @@ public static class RequestsFactory
         where T : notnull
     {
         string id = Guid.NewGuid().ToString("N");
-        Request request = new(instance.InstanceID);
+        Request request = new(instance.InstanceId);
         Requests.Add(id, request);
 
-        await instance.SendAsync(new SentPacket("request", subType, body) { RequestId = id });
+        await instance.SendAsync(new WsSentPacket("request", subType, body) { RequestId = id });
 
         for (int i = 0; i < 200; i++)
         {
@@ -35,7 +35,7 @@ public static class RequestsFactory
 
     public static void MarkAsReceived(string id, string instanceId, JsonNode? body = null)
     {
-        if (!Requests.TryGetValue(id, out Request? request) || request.InstanceID != instanceId)
+        if (!Requests.TryGetValue(id, out Request? request) || request.InstanceId != instanceId)
         {
             throw new ArgumentException("无法找到指定请求ID", nameof(id));
         }

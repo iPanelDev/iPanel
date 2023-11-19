@@ -1,12 +1,15 @@
 using EmbedIO.WebSockets;
 using iPanel.Core.Models.Client;
 using iPanel.Core.Models.Users;
+using iPanel.Utils.Extensions;
+using Swan.Logging;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
-using iPanel.Utils.Extensions;
-using Swan.Logging;
+using System;
+using iPanel.Utils;
+using iPanel.Core.Models.Packets;
 
 namespace iPanel.Core.Server.WebSocket;
 
@@ -14,6 +17,7 @@ public class BroadcastWsModule : WebSocketModule
 {
     public readonly Dictionary<string, ConsoleListener> Listeners = new();
     private readonly App _app;
+    private readonly string _salt = Guid.NewGuid().ToString("N");
 
     public BroadcastWsModule(App app)
         : base("/broadcast", true)
@@ -38,16 +42,17 @@ public class BroadcastWsModule : WebSocketModule
             return;
         }
 
-        Listeners[clientUrl] = new(user, context);
+        var connectionId = Encryption.GetMD5($"{_salt}.{context.RemoteEndPoint}");
+        context.SendAsync(new WsSentPacket("return", "connection_id", connectionId));
+        Listeners[connectionId] = new(user, context, connectionId);
 
         Logger.Info($"[{clientUrl}] 连接到广播WS服务器");
     }
 
     protected override Task OnClientDisconnectedAsync(IWebSocketContext context)
     {
-        var clientUrl = context.RemoteEndPoint.ToString();
-        Listeners.Remove(clientUrl);
-        Logger.Info($"[{clientUrl}] 从广播WS服务器断开连接");
+        Listeners.Remove(Encryption.GetMD5($"{_salt}.{context.RemoteEndPoint}"));
+        Logger.Info($"[{context.RemoteEndPoint}] 从广播WS服务器断开连接");
         return Task.CompletedTask;
     }
 

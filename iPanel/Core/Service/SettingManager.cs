@@ -22,16 +22,12 @@ public class SettingManager
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
-        if ((DateTime.Now - _lastTime).TotalSeconds < 0.5)
+        if ((DateTime.Now - _lastTime).TotalSeconds < 0.1)
             return;
 
         _lastTime = DateTime.Now;
-        switch (Path.GetFileName(e.FullPath))
-        {
-            case "setting.json":
-                Logger.Warn("检测到设置文件已更改。若要应用此设置请输入\"reload\"命令重启服务器");
-                break;
-        }
+        if (Path.GetFileName(e.FullPath) == "setting.json")
+            Logger.Warn("检测到设置文件已更改。若要应用此设置请输入\"reload\"命令重启服务器");
     }
 
     public static Setting ReadSetting() =>

@@ -22,8 +22,8 @@ public class BroadcastHandler : HandlerBase
     private void Send(Instance instance, string subType, object? data)
     {
         var instanceID =
-            instance.InstanceID
-            ?? throw new NullReferenceException($"{nameof(instance.InstanceID)}为空");
+            instance.InstanceId
+            ?? throw new NullReferenceException($"{nameof(instance.InstanceId)}为空");
 
         lock (_app.HttpServer.BroadcastWsModule.Listeners)
         {
@@ -35,21 +35,21 @@ public class BroadcastHandler : HandlerBase
                 )
                 {
                     console.SendAsync(
-                        new SentPacket("broadcast", subType, data, Sender.From(instance)).ToString()
+                        new WsSentPacket("broadcast", subType, data, Sender.From(instance)).ToString()
                     );
                 }
             }
         }
     }
 
-    public override async Task Handle(Instance instance, ReceivedPacket packet)
+    public override async Task Handle(Instance instance, WsReceivedPacket packet)
     {
         Logger.Info($"[{instance.Address}] 收到广播：{packet.SubType}，数据：{packet.Data ?? "空"}");
         switch (packet.SubType)
         {
             case "server_input":
             case "server_output":
-                if (packet.Data is JsonArray)
+                if (packet.Data is not JsonArray)
                 {
                     await instance.SendAsync(new InvalidDataPacket("“data”字段类型错误"));
                     break;

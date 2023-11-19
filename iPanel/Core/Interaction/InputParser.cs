@@ -25,13 +25,13 @@ public class InputParser
         _app = app;
 
         var stringBuilder = new StringBuilder();
-        var attributes = new List<CommandParserAttribute>();
+        var attributes = new List<CommandAttribute>();
         var dict = new Dictionary<string, CommandParser>();
 
         stringBuilder.AppendLine($"iPanel {Constant.Version}");
         foreach (var type in Assembly.GetCallingAssembly().GetTypes())
         {
-            var attribute = type.GetCustomAttribute<CommandParserAttribute>();
+            var attribute = type.GetCustomAttribute<CommandAttribute>();
             if (attribute is null)
                 continue;
 
@@ -69,10 +69,11 @@ public class InputParser
         while (!cancellationToken.IsCancellationRequested)
         {
             var input = Console.ReadLine();
-            if (string.IsNullOrEmpty(input))
+
+            if (input is null)
                 continue;
 
-            Parse(input.Trim());
+            Parse(input.Trim().TrimStart('/'));
         }
     }
 
@@ -137,7 +138,7 @@ public class InputParser
         }
 
         if (args.Count == 0)
-            return;
+            Logger.Error("未知命令。请使用\"help\"查看所有命令");
 
         if (args[0] == "help" || args[0] == "?" || args[0] == "？")
             Logger.Info(_allCommands);

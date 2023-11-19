@@ -5,7 +5,7 @@ namespace iPanel.Core.Models;
 
 public class Request
 {
-    public string InstanceID;
+    public string InstanceId;
 
     public DateTime StartTime = DateTime.Now;
 
@@ -15,6 +15,6 @@ public class Request
 
     public Request(string instanceId)
     {
-        InstanceID = instanceId;
+        InstanceId = instanceId;
     }
 }

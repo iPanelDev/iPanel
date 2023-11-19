@@ -13,5 +13,5 @@ public abstract class HandlerBase
         _app = app;
     }
 
-    public abstract Task Handle(Instance instance, ReceivedPacket packet);
+    public abstract Task Handle(Instance instance, WsReceivedPacket packet);
 }

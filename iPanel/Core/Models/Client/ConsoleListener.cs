@@ -10,12 +10,15 @@ public class ConsoleListener : Client
     [JsonIgnore]
     public User User;
 
-    public string? InstanceIdSubscribed =>
-        Context?.Session[SessionKeyConstants.InstanceId]?.ToString();
+    public string? InstanceIdSubscribed { get; set; }
 
-    public ConsoleListener(User user, IWebSocketContext context)
+    [JsonIgnore]
+    public string ConnectionId { get; set; }
+
+    public ConsoleListener(User user, IWebSocketContext context, string connectionId)
     {
         User = user;
         Context = context;
+        ConnectionId = connectionId;
     }
 }

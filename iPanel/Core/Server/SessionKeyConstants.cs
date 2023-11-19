@@ -2,7 +2,9 @@ namespace iPanel.Core.Server;
 
 public static class SessionKeyConstants
 {
-    public const string User = "user";
+    public const string User = "USER";
 
-    public const string InstanceId = "instanceId";
+    public const string UUID = "UUID";
+
+    public const string InstanceId = "INSTANCEID";
 }

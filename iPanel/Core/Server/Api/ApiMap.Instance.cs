@@ -7,6 +7,7 @@ using iPanel.Core.Models.Users;
 using iPanel.Core.Server.WebSocket.Handlers;
 using Swan.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ public partial class ApiMap
     [Route(HttpVerbs.Get, "/instance")]
     public async Task ListInstances()
     {
-        User user = HttpContext.EnsureLogined();
+        var user = HttpContext.EnsureLogined();
         await HttpContext.SendJsonAsync(
             _app.HttpServer.InstanceWsModule.Instances.Values
                 .Where(
@@ -27,7 +28,7 @@ public partial class ApiMap
                         || (
                             user.Level == PermissionLevel.Assistant
                             || user.Level == PermissionLevel.ReadOnly
-                        ) && user.Instances.Contains(instance.InstanceID)
+                        ) && user.Instances.Contains(instance.InstanceId)
                 )
                 .ToArray()
         );
@@ -50,13 +51,18 @@ public partial class ApiMap
     }
 
     [Route(HttpVerbs.Get, "/instance/{instanceId}/subscribe")]
-    public async Task SubscribeInstance(string instanceId)
+    public async Task SubscribeInstance(string instanceId, [QueryField(true)] string connectionId)
     {
         HttpContext.EnsureAccess(instanceId, false);
 
+        if (
+            !_app.HttpServer.BroadcastWsModule.Listeners.TryGetValue(connectionId, out var listener)
+        )
+            throw HttpException.BadRequest("未连接到广播WebSocket服务器");
+
         if (_app.HttpServer.InstanceWsModule.Instances.ContainsKey(instanceId))
         {
-            HttpContext.Session[SessionKeyConstants.InstanceId] = instanceId;
+            listener.InstanceIdSubscribed = instanceId;
             await HttpContext.SendJsonAsync(null, HttpStatusCode.OK);
         }
         else
@@ -79,7 +85,7 @@ public partial class ApiMap
         )
         {
             instance?.SendAsync(
-                new SentPacket("request", "server_start", null, sender: Sender.FromUser())
+                new WsSentPacket("request", "server_start", null, sender: Sender.FromUser())
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
@@ -102,7 +108,7 @@ public partial class ApiMap
         )
         {
             instance?.SendAsync(
-                new SentPacket("request", "server_stop", null, sender: Sender.FromUser())
+                new WsSentPacket("request", "server_stop", null, sender: Sender.FromUser())
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
@@ -123,7 +129,7 @@ public partial class ApiMap
         )
         {
             instance?.SendAsync(
-                new SentPacket("request", "server_kill", null, sender: Sender.FromUser())
+                new WsSentPacket("request", "server_kill", null, sender: Sender.FromUser())
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
@@ -148,7 +154,7 @@ public partial class ApiMap
         )
         {
             instance.SendAsync(
-                new SentPacket("request", "server_input", inputs, sender: Sender.FromUser())
+                new WsSentPacket("request", "server_input", inputs, sender: Sender.FromUser())
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }

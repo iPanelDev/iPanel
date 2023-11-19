@@ -14,6 +14,8 @@ public abstract class WsPacket<T>
 
     public T? Data { get; init; }
 
+    public Sender? Sender { get; init; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? RequestId { get; init; }
 

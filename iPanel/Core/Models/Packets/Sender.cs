@@ -10,16 +10,16 @@ public class Sender
 
     public string? Address { get; init; }
 
-    public InstanceMetadata? Metadata { get; init; }
+    public Metadata? Metadata { get; init; }
 
-    public string? InstanceID { get; init; }
+    public string? InstanceId { get; init; }
 
     protected Sender()
     {
         Type = "unknown";
     }
 
-    public Sender(string name, string type, string? address, InstanceMetadata metadata)
+    public Sender(string name, string type, string? address, Metadata metadata)
     {
         Name = name;
         Type = type;
@@ -33,7 +33,7 @@ public class Sender
             Name = instance.CustomName,
             Type = "instance",
             Address = instance.Address,
-            InstanceID = instance.InstanceID,
+            InstanceId = instance.InstanceId,
             Metadata = instance.Metadata
         };
 

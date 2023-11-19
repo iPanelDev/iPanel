@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace iPanel.Core.Interaction.Parser;
 
-[CommandParser("version", "显示详细的版本和版权信息", Priority = -1)]
+[Command("version", "显示详细的版本和版权信息", Priority = -1)]
 public class VersionParser : CommandParser
 {
     public VersionParser(App app)

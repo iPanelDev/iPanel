@@ -28,5 +28,5 @@ jobs:
         if: success() || failure()
         with:
           name: Tests Result
-          path: iPanel.Tests/TestResults/*/iPanel.Tests.trx
+          path: ./iPanel.Tests/TestResults/*/iPanel.Tests.trx
           reporter: dotnet-trx

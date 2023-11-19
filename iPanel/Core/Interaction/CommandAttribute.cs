@@ -3,9 +3,9 @@ using System;
 namespace iPanel.Core.Interaction;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class CommandParserAttribute : Attribute
+public class CommandAttribute : Attribute
 {
-    public CommandParserAttribute(string rootCommnad, string description)
+    public CommandAttribute(string rootCommnad, string description)
     {
         RootCommand = rootCommnad;
         Description = description;

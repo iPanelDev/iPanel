@@ -16,7 +16,7 @@ public class ReturnHandler : HandlerBase
     public ReturnHandler(App app)
         : base(app) { }
 
-    public override async Task Handle(Instance instance, ReceivedPacket packet)
+    public override async Task Handle(Instance instance, WsReceivedPacket packet)
     {
         switch (packet.SubType)
         {
@@ -43,14 +43,14 @@ public class ReturnHandler : HandlerBase
         }
     }
 
-    private static void HandleAsRequest(Instance instance, ReceivedPacket packet)
+    private static void HandleAsRequest(Instance instance, WsReceivedPacket packet)
     {
         if (string.IsNullOrEmpty(packet.RequestId))
             return;
 
         try
         {
-            RequestsFactory.MarkAsReceived(packet.RequestId, instance.InstanceID, packet.Data);
+            RequestsFactory.MarkAsReceived(packet.RequestId, instance.InstanceId, packet.Data);
         }
         catch (Exception e)
         {

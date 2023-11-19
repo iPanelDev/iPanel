@@ -14,9 +14,9 @@ public class VerifyBody
 
     public string? CustomName { get; init; }
 
-    public string? InstanceID { get; init; }
+    public string? InstanceId { get; init; }
 
-    public InstanceMetadata? Metadata { get; init; }
+    public Metadata? Metadata { get; init; }
 
     public string? UserName { get; init; }
 }

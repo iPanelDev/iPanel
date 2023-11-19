@@ -12,7 +12,5 @@ public abstract class Client
 
     public string? Address => Context.RemoteEndPoint.ToString();
 
-    public void Close() => Context.CloseAsync();
-
     public async Task SendAsync(string text) => await Context.SendAsync(text);
 }

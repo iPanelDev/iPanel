@@ -15,6 +15,7 @@ public static class Program
 
         Console.OutputEncoding = Encoding.UTF8;
         Console.InputEncoding = Encoding.UTF8;
+        Console.CancelKeyPress += (_, _) => Console.WriteLine("^C");
 
         Logger.UnregisterLogger<ConsoleLogger>();
         Logger.RegisterLogger<LocalLogger>();

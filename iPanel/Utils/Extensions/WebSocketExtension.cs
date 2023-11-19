@@ -3,6 +3,7 @@ using iPanel.Core.Server.Api;
 using Spectre.Console;
 using Spectre.Console.Json;
 using Swan.Logging;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 
 namespace iPanel.Utils.Extensions;
@@ -11,6 +12,9 @@ public static class WebSocketExtension
 {
     public static async Task SendAsync(this IWebSocketContext context, string payload)
     {
+        if (context.WebSocket.State != WebSocketState.Open)
+            return;
+
         await context.WebSocket.SendAsync(ApiHelper.UTF8.GetBytes(payload), true);
 
         Logger.Debug($"[{context.RemoteEndPoint}] 发送数据");

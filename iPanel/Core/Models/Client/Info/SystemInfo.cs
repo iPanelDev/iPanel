@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace iPanel.Core.Models.Client.Infos;
 
 public class SystemInfo
@@ -6,8 +8,10 @@ public class SystemInfo
 
     public string? CPUName { get; init; }
 
+    [JsonPropertyName("totalRam")]
     public long TotalRAM { get; init; }
 
+    [JsonPropertyName("freeRam")]
     public long FreeRAM { get; init; }
 
     public double RAMUsage => TotalRAM == 0 ? 0 : (1 - (double)FreeRAM / TotalRAM) * 100;

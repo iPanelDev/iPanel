@@ -8,13 +8,13 @@ public class Instance : Client
 
     public string? CustomName { get; set; }
 
-    public string InstanceID { get; set; }
+    public string InstanceId { get; set; }
 
-    public InstanceMetadata Metadata { get; set; }
+    public Metadata Metadata { get; set; }
 
     public Instance(string instanceId)
     {
-        InstanceID = instanceId;
+        InstanceId = instanceId;
         Metadata ??= new();
     }
 }

@@ -1,6 +1,6 @@
 namespace iPanel.Core.Models.Client;
 
-public class InstanceMetadata
+public class Metadata
 {
     public string? Version { get; init; }
 

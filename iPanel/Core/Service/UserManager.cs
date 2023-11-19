@@ -11,14 +11,16 @@ namespace iPanel.Core.Service;
 
 public class UserManager
 {
-    public static readonly Dictionary<PermissionLevel, string> LevelNames =
-        new()
-        {
-            { PermissionLevel.Guest, "游客" },
-            { PermissionLevel.ReadOnly, "只读" },
-            { PermissionLevel.Assistant, "助手" },
-            { PermissionLevel.Administrator, "管理员" }
-        };
+    public static readonly IReadOnlyDictionary<PermissionLevel, string> LevelNames = new Dictionary<
+        PermissionLevel,
+        string
+    >()
+    {
+        { PermissionLevel.Guest, "游客" },
+        { PermissionLevel.ReadOnly, "只读" },
+        { PermissionLevel.Assistant, "助手" },
+        { PermissionLevel.Administrator, "管理员" }
+    };
 
     private readonly Timer _timer = new(60_000) { AutoReset = true };
 
@@ -28,11 +30,13 @@ public class UserManager
         _timer.Start();
     }
 
-    public Dictionary<string, User> Users { get; private set; } = new();
+    public IReadOnlyDictionary<string, User> Users => _users;
 
     private const string _path = "data/users.json";
 
-    public readonly object _lock = new();
+    private readonly object _lock = new();
+
+    private Dictionary<string, User> _users = new();
 
     public void Read()
     {
@@ -47,13 +51,13 @@ public class UserManager
 
             try
             {
-                Users =
+                _users =
                     JsonSerializer.Deserialize<Dictionary<string, User>>(
                         File.ReadAllText(_path),
                         JsonSerializerOptionsFactory.CamelCase
                     ) ?? throw new FileLoadException("文件数据异常");
 
-                if (Users.Count == 0)
+                if (_users.Count == 0)
                     Logger.Warn("用户列表为空");
             }
             catch (Exception e)
@@ -83,8 +87,15 @@ public class UserManager
         if (Users.ContainsKey(name))
             return false;
 
-        Users.Add(name, user);
+        _users[name] = user;
         Save();
         return true;
+    }
+
+    public bool Remove(string name)
+    {
+        var result = _users.Remove(name);
+        Save();
+        return result;
     }
 }

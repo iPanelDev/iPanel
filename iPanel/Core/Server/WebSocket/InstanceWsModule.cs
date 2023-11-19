@@ -18,6 +18,7 @@ using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Timer = System.Timers.Timer;
@@ -38,7 +39,7 @@ public class InstanceWsModule : WebSocketModule
         _app = app;
         _heartbeatTimer.Elapsed += async (_, _) =>
             await BroadcastAsync(
-                new SentPacket("request", "heartbeat"),
+                new WsSentPacket("request", "heartbeat"),
                 (context) =>
                     !string.IsNullOrEmpty(context.Session[SessionKeyConstants.InstanceId] as string)
             );
@@ -74,7 +75,7 @@ public class InstanceWsModule : WebSocketModule
         IWebSocketReceiveResult result
     )
     {
-        ReceivedPacket? packet;
+        WsReceivedPacket? packet;
         var instanceId = context.Session[SessionKeyConstants.InstanceId] as string ?? string.Empty;
         var clientUrl = context.RemoteEndPoint.ToString();
         var message = Encoding.GetString(buffer);
@@ -83,7 +84,7 @@ public class InstanceWsModule : WebSocketModule
         try
         {
             packet =
-                JsonSerializer.Deserialize<ReceivedPacket>(
+                JsonSerializer.Deserialize<WsReceivedPacket>(
                     message,
                     JsonSerializerOptionsFactory.CamelCase
                 ) ?? throw new PacketException("空数据包");
@@ -110,7 +111,7 @@ public class InstanceWsModule : WebSocketModule
         {
             Logger.Warn(e, nameof(InstanceWsModule), $"[{clientUrl}] 处理数据包异常");
             await context.SendAsync(
-                new SentPacket(
+                new WsSentPacket(
                     "event",
                     verified ? "invalid_packet" : "disconnection",
                     new Result($"发送的数据包存在问题：{e.Message}")
@@ -140,7 +141,7 @@ public class InstanceWsModule : WebSocketModule
             await handler.Handle(instance, packet);
         else
             await context.SendAsync(
-                new SentPacket(
+                new WsSentPacket(
                     "event",
                     "invalid_param",
                     new Result($"所请求的“{packet.Type}”类型不存在或无法调用")
@@ -148,7 +149,7 @@ public class InstanceWsModule : WebSocketModule
             );
     }
 
-    private async Task Verify(IWebSocketContext context, ReceivedPacket packet)
+    private async Task Verify(IWebSocketContext context, WsReceivedPacket packet)
     {
         try
         {
@@ -166,19 +167,21 @@ public class InstanceWsModule : WebSocketModule
                 throw new PacketException($"{nameof(verifyBody.Time)}过期");
 
             if (
-                string.IsNullOrEmpty(verifyBody.InstanceID)
-                || !Instances.ContainsKey(verifyBody.InstanceID)
+                string.IsNullOrEmpty(verifyBody.InstanceId)
+                || verifyBody.InstanceId.Length != 32
+                || !Regex.IsMatch(verifyBody.InstanceId, @"^\w{32}$")
+                || Instances.ContainsKey(verifyBody.InstanceId)
             )
-                throw new PacketException($"{nameof(verifyBody.InstanceID)}无效");
+                throw new PacketException($"{nameof(verifyBody.InstanceId)}无效");
 
             var expectedValue = Encryption.GetMD5(
-                $"{verifyBody.Time}.{verifyBody.UserName}.{_app.Setting.InstancePassword}"
+                $"{verifyBody.Time}.{_app.Setting.InstancePassword}"
             );
             if (verifyBody.MD5 == expectedValue)
             {
                 Instances.Add(
-                    verifyBody.InstanceID,
-                    new(verifyBody.InstanceID)
+                    verifyBody.InstanceId,
+                    new(verifyBody.InstanceId)
                     {
                         CustomName = verifyBody.CustomName,
                         Context = context,
@@ -187,8 +190,8 @@ public class InstanceWsModule : WebSocketModule
                 );
 
                 await context.SendAsync(new VerifyResultPacket(true));
+                context.Session[SessionKeyConstants.InstanceId] = verifyBody.InstanceId;
                 Logger.Info($"[{context.RemoteEndPoint}] 验证成功");
-
                 return;
             }
 
@@ -199,8 +202,9 @@ public class InstanceWsModule : WebSocketModule
         }
         catch (Exception e)
         {
-            await context.SendAsync(new VerifyResultPacket(false, e.Message));
             Logger.Warn($"[{context.RemoteEndPoint}] 验证失败：{e.Message}");
+            await context.SendAsync(new VerifyResultPacket(false, e.Message));
+            await context.CloseAsync();
         }
     }
 

@@ -1,7 +1,5 @@
 using EmbedIO;
-using iPanel.Core.Models;
 using iPanel.Core.Models.Users;
-using iPanel.Utils;
 using Swan.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,6 +8,8 @@ using System.Threading.Tasks;
 using System.Timers;
 
 namespace iPanel.Core.Server;
+
+#pragma warning disable CA1847
 
 public class CookieManager : WebModuleBase
 {
@@ -90,8 +90,10 @@ public class CookieManager : WebModuleBase
                 && _app.UserManager.Users.TryGetValue(userName, out User? user)
             )
             {
-                httpContext.Session["user"] = user!;
-                httpContext.Session["uuid"] = userFlag.Split('_').LastOrDefault()!;
+                httpContext.Session[SessionKeyConstants.User] = user!;
+                httpContext.Session[SessionKeyConstants.UUID] = userFlag
+                    .Split('_')
+                    .LastOrDefault()!;
                 Logger.Info($"[{httpContext.Id}] 已从Cookie中恢复登录状态");
                 return true;
             }
