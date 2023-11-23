@@ -1,8 +1,10 @@
 using EmbedIO;
 using EmbedIO.Routing;
+using EmbedIO.Sessions;
 using EmbedIO.Utilities;
 using iPanel.Core.Models.Packets.Data;
 using iPanel.Core.Models.Users;
+using iPanel.Core.Service;
 using iPanel.Utils;
 using Swan.Logging;
 using System;
@@ -77,7 +79,7 @@ public partial class ApiMap
             verifyBody.MD5
             != Encryption.GetMD5($"{verifyBody.Time}.{verifyBody.UserName}.{user.Password}")
         )
-            throw HttpException.Forbidden("验证失败");
+            throw HttpException.Forbidden("用户名或密码错误");
 
         user.LastLoginTime = DateTime.Now;
 
@@ -88,12 +90,6 @@ public partial class ApiMap
             user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
 
         HttpContext.Session[SessionKeyConstants.User] = user;
-
-        var token = UniqueIdGenerator.GetNext();
-        HttpContext.Response.SetCookie(
-            new(SessionKeyConstants.User, $"{verifyBody.UserName}_{token}", "/")
-        );
-        CookieManager.Cookies.Add($"{verifyBody.UserName}_{token}", DateTime.Now.AddHours(24));
 
         Logger.Info($"[{HttpContext.Id}] 验证成功");
 
@@ -131,11 +127,7 @@ public partial class ApiMap
     [Route(HttpVerbs.Get, "/user/@self")]
     public async Task GetUser()
     {
-        HttpContext.EnsureLogined();
-
-        await HttpContext.SendJsonAsync(
-            new SafeUser((HttpContext.Session[SessionKeyConstants.User] as User)!)
-        );
+        await HttpContext.SendJsonAsync(new SafeUser(HttpContext.EnsureLogined()));
     }
 
     [Route(HttpVerbs.Get, "/user/{userName}")]
@@ -150,7 +142,7 @@ public partial class ApiMap
     }
 
     [Route(HttpVerbs.Delete, "/user/{userName}")]
-    public async Task DeleteUser(string userName)
+    public async Task RemoveUser(string userName)
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
@@ -180,11 +172,14 @@ public partial class ApiMap
             return;
         }
 
-        User? user = await HttpContext.ConvertRequestTo<User>();
-        if (user is null || string.IsNullOrEmpty(user.Password))
-        {
-            throw HttpException.BadRequest("用户对象不正确");
-        }
+        var user =
+            await HttpContext.ConvertRequestTo<User>() ?? throw HttpException.BadRequest("用户对象为空");
+
+        if (
+            !UserManager.ValidateUserName(userName, out string? message)
+            || !UserManager.ValidatePassword(user.Password, false, out message)
+        )
+            throw HttpException.BadRequest(message);
 
         _app.UserManager.Add(userName, user);
         _app.UserManager.Save();
@@ -197,25 +192,40 @@ public partial class ApiMap
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
+        var newUser =
+            await HttpContext.ConvertRequestTo<User>() ?? throw HttpException.BadRequest("用户对象不正确");
+
+        User? user;
+        string? message;
+
         if (userName == "@self")
-            throw HttpException.Forbidden();
+            if (
+                HttpContext.Session.TryGetValue(SessionKeyConstants.User, out user)
+                && user is not null
+            )
+            {
+                if (!UserManager.ValidatePassword(newUser.Password, false, out message))
+                    throw HttpException.BadRequest(message);
 
-        if (!_app.UserManager.Users.TryGetValue(userName, out User? user))
-        {
-            await HttpContext.SendJsonAsync("用户不存在", HttpStatusCode.NotFound);
-            return;
-        }
+                user.Password = newUser.Password;
+                await HttpContext.SendJsonAsync(null);
+                _app.UserManager.Save();
+                return;
+            }
+            else
+                throw new InvalidOperationException();
 
-        User? newUser = await HttpContext.ConvertRequestTo<User>();
-        if (newUser is null || string.IsNullOrEmpty(newUser.Password))
-        {
-            throw HttpException.BadRequest("用户对象不正确");
-        }
+        if (!_app.UserManager.Users.TryGetValue(userName, out user))
+            throw HttpException.NotFound("用户不存在");
 
         user.Level = newUser.Level;
-        user.Instances = newUser.Instances;
-        user.Password = newUser.Password;
-        user.Description = newUser.Description;
+        user.Instances = newUser.Instances ?? user.Instances;
+
+        if (!UserManager.ValidatePassword(newUser.Password, true, out message))
+            throw HttpException.BadRequest(message);
+
+        user.Password = newUser.Password ?? user.Password;
+        user.Description = newUser.Description ?? user.Description;
         _app.UserManager.Save();
 
         await HttpContext.SendJsonAsync(null);

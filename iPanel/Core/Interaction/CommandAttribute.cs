@@ -15,7 +15,5 @@ public class CommandAttribute : Attribute
 
     public string Description { get; }
 
-    public string? Alias { get; init; }
-
     public int Priority { get; init; }
 }

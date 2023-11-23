@@ -2,7 +2,7 @@ using System;
 
 namespace iPanel.Core.Interaction.Parser;
 
-[Command("cls", "清屏", Priority = -3)]
+[Command("cls", "清屏")]
 public class ClearScreenParser : CommandParser
 {
     public ClearScreenParser(App app)

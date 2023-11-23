@@ -9,7 +9,7 @@ public class User
 
     public DateTime? LastLoginTime { get; set; }
 
-    public PermissionLevel Level { get; set; } = 0;
+    public PermissionLevel Level { get; set; }
 
     public string[] Instances { get; set; } = Array.Empty<string>();
 

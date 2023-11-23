@@ -1,4 +1,5 @@
 using EmbedIO;
+using EmbedIO.Sessions;
 using EmbedIO.WebApi;
 using iPanel.Core.Server.Api;
 using iPanel.Core.Server.WebSocket;
@@ -14,7 +15,6 @@ namespace iPanel.Core.Server;
 
 public class HttpServer : IDisposable
 {
-    public readonly CookieManager CookieManager;
     public readonly InstanceWsModule InstanceWsModule;
     public readonly BroadcastWsModule BroadcastWsModule;
     public readonly IPBannerModule IPBannerModule;
@@ -25,7 +25,6 @@ public class HttpServer : IDisposable
     {
         _app = app;
         _server = new(CreateOptions());
-        CookieManager = new(_app);
         InstanceWsModule = new(_app);
         BroadcastWsModule = new(_app);
         IPBannerModule = new(_app);
@@ -37,11 +36,10 @@ public class HttpServer : IDisposable
             _server.WithModule(nameof(DebugWsModule), new DebugWsModule());
 
         _server.OnUnhandledException += HandleException;
-        _server.WithLocalSessionManager((module) => module.CookieHttpOnly = false);
+        _server.WithLocalSessionManager(ConfigureLocalSessionManager);
         _server.WithModule(nameof(IPBannerModule), IPBannerModule);
         _server.WithModule(nameof(InstanceWsModule), InstanceWsModule);
         _server.WithModule(nameof(BroadcastWsModule), BroadcastWsModule);
-        _server.WithModule(nameof(CookieManager), CookieManager);
         _server.WithWebApi(
             "/api",
             (module) =>
@@ -62,6 +60,12 @@ public class HttpServer : IDisposable
         }
         else
             Logger.Warn("静态网页目录不存在");
+    }
+
+    private static void ConfigureLocalSessionManager(LocalSessionManager localSessionManager)
+    {
+        localSessionManager.CookieHttpOnly = false;
+        localSessionManager.SessionDuration = TimeSpan.FromHours(1);
     }
 
     private static async Task HandleException(IHttpContext httpContext, Exception e)

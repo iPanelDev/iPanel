@@ -5,13 +5,13 @@ namespace iPanel.Core.Models;
 
 public class Request
 {
-    public string InstanceId;
+    public string InstanceId { get; set; }
 
-    public DateTime StartTime = DateTime.Now;
+    public DateTime StartTime { get; } = DateTime.Now;
 
-    public JsonNode? Data;
+    public JsonNode? Data { get; set; }
 
-    public bool HasReceived;
+    public bool HasReceived { get; set; }
 
     public Request(string instanceId)
     {

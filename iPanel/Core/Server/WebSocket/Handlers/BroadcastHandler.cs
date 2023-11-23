@@ -35,7 +35,12 @@ public class BroadcastHandler : HandlerBase
                 )
                 {
                     console.SendAsync(
-                        new WsSentPacket("broadcast", subType, data, Sender.From(instance)).ToString()
+                        new WsSentPacket(
+                            "broadcast",
+                            subType,
+                            data,
+                            Sender.From(instance)
+                        ).ToString()
                     );
                 }
             }

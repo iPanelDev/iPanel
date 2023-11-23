@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -7,8 +8,6 @@ using System.Threading.Tasks;
 using Swan.Logging;
 
 namespace iPanel.Core.Interaction;
-
-#pragma warning disable CA1847
 
 public class InputParser
 {
@@ -25,7 +24,7 @@ public class InputParser
         _app = app;
 
         var stringBuilder = new StringBuilder();
-        var attributes = new List<CommandAttribute>();
+        var attributes = new List<(CommandAttribute, CommandUsageAttribute[])>();
         var dict = new Dictionary<string, CommandParser>();
 
         stringBuilder.AppendLine($"iPanel {Constant.Version}");
@@ -41,18 +40,20 @@ public class InputParser
                 continue;
 
             dict[attribute.RootCommand] = handler;
-            attributes.Add(attribute);
+            attributes.Add(
+                (attribute, type.GetCustomAttributes<CommandUsageAttribute>().ToArray())
+            );
         }
 
-        attributes.Sort((a, b) => b.Priority - a.Priority);
-        foreach (var attribute in attributes)
+        attributes.Sort((a, b) => b.Item1.Priority - a.Item1.Priority);
+        foreach (var attributePair in attributes)
         {
-            if (!string.IsNullOrEmpty(attribute.Alias))
-                stringBuilder.AppendLine(
-                    $"- {attribute.RootCommand}/{attribute.Alias}  {attribute.Description}"
-                );
-            else
-                stringBuilder.AppendLine($"- {attribute.RootCommand}  {attribute.Description}");
+            stringBuilder.AppendLine(
+                $"- {attributePair.Item1.RootCommand}  {attributePair.Item1.Description}"
+            );
+
+            foreach (var usage in attributePair.Item2)
+                stringBuilder.AppendLine($"  - {usage.Example}  {usage.Description}");
         }
 
         _allCommands = stringBuilder.ToString();
@@ -81,7 +82,7 @@ public class InputParser
     {
         var args = new List<string>();
 
-        if (!line.Contains("\"") || !line.Contains("\x20"))
+        if (!line.Contains('"') || !line.Contains(' '))
             args.AddRange(line.Split(_separator, options: StringSplitOptions.RemoveEmptyEntries));
         else
         {
@@ -140,7 +141,7 @@ public class InputParser
         if (args.Count == 0)
             Logger.Error("未知命令。请使用\"help\"查看所有命令");
 
-        if (args[0] == "help" || args[0] == "?" || args[0] == "？")
+        if (args[0] == "help" || args[0] == "?")
             Logger.Info(_allCommands);
         else if (!_commandParser.TryGetValue(args[0], out var parser))
             Logger.Error("未知命令。请使用\"help\"查看所有命令");

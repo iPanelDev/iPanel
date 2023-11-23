@@ -1,7 +1,6 @@
 using iPanel.Core.Models.Settings;
 using iPanel.Core.Service;
 using iPanel.Utils.Json;
-using System;
 using System.CommandLine;
 using System.IO;
 using System.Text.Json;

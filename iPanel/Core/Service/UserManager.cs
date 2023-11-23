@@ -6,6 +6,9 @@ using System.IO;
 using System.Timers;
 using System.Text.Json;
 using Swan.Logging;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+using Spectre.Console;
 
 namespace iPanel.Core.Service;
 
@@ -97,5 +100,71 @@ public class UserManager
         var result = _users.Remove(name);
         Save();
         return result;
+    }
+
+    public static bool ValidatePassword(
+        [NotNullWhen(true)] string? password,
+        bool ignoreNull,
+        [NotNullWhen(false)] out string? message
+    )
+    {
+        message = null;
+        if (ignoreNull && password is null)
+            return true;
+
+        if (password is null || password.Length < 6)
+        {
+            message = "密码长度过短";
+            return false;
+        }
+
+        if (
+            password.Contains('\\')
+            || password.Contains('"')
+            || password.Contains('\'')
+            || password.Contains(' ')
+            || ContainsControlChars(password)
+        )
+        {
+            message = "密码不得含有特殊字符";
+            return false;
+        }
+        return true;
+    }
+
+    public static bool ValidateUserName(
+        [NotNullWhen(true)] string? userName,
+        [NotNullWhen(false)] out string? message
+    )
+    {
+        message = null;
+
+        if (userName is null || userName.Length < 3)
+        {
+            message = "用户名长度过短";
+            return false;
+        }
+
+        if (
+            userName.Contains('\\')
+            || userName.Contains('"')
+            || userName.Contains('\'')
+            || userName.Contains('@')
+            || userName.Contains(' ')
+            || ContainsControlChars(userName)
+        )
+        {
+            message = "用户名不得含有特殊字符";
+            return false;
+        }
+        return true;
+    }
+
+    private static bool ContainsControlChars(string text)
+    {
+        foreach (var c in text)
+            if (c <= 31 || c == 127)
+                return true;
+        return false;
     }
 }

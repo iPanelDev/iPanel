@@ -1,15 +1,26 @@
-using System.Collections.Generic;
+using iPanel.Core.Models.Users;
 using iPanel.Core.Service;
 using Spectre.Console;
 using Swan.Logging;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using iPanel.Core.Models.Users;
-using System;
 
 namespace iPanel.Core.Interaction.Parser;
 
-[Command("user", "管理用户", Priority = 5)]
+[Command("user", "管理用户", Priority = 114514)]
+[CommandUsage("user create/remove/edit", "操作用户（此功能需要可交互的终端）")]
+[CommandUsage("user list", "列出所有用户")]
+[CommandUsage(
+    "user create <userName:string> <password:string> <level:enum/uint> [description:string?]",
+    "创建用户"
+)]
+[CommandUsage(
+    "user edit <userName:string> <password:string> <level:enum/uint> [description:string?]",
+    "编辑指定用户"
+)]
+[CommandUsage("user remove <userName:string>", "删除指定用户")]
 public class UserParser : CommandParser
 {
     public UserParser(App app)
@@ -28,7 +39,7 @@ public class UserParser : CommandParser
     {
         if (args.Length < 2)
         {
-            Logger.Error("语法错误：缺少子命令（可用值：add/remove/edit/list）");
+            Logger.Error("语法错误：缺少子命令（可用值：create/remove/edit/list）");
             return;
         }
 
@@ -59,14 +70,14 @@ public class UserParser : CommandParser
                 }
                 break;
 
-            case "add":
+            case "create":
                 if (args.Length == 2)
-                    Add();
+                    Create();
                 else if (args.Length == 5 || args.Length == 6)
-                    Add(args);
+                    Create(args);
                 else
                     Logger.Error(
-                        "语法错误：参数数量不正确。正确格式：\"user add <userName:string> <password:string> <level:enum/uint> [description:string?]\""
+                        "语法错误：参数数量不正确。正确格式：\"user create <userName:string> <password:string> <level:enum/uint> [description:string?]\""
                     );
                 break;
 
@@ -92,17 +103,17 @@ public class UserParser : CommandParser
                 break;
 
             default:
-                Logger.Error("语法错误：未知的子命令（可用值：add/remove/edit/list）");
+                Logger.Error("语法错误：未知的子命令（可用值：create/remove/edit/list）");
                 break;
         }
     }
 
-    private void Add()
+    private void Create()
     {
         if (!AnsiConsole.Profile.Capabilities.Interactive)
         {
             Logger.Error(
-                "当前终端不可交互。请使用\"user add <userName:string> <password:string> <level:enum/uint> [description:string?]\""
+                "当前终端不可交互。请使用\"user create <userName:string> <password:string> <level:enum/uint> [description:string?]\""
             );
             return;
         }
@@ -116,10 +127,10 @@ public class UserParser : CommandParser
         };
 
         if (!_app.UserManager.Add(name, user))
-            Logger.Error("添加失败");
+            Logger.Error("创建失败");
         else
         {
-            Logger.Info("添加成功");
+            Logger.Info("创建成功");
             AnsiConsole.Write(
                 new Table()
                     .AddColumns(
@@ -134,12 +145,12 @@ public class UserParser : CommandParser
         }
     }
 
-    private void Add(string[] args)
+    private void Create(string[] args)
     {
         if (!Regex.IsMatch(args[2], @"^[^\s\\""'@]{3,}$"))
-            Logger.Error("添加失败：用户名含有特殊字符（\"'\\@）或空格");
-        else if (args[3].Length < 3)
-            Logger.Error("添加失败：密码长度应大于3");
+            Logger.Error("创建失败：用户名过短或含有特殊字符（\"'\\@）或空格");
+        else if (args[3].Length <= 6)
+            Logger.Error("创建失败：密码长度至少为6");
         else if (
             _app.UserManager.Add(
                 args[2],
@@ -156,9 +167,9 @@ public class UserParser : CommandParser
                 }
             )
         )
-            Logger.Info("添加成功");
+            Logger.Info("创建成功");
         else
-            Logger.Error("添加失败：用户名重复");
+            Logger.Error("创建失败：用户名重复");
     }
 
     private void Edit()
@@ -184,8 +195,8 @@ public class UserParser : CommandParser
     {
         if (!_app.UserManager.Users.TryGetValue(args[2], out User? user))
             Logger.Error("修改失败：用户不存在");
-        else if (args[3].Length < 3)
-            Logger.Error("修改失败：密码长度应大于3");
+        else if (args[3].Length <= 6)
+            Logger.Error("修改失败：密码长度至少为6");
         else
         {
             user.Password = args[3];

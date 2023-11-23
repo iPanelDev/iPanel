@@ -13,8 +13,6 @@ using System.Threading.Tasks;
 
 namespace iPanel.Core.Server.Api;
 
-#pragma warning disable CA1822
-
 public static class ApiHelper
 {
     public static readonly Encoding UTF8 = new UTF8Encoding(false);
@@ -66,7 +64,7 @@ public static class ApiHelper
         if (
             !httpContext.Session.TryGetValue(SessionKeyConstants.User, out object? value)
             || value is not User user
-            || (int)user.Level < (int)permissionLevel
+            || user.Level < permissionLevel
         )
             throw HttpException.Forbidden("权限不足");
     }
@@ -94,7 +92,7 @@ public static class ApiHelper
         throw HttpException.Forbidden("权限不足");
     }
 
-    public static async Task SendJsonAsync(
+    private static async Task SendJsonAsync(
         this IHttpContext httpContext,
         object? data,
         int statusCode
@@ -121,14 +119,11 @@ public static class ApiHelper
 
     public static async Task HandleHttpException(IHttpContext context, IHttpException exception)
     {
-        HttpStatusCode httpStatusCode = (HttpStatusCode)exception.StatusCode;
-        switch (httpStatusCode)
+        var httpStatusCode = (HttpStatusCode)exception.StatusCode;
+        switch (exception.StatusCode)
         {
-            case HttpStatusCode.BadRequest: // 400
-            case HttpStatusCode.Unauthorized: // 401
-            case HttpStatusCode.Forbidden: // 403
-            case HttpStatusCode.NotFound: // 404
-            case HttpStatusCode.MethodNotAllowed: // 405
+            case < 500
+            and >= 400:
                 await context.SendJsonAsync(
                     exception.Message
                         ?? Regex.Replace(
@@ -140,7 +135,7 @@ public static class ApiHelper
                 );
                 break;
 
-            case HttpStatusCode.InternalServerError: // 500
+            case 500: // InternalServerError
                 await context.SendJsonAsync(
                     $"{exception.DataObject?.GetType()?.ToString() ?? "null"}:{exception.Message}",
                     httpStatusCode
@@ -151,7 +146,7 @@ public static class ApiHelper
 
     public static async Task HandleException(IHttpContext context, Exception e)
     {
-        if (context.IsLogined())
+        if (!context.IsLogined())
         {
             await context.SendJsonAsync(
                 $"{e.GetType()}{e.Message}",

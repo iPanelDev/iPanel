@@ -159,9 +159,7 @@ public partial class ApiMap
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
         else
-        {
             await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
-        }
     }
 
     [Route(HttpVerbs.Get, "/instance/{instanceId}/dir")]
@@ -175,11 +173,8 @@ public partial class ApiMap
                 out Instance? instance
             ) || instance is null
         )
-        {
             await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
-        }
         else
-        {
             try
             {
                 await HttpContext.SendJsonAsync(
@@ -189,9 +184,8 @@ public partial class ApiMap
             }
             catch (TimeoutException)
             {
-                await HttpContext.SendJsonAsync("等待超时", 421);
+                await HttpContext.SendJsonAsync("等待超时", HttpStatusCode.GatewayTimeout);
                 Logger.Warn($"[{HttpContext.Id}] 实例({instanceId})回复超时");
             }
-        }
     }
 }
