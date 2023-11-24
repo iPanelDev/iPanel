@@ -15,21 +15,23 @@ public static class WebSocketExtension
         if (context.WebSocket.State != WebSocketState.Open)
             return;
 
-        await context.WebSocket.SendAsync(ApiHelper.UTF8.GetBytes(payload), true);
+        await context.WebSocket.SendAsync(EncodingsMap.UTF8.GetBytes(payload), true);
 
-        Logger.Debug($"[{context.RemoteEndPoint}] 发送数据");
-        AnsiConsole.Write(
-            new JsonText(payload)
-                .BracesColor(Color.White)
-                .BracketColor(Color.White)
-                .CommaColor(Color.White)
-                .MemberColor(Color.SkyBlue1)
-                .StringColor(Color.LightSalmon3_1)
-                .NumberColor(Color.DarkSeaGreen2)
-                .BooleanColor(Color.DodgerBlue3)
-                .NullColor(Color.DodgerBlue3)
-        );
-        AnsiConsole.WriteLine();
+        if (SimpleLogger.StaticLogLevel <= LogLevel.Debug)
+        {
+            AnsiConsole.Write(
+                new JsonText(payload)
+                    .BracesColor(Color.White)
+                    .BracketColor(Color.White)
+                    .CommaColor(Color.White)
+                    .MemberColor(Color.SkyBlue1)
+                    .StringColor(Color.LightSalmon3_1)
+                    .NumberColor(Color.DarkSeaGreen2)
+                    .BooleanColor(Color.DodgerBlue3)
+                    .NullColor(Color.DodgerBlue3)
+            );
+            AnsiConsole.WriteLine();
+        }
     }
 
     public static async Task CloseAsync(this IWebSocketContext context) =>

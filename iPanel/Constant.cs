@@ -9,8 +9,6 @@ public static class Constant
         .GetName()
         .Version!.ToString();
 
-    public const int InternalVersion = 1;
-
     public const string Logo =
         @"  _ ____                  _ 
  (_)  _ \ __ _ _ __   ___| |

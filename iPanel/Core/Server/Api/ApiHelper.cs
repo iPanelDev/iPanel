@@ -1,11 +1,11 @@
 using EmbedIO;
 using iPanel.Core.Models.Packets;
 using iPanel.Core.Models.Users;
+using iPanel.Utils;
 using iPanel.Utils.Json;
 using System;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -15,8 +15,6 @@ namespace iPanel.Core.Server.Api;
 
 public static class ApiHelper
 {
-    public static readonly Encoding UTF8 = new UTF8Encoding(false);
-
     public static async Task<T?> ConvertRequestTo<T>(this IHttpContext httpContext)
         where T : notnull
     {
@@ -105,7 +103,7 @@ public static class ApiHelper
                 JsonSerializerOptionsFactory.CamelCase
             ),
             "text/json",
-            UTF8
+            EncodingsMap.UTF8
         );
 
         httpContext.SetHandled();

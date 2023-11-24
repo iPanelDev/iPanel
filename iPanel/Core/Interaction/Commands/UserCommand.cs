@@ -1,15 +1,17 @@
 using iPanel.Core.Models.Users;
 using iPanel.Core.Service;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Swan.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace iPanel.Core.Interaction.Parser;
+namespace iPanel.Core.Interaction.Commands;
 
-[Command("user", "管理用户", Priority = 114514)]
+[CommandDescription("user", "管理用户", Priority = 114514)]
 [CommandUsage("user create/remove/edit", "操作用户（此功能需要可交互的终端）")]
 [CommandUsage("user list", "列出所有用户")]
 [CommandUsage(
@@ -21,10 +23,15 @@ namespace iPanel.Core.Interaction.Parser;
     "编辑指定用户"
 )]
 [CommandUsage("user remove <userName:string>", "删除指定用户")]
-public class UserParser : CommandParser
+public class UserCommand : Command
 {
-    public UserParser(App app)
-        : base(app) { }
+    public UserCommand(IHost host)
+        : base(host) { }
+
+    private UserManager UserManager => Services.GetRequiredService<UserManager>();
+
+    private ILogger<ListConnectionCommand> Logger =>
+        Services.GetRequiredService<ILogger<ListConnectionCommand>>();
 
     private static readonly Dictionary<PermissionLevel, string> _levelDescription =
         new()
@@ -39,7 +46,7 @@ public class UserParser : CommandParser
     {
         if (args.Length < 2)
         {
-            Logger.Error("语法错误：缺少子命令（可用值：create/remove/edit/list）");
+            Logger.LogError("语法错误：缺少子命令（可用值：create/remove/edit/list）");
             return;
         }
 
@@ -55,10 +62,10 @@ public class UserParser : CommandParser
                 table.Columns[2].Centered();
                 table.Columns[3].Centered();
                 table.Columns[4].Centered();
-                lock (_app.UserManager.Users)
+                lock (UserManager.Users)
                 {
-                    Logger.Info($"当前共有{_app.UserManager.Users.Count}个用户");
-                    foreach (var kv in _app.UserManager.Users)
+                    Logger.LogInformation("当前共有{}个用户", UserManager.Users.Count);
+                    foreach (var kv in UserManager.Users)
                         table.AddRow(
                             kv.Key,
                             UserManager.LevelNames[kv.Value.Level],
@@ -76,7 +83,7 @@ public class UserParser : CommandParser
                 else if (args.Length == 5 || args.Length == 6)
                     Create(args);
                 else
-                    Logger.Error(
+                    Logger.LogError(
                         "语法错误：参数数量不正确。正确格式：\"user create <userName:string> <password:string> <level:enum/uint> [description:string?]\""
                     );
                 break;
@@ -87,7 +94,7 @@ public class UserParser : CommandParser
                 else if (args.Length == 5 || args.Length == 6)
                     Edit(args);
                 else
-                    Logger.Error(
+                    Logger.LogError(
                         "语法错误：参数数量不正确。正确格式：\"user edit <userName:string> <password:string> <level:enum/uint> [description:string?]\""
                     );
                 break;
@@ -95,15 +102,15 @@ public class UserParser : CommandParser
             case "remove":
                 if (args.Length == 2)
                     Remove();
-                else if (_app.UserManager.Remove(args[2]))
-                    Logger.Info("删除成功");
+                else if (UserManager.Remove(args[2]))
+                    Logger.LogInformation("删除成功");
                 else
-                    Logger.Error("删除失败：用户不存在");
+                    Logger.LogError("删除失败：用户不存在");
 
                 break;
 
             default:
-                Logger.Error("语法错误：未知的子命令（可用值：create/remove/edit/list）");
+                Logger.LogError("语法错误：未知的子命令（可用值：create/remove/edit/list）");
                 break;
         }
     }
@@ -112,7 +119,7 @@ public class UserParser : CommandParser
     {
         if (!AnsiConsole.Profile.Capabilities.Interactive)
         {
-            Logger.Error(
+            Logger.LogError(
                 "当前终端不可交互。请使用\"user create <userName:string> <password:string> <level:enum/uint> [description:string?]\""
             );
             return;
@@ -126,11 +133,11 @@ public class UserParser : CommandParser
             Description = InputDescription(),
         };
 
-        if (!_app.UserManager.Add(name, user))
-            Logger.Error("创建失败");
+        if (!UserManager.Add(name, user))
+            Logger.LogError("创建失败");
         else
         {
-            Logger.Info("创建成功");
+            Logger.LogInformation("创建成功");
             AnsiConsole.Write(
                 new Table()
                     .AddColumns(
@@ -148,11 +155,11 @@ public class UserParser : CommandParser
     private void Create(string[] args)
     {
         if (!Regex.IsMatch(args[2], @"^[^\s\\""'@]{3,}$"))
-            Logger.Error("创建失败：用户名过短或含有特殊字符（\"'\\@）或空格");
+            Logger.LogError("创建失败：用户名过短或含有特殊字符（\"'\\@）或空格");
         else if (args[3].Length <= 6)
-            Logger.Error("创建失败：密码长度至少为6");
+            Logger.LogError("创建失败：密码长度至少为6");
         else if (
-            _app.UserManager.Add(
+            UserManager.Add(
                 args[2],
                 new()
                 {
@@ -167,16 +174,16 @@ public class UserParser : CommandParser
                 }
             )
         )
-            Logger.Info("创建成功");
+            Logger.LogInformation("创建成功");
         else
-            Logger.Error("创建失败：用户名重复");
+            Logger.LogError("创建失败：用户名重复");
     }
 
     private void Edit()
     {
         if (!AnsiConsole.Profile.Capabilities.Interactive)
         {
-            Logger.Error(
+            Logger.LogError(
                 "当前终端不可交互。请使用\"user edit <userName:string> <password:string> <level:enum/uint> [description:string?]\""
             );
             return;
@@ -187,16 +194,16 @@ public class UserParser : CommandParser
         kv.Value.Level = SelectPermissionLevel();
         kv.Value.Description = InputDescription(kv.Value.Description);
 
-        _app.UserManager.Save();
-        Logger.Info("编辑成功");
+        UserManager.Save();
+        Logger.LogInformation("编辑成功");
     }
 
     private void Edit(string[] args)
     {
-        if (!_app.UserManager.Users.TryGetValue(args[2], out User? user))
-            Logger.Error("修改失败：用户不存在");
+        if (!UserManager.Users.TryGetValue(args[2], out User? user))
+            Logger.LogError("修改失败：用户不存在");
         else if (args[3].Length <= 6)
-            Logger.Error("修改失败：密码长度至少为6");
+            Logger.LogError("修改失败：密码长度至少为6");
         else
         {
             user.Password = args[3];
@@ -207,8 +214,8 @@ public class UserParser : CommandParser
                     nameof(args)
                 );
             user.Description = args.Length == 6 ? args[5] : null;
-            _app.UserManager.Save();
-            Logger.Info("修改成功");
+            UserManager.Save();
+            Logger.LogInformation("修改成功");
         }
     }
 
@@ -216,14 +223,14 @@ public class UserParser : CommandParser
     {
         if (!AnsiConsole.Profile.Capabilities.Interactive)
         {
-            Logger.Error("当前终端不可交互。请使用\"user remove <userName>\"");
+            Logger.LogError("当前终端不可交互。请使用\"user remove <userName>\"");
             return;
         }
 
         var kv = SelectUser(true);
-        _app.UserManager.Remove(kv.Key);
-        _app.UserManager.Save();
-        Logger.Info("删除成功");
+        UserManager.Remove(kv.Key);
+        UserManager.Save();
+        Logger.LogInformation("删除成功");
     }
 
     private KeyValuePair<string, User> SelectUser(bool edit)
@@ -235,7 +242,7 @@ public class UserParser : CommandParser
 
         var keyValuePair = AnsiConsole.Prompt(
             new SelectionPrompt<KeyValuePair<string, User>>()
-                .AddChoices(_app.UserManager.Users.ToArray())
+                .AddChoices(UserManager.Users.ToArray())
                 .UseConverter(
                     (kv) =>
                         $"{Markup.Escape(kv.Key)} [gray]({UserManager.LevelNames[kv.Value.Level]})[/]"
@@ -268,7 +275,7 @@ public class UserParser : CommandParser
                 (line) =>
                     line.Length >= 3
                     && Regex.IsMatch(line, @"^[^\s\\""'@]+$")
-                    && !_app.UserManager.Users.ContainsKey(line),
+                    && !UserManager.Users.ContainsKey(line),
                 "[red]用户名不合上述要求[/]"
             )
         );

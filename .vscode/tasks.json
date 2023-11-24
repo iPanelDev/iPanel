@@ -17,19 +17,6 @@
                 "reveal": "silent"
             },
             "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "format",
-            "command": "dotnet-csharpier",
-            "type": "shell",
-            "args": [
-                "."
-            ],
-            "group": "none",
-            "presentation": {
-                "reveal": "silent"
-            },
-            "problemMatcher": []
         }
     ]
 }

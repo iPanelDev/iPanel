@@ -6,7 +6,7 @@ using iPanel.Core.Models.Packets.Data;
 using iPanel.Core.Models.Users;
 using iPanel.Core.Service;
 using iPanel.Utils;
-using Swan.Logging;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,7 +70,7 @@ public partial class ApiMap
             throw HttpException.Forbidden("\"Time\"已过期");
 
         if (
-            !_app.UserManager.Users.TryGetValue(verifyBody.UserName!, out User? user)
+            !UserManager.Users.TryGetValue(verifyBody.UserName!, out User? user)
             || user.Level == PermissionLevel.Guest
         )
             throw HttpException.Forbidden("无效用户");
@@ -91,7 +91,7 @@ public partial class ApiMap
 
         HttpContext.Session[SessionKeyConstants.User] = user;
 
-        Logger.Info($"[{HttpContext.Id}] 验证成功");
+        Logger.LogInformation("[{}] 登录成功", HttpContext.Id);
 
         await HttpContext.SendJsonAsync(
             new Status
@@ -110,6 +110,7 @@ public partial class ApiMap
         HttpContext.Session.Delete();
         HttpContext.Response.SetCookie(new("user", "", "/") { Expired = true });
         await HttpContext.SendJsonAsync(null);
+        Logger.LogInformation("[{}] 退出成功", HttpContext.Id);
     }
 
     [Route(HttpVerbs.Get, "/user")]
@@ -118,7 +119,7 @@ public partial class ApiMap
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
         await HttpContext.SendJsonAsync(
-            _app.UserManager.Users
+            UserManager.Users
                 .Select((kv) => new KeyValuePair<string, SafeUser>(kv.Key, new SafeUser(kv.Value)))
                 .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
         );
@@ -135,7 +136,7 @@ public partial class ApiMap
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
-        if (!_app.UserManager.Users.TryGetValue(userName, out User? user))
+        if (!UserManager.Users.TryGetValue(userName, out User? user))
             await HttpContext.SendJsonAsync("用户不存在", HttpStatusCode.NotFound);
         else
             await HttpContext.SendJsonAsync(new SafeUser(user));
@@ -149,10 +150,11 @@ public partial class ApiMap
         if (userName == "@self")
             throw HttpException.Forbidden();
 
-        if (_app.UserManager.Remove(userName))
+        if (UserManager.Remove(userName))
         {
-            _app.UserManager.Save();
+            UserManager.Save();
             await HttpContext.SendJsonAsync(null);
+            Logger.LogInformation("[{}] 删除用户{}成功", HttpContext.Id, userName);
         }
         else
             await HttpContext.SendJsonAsync("用户不存在", HttpStatusCode.NotFound);
@@ -166,7 +168,7 @@ public partial class ApiMap
         if (userName == "@self")
             throw HttpException.Forbidden();
 
-        if (_app.UserManager.Users.ContainsKey(userName))
+        if (UserManager.Users.ContainsKey(userName))
         {
             await HttpContext.SendJsonAsync("用户已存在", HttpStatusCode.Conflict);
             return;
@@ -181,10 +183,11 @@ public partial class ApiMap
         )
             throw HttpException.BadRequest(message);
 
-        _app.UserManager.Add(userName, user);
-        _app.UserManager.Save();
+        UserManager.Add(userName, user);
+        UserManager.Save();
 
         await HttpContext.SendJsonAsync(null);
+        Logger.LogInformation("[{}] 创建用户{}成功", HttpContext.Id, userName);
     }
 
     [Route(HttpVerbs.Put, "/user/{userName}")]
@@ -209,13 +212,14 @@ public partial class ApiMap
 
                 user.Password = newUser.Password;
                 await HttpContext.SendJsonAsync(null);
-                _app.UserManager.Save();
+                UserManager.Save();
+                Logger.LogInformation("[{}] 更新用户{}成功", HttpContext.Id, userName);
                 return;
             }
             else
                 throw new InvalidOperationException();
 
-        if (!_app.UserManager.Users.TryGetValue(userName, out user))
+        if (!UserManager.Users.TryGetValue(userName, out user))
             throw HttpException.NotFound("用户不存在");
 
         user.Level = newUser.Level;
@@ -226,8 +230,9 @@ public partial class ApiMap
 
         user.Password = newUser.Password ?? user.Password;
         user.Description = newUser.Description ?? user.Description;
-        _app.UserManager.Save();
+        UserManager.Save();
 
         await HttpContext.SendJsonAsync(null);
+        Logger.LogInformation("[{}] 更新用户{}成功", HttpContext.Id, userName);
     }
 }

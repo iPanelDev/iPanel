@@ -9,6 +9,8 @@ public static class JsonSerializerOptionsFactory
         new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip
         };
 }

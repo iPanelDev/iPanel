@@ -1,14 +1,14 @@
 using iPanel.Core.Models.Users;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using iPanel.Utils.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Timers;
 using System.Text.Json;
-using Swan.Logging;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
-using Spectre.Console;
 
 namespace iPanel.Core.Service;
 
@@ -25,29 +25,34 @@ public class UserManager
         { PermissionLevel.Administrator, "管理员" }
     };
 
+    private Dictionary<string, User> _users = new();
+    public IReadOnlyDictionary<string, User> Users => _users;
+
     private readonly Timer _timer = new(60_000) { AutoReset = true };
 
-    public UserManager()
+    public UserManager(IHost host)
     {
+        _host = host;
         _timer.Elapsed += (_, _) => Save();
         _timer.Start();
     }
 
-    public IReadOnlyDictionary<string, User> Users => _users;
-
     private const string _path = "data/users.json";
 
     private readonly object _lock = new();
+    private readonly IHost _host;
 
-    private Dictionary<string, User> _users = new();
+    private IServiceProvider Services => _host.Services;
+    private ILogger<UserManager> Logger => Services.GetRequiredService<ILogger<UserManager>>();
 
     public void Read()
     {
+        Directory.CreateDirectory("data");
         lock (_lock)
         {
             if (!File.Exists(_path))
             {
-                Logger.Warn("用户列表为空");
+                Logger.LogWarning("用户列表为空，请使用\"user create\"创建一个用户");
                 Save();
                 return;
             }
@@ -61,18 +66,18 @@ public class UserManager
                     ) ?? throw new FileLoadException("文件数据异常");
 
                 if (_users.Count == 0)
-                    Logger.Warn("用户列表为空");
+                    Logger.LogWarning("用户列表为空，请使用\"user create\"创建一个用户");
             }
             catch (Exception e)
             {
-                Logger.Error($"加载用户文件{_path}时出错");
-                Logger.Error(e, nameof(UserManager), string.Empty);
+                Logger.LogError(e, "加载用户文件{}时出错", _path);
             }
         }
     }
 
     public void Save()
     {
+        Directory.CreateDirectory("data");
         lock (_lock)
         {
             File.WriteAllText(

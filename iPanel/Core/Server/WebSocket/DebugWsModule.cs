@@ -1,31 +1,46 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using EmbedIO.WebSockets;
 using iPanel.Utils;
 using iPanel.Utils.Extensions;
 using iPanel.Utils.Json;
-using Swan.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace iPanel.Core.Server.WebSocket;
 
 public class DebugWsModule : WebSocketModule
 {
-    private readonly string _pwd = Guid.NewGuid().ToString("N");
+    private readonly string _password = Guid.NewGuid().ToString("N");
 
     private readonly List<string> _ips = new();
+    private readonly IHost _host;
+    private IServiceProvider Services => _host.Services;
+    private ILogger<BroadcastWsModule> Logger =>
+        Services.GetRequiredService<ILogger<BroadcastWsModule>>();
 
-    public DebugWsModule()
-        : base("/debug", true)
+    public DebugWsModule(IHost host)
+        : base("/ws/debug", true)
     {
-        LocalLogger.OnMessage = (e) =>
+        _host = host;
+        SimpleLogger.OnMessage = (level, lines) =>
         {
             try
             {
                 BroadcastAsync(
-                    JsonSerializer.Serialize(e, JsonSerializerOptionsFactory.CamelCase),
+                    JsonSerializer.Serialize(
+                        new JsonObject
+                        {
+                            { nameof(lines), JsonSerializer.SerializeToNode(lines) },
+                            { nameof(level), level }
+                        },
+                        JsonSerializerOptionsFactory.CamelCase
+                    ),
                     (ctx) => _ips.Contains(ctx.RemoteEndPoint.ToString())
                 );
             }
@@ -37,13 +52,13 @@ public class DebugWsModule : WebSocketModule
     {
         var address = context.RemoteEndPoint.ToString();
         _ips.Remove(address);
-        Logger.Info($"[{address}] 从调试服务器断开");
+        Logger.LogInformation("[{}] 从调试服务器断开", address);
         return Task.CompletedTask;
     }
 
     protected override Task OnClientConnectedAsync(IWebSocketContext context)
     {
-        Logger.Info($"[{context.RemoteEndPoint}] 连接到调试服务器");
+        Logger.LogInformation("[{}] 连接到调试服务器", context.RemoteEndPoint);
         return Task.CompletedTask;
     }
 
@@ -55,10 +70,10 @@ public class DebugWsModule : WebSocketModule
     {
         var data = Encoding.GetString(buffer);
         var address = context.RemoteEndPoint.ToString();
-        if (data == _pwd)
+        if (data == _password)
         {
-            Logger.Info($"[{address}] 通过调试服务器验证");
-            Logger.Warn($"[{address}] 如果这不是信任的连接，请立即停止iPanel并在设置中禁用调试");
+            Logger.LogInformation("[{}] 通过调试服务器验证", address);
+            Logger.LogWarning("[{}] 如果这不是信任的连接，请立即停止iPanel并在设置中禁用调试", address);
             _ips.Add(address);
         }
         else
@@ -67,6 +82,6 @@ public class DebugWsModule : WebSocketModule
 
     protected override void OnStart(CancellationToken cancellationToken)
     {
-        Logger.Info($"调试服务器已开启。连接密码：[{_pwd}]");
+        Logger.LogInformation("调试服务器已开启。连接密码：[{}]", _password);
     }
 }

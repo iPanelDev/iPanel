@@ -4,13 +4,16 @@ using iPanel.Core.Models.Exceptions;
 using iPanel.Core.Models.Packets;
 using iPanel.Core.Models.Packets.Data;
 using iPanel.Core.Models.Packets.Event;
+using iPanel.Core.Models.Settings;
 using iPanel.Core.Server.WebSocket.Handlers;
 using iPanel.Utils;
 using iPanel.Utils.Extensions;
 using iPanel.Utils.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Spectre.Console.Json;
-using Swan.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,15 +31,19 @@ namespace iPanel.Core.Server.WebSocket;
 public class InstanceWsModule : WebSocketModule
 {
     private readonly Timer _heartbeatTimer = new(5000);
-
     private readonly Dictionary<string, HandlerBase> _handlers = new();
+    public readonly Dictionary<string, Instance> Instances = new();
+    private readonly IHost _host;
+    private IServiceProvider Services => _host.Services;
+    private Setting Setting => Services.GetRequiredService<Setting>();
+    private ILogger<HttpServer> Logger => Services.GetRequiredService<ILogger<HttpServer>>();
 
-    public InstanceWsModule(App app)
-        : base("/instance", true)
+    public InstanceWsModule(IHost host)
+        : base("/ws/instance", true)
     {
-        Encoding = new UTF8Encoding(false);
+        _host = host;
+        Encoding = EncodingsMap.UTF8;
 
-        _app = app;
         _heartbeatTimer.Elapsed += async (_, _) =>
             await BroadcastAsync(
                 new WsSentPacket("request", "heartbeat"),
@@ -44,13 +51,13 @@ public class InstanceWsModule : WebSocketModule
                     !string.IsNullOrEmpty(context.Session[SessionKeyConstants.InstanceId] as string)
             );
 
-        foreach (var type in Assembly.GetCallingAssembly().GetTypes())
+        foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
         {
             var attributes = type.GetCustomAttributes<HandlerAttribute>();
             if (!attributes.Any())
                 continue;
 
-            var handler = (HandlerBase?)Activator.CreateInstance(type, _app);
+            var handler = (HandlerBase?)Activator.CreateInstance(type, _host);
 
             if (handler is null)
                 continue;
@@ -60,13 +67,10 @@ public class InstanceWsModule : WebSocketModule
         }
     }
 
-    public readonly Dictionary<string, Instance> Instances = new();
-    private readonly App _app;
-
     protected override void OnStart(CancellationToken cancellationToken)
     {
         _heartbeatTimer.Start();
-        Logger.Info("实例WS服务器已开启");
+        Logger.LogInformation("实例WS服务器已开启");
     }
 
     protected override async Task OnMessageReceivedAsync(
@@ -89,9 +93,9 @@ public class InstanceWsModule : WebSocketModule
                     JsonSerializerOptionsFactory.CamelCase
                 ) ?? throw new PacketException("空数据包");
 
-            if (_app.Setting.Debug)
+            if (Setting.Debug)
             {
-                Logger.Debug($"[{clientUrl}] 收到数据");
+                Logger.LogDebug("[{}] 收到数据", clientUrl);
 
                 AnsiConsole.Write(
                     new JsonText(message)
@@ -109,7 +113,7 @@ public class InstanceWsModule : WebSocketModule
         }
         catch (Exception e)
         {
-            Logger.Warn(e, nameof(InstanceWsModule), $"[{clientUrl}] 处理数据包异常");
+            Logger.LogWarning(e, "[{}] 处理数据包异常", clientUrl);
             await context.SendAsync(
                 new WsSentPacket(
                     "event",
@@ -174,9 +178,7 @@ public class InstanceWsModule : WebSocketModule
             )
                 throw new PacketException($"{nameof(verifyBody.InstanceId)}无效");
 
-            var expectedValue = Encryption.GetMD5(
-                $"{verifyBody.Time}.{_app.Setting.InstancePassword}"
-            );
+            var expectedValue = Encryption.GetMD5($"{verifyBody.Time}.{Setting.InstancePassword}");
             if (verifyBody.MD5 == expectedValue)
             {
                 Instances.Add(
@@ -191,18 +193,22 @@ public class InstanceWsModule : WebSocketModule
 
                 await context.SendAsync(new VerifyResultPacket(true));
                 context.Session[SessionKeyConstants.InstanceId] = verifyBody.InstanceId;
-                Logger.Info($"[{context.RemoteEndPoint}] 验证成功");
+                Logger.LogInformation("[{}] 验证成功", context.RemoteEndPoint);
+
                 return;
             }
 
-            Logger.Warn(
-                $"[{context.RemoteEndPoint}] 预期MD5：\"{expectedValue}\"，实际接收：\"{verifyBody.MD5}\""
+            Logger.LogWarning(
+                "[{}] 预期MD5：\"{}\"，实际接收：\"{}\"",
+                context.RemoteEndPoint,
+                expectedValue,
+                verifyBody.MD5
             );
             throw new PacketException("验证失败");
         }
         catch (Exception e)
         {
-            Logger.Warn($"[{context.RemoteEndPoint}] 验证失败：{e.Message}");
+            Logger.LogWarning(e, "[{}] 验证失败", context.RemoteEndPoint);
             await context.SendAsync(new VerifyResultPacket(false, e.Message));
             await context.CloseAsync();
         }
@@ -211,7 +217,7 @@ public class InstanceWsModule : WebSocketModule
     protected override Task OnClientConnectedAsync(IWebSocketContext context)
     {
         context.Session[SessionKeyConstants.InstanceId] = string.Empty;
-        Logger.Info($"[{context.RemoteEndPoint}] 连接到实例WS服务器");
+        Logger.LogInformation("[{}] 连接到实例WS服务器", context.RemoteEndPoint);
 
         Task.Run(async () =>
         {
@@ -226,7 +232,7 @@ public class InstanceWsModule : WebSocketModule
             {
                 await context.SendAsync(new VerifyResultPacket(false, "验证超时"));
                 await context.CloseAsync();
-                Logger.Warn($"[{context.RemoteEndPoint}] 验证超时");
+                Logger.LogWarning("[{}] 验证超时", context.RemoteEndPoint);
             }
         });
 
@@ -235,7 +241,7 @@ public class InstanceWsModule : WebSocketModule
 
     protected override Task OnClientDisconnectedAsync(IWebSocketContext context)
     {
-        Logger.Info($"[{context.RemoteEndPoint}] 从实例WS服务器断开了连接");
+        Logger.LogInformation("[{}] 从实例WS服务器断开了连接", context.RemoteEndPoint);
 
         var instanceId = context.Session[SessionKeyConstants.InstanceId]?.ToString();
         context.Session[SessionKeyConstants.InstanceId] = string.Empty;

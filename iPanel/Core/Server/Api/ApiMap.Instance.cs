@@ -4,10 +4,7 @@ using EmbedIO.WebApi;
 using iPanel.Core.Models.Client;
 using iPanel.Core.Models.Packets;
 using iPanel.Core.Models.Users;
-using iPanel.Core.Server.WebSocket.Handlers;
-using Swan.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -21,7 +18,7 @@ public partial class ApiMap
     {
         var user = HttpContext.EnsureLogined();
         await HttpContext.SendJsonAsync(
-            _app.HttpServer.InstanceWsModule.Instances.Values
+            InstanceWsModule.Instances.Values
                 .Where(
                     (instance) =>
                         user.Level == PermissionLevel.Administrator
@@ -40,10 +37,8 @@ public partial class ApiMap
         HttpContext.EnsureAccess(instanceId, false);
 
         if (
-            _app.HttpServer.InstanceWsModule.Instances.TryGetValue(
-                instanceId,
-                out Instance? instance
-            ) && instance is not null
+            InstanceWsModule.Instances.TryGetValue(instanceId, out Instance? instance)
+            && instance is not null
         )
             await HttpContext.SendJsonAsync(instance);
         else
@@ -55,12 +50,10 @@ public partial class ApiMap
     {
         HttpContext.EnsureAccess(instanceId, false);
 
-        if (
-            !_app.HttpServer.BroadcastWsModule.Listeners.TryGetValue(connectionId, out var listener)
-        )
+        if (!BroadcastWsModule.Listeners.TryGetValue(connectionId, out var listener))
             throw HttpException.BadRequest("未连接到广播WebSocket服务器");
 
-        if (_app.HttpServer.InstanceWsModule.Instances.ContainsKey(instanceId))
+        if (InstanceWsModule.Instances.ContainsKey(instanceId))
         {
             listener.InstanceIdSubscribed = instanceId;
             await HttpContext.SendJsonAsync(null, HttpStatusCode.OK);
@@ -78,10 +71,8 @@ public partial class ApiMap
         HttpContext.EnsureAccess(instanceId);
 
         if (
-            _app.HttpServer.InstanceWsModule.Instances.TryGetValue(
-                instanceId,
-                out Instance? instance
-            ) && instance is not null
+            InstanceWsModule.Instances.TryGetValue(instanceId, out Instance? instance)
+            && instance is not null
         )
         {
             instance?.SendAsync(
@@ -101,10 +92,8 @@ public partial class ApiMap
         HttpContext.EnsureAccess(instanceId);
 
         if (
-            _app.HttpServer.InstanceWsModule.Instances.TryGetValue(
-                instanceId,
-                out Instance? instance
-            ) && instance is not null
+            InstanceWsModule.Instances.TryGetValue(instanceId, out Instance? instance)
+            && instance is not null
         )
         {
             instance?.SendAsync(
@@ -122,10 +111,8 @@ public partial class ApiMap
         HttpContext.EnsureAccess(instanceId);
 
         if (
-            _app.HttpServer.InstanceWsModule.Instances.TryGetValue(
-                instanceId,
-                out Instance? instance
-            ) && instance is not null
+            InstanceWsModule.Instances.TryGetValue(instanceId, out Instance? instance)
+            && instance is not null
         )
         {
             instance?.SendAsync(
@@ -147,10 +134,8 @@ public partial class ApiMap
             throw HttpException.BadRequest("缺少输入数据");
 
         if (
-            _app.HttpServer.InstanceWsModule.Instances.TryGetValue(
-                instanceId,
-                out Instance? instance
-            ) && instance is not null
+            InstanceWsModule.Instances.TryGetValue(instanceId, out Instance? instance)
+            && instance is not null
         )
         {
             instance.SendAsync(
@@ -160,32 +145,5 @@ public partial class ApiMap
         }
         else
             await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
-    }
-
-    [Route(HttpVerbs.Get, "/instance/{instanceId}/dir")]
-    public async Task GetInstanceDirInfo(string instanceId, [QueryField(true)] string path)
-    {
-        HttpContext.EnsureAccess(instanceId);
-
-        if (
-            !_app.HttpServer.InstanceWsModule.Instances.TryGetValue(
-                instanceId,
-                out Instance? instance
-            ) || instance is null
-        )
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
-        else
-            try
-            {
-                await HttpContext.SendJsonAsync(
-                    await RequestsFactory.Create<object>(instance, "get_dir_info", path),
-                    HttpStatusCode.OK
-                );
-            }
-            catch (TimeoutException)
-            {
-                await HttpContext.SendJsonAsync("等待超时", HttpStatusCode.GatewayTimeout);
-                Logger.Warn($"[{HttpContext.Id}] 实例({instanceId})回复超时");
-            }
     }
 }

@@ -1,13 +1,16 @@
 using EmbedIO;
 using EmbedIO.Sessions;
 using EmbedIO.WebApi;
+using iPanel.Core.Models.Settings;
 using iPanel.Core.Server.Api;
 using iPanel.Core.Server.WebSocket;
-using Swan.Logging;
+using iPanel.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,25 +18,26 @@ namespace iPanel.Core.Server;
 
 public class HttpServer : IDisposable
 {
-    public readonly InstanceWsModule InstanceWsModule;
-    public readonly BroadcastWsModule BroadcastWsModule;
-    public readonly IPBannerModule IPBannerModule;
+    private readonly IHost _host;
+    private IServiceProvider Services => _host.Services;
+    private ILogger<HttpServer> Logger => Services.GetRequiredService<ILogger<HttpServer>>();
+    private InstanceWsModule InstanceWsModule => Services.GetRequiredService<InstanceWsModule>();
+    private BroadcastWsModule BroadcastWsModule => Services.GetRequiredService<BroadcastWsModule>();
+    private IPBannerModule IPBannerModule => Services.GetRequiredService<IPBannerModule>();
+    private DebugWsModule DebugWsModule => Services.GetRequiredService<DebugWsModule>();
+    private Setting Setting => Services.GetRequiredService<Setting>();
     private readonly WebServer _server;
-    private readonly App _app;
 
-    public HttpServer(App app)
+    public HttpServer(IHost host)
     {
-        _app = app;
+        _host = host;
         _server = new(CreateOptions());
-        InstanceWsModule = new(_app);
-        BroadcastWsModule = new(_app);
-        IPBannerModule = new(_app);
 
-        if (_app.Setting.WebServer.AllowCrossOrigin)
+        if (Setting.WebServer.AllowCrossOrigin)
             _server.WithCors();
 
-        if (_app.Setting.Debug)
-            _server.WithModule(nameof(DebugWsModule), new DebugWsModule());
+        if (Setting.Debug)
+            _server.WithModule(nameof(DebugWsModule), DebugWsModule);
 
         _server.OnUnhandledException += HandleException;
         _server.WithLocalSessionManager(ConfigureLocalSessionManager);
@@ -44,22 +48,22 @@ public class HttpServer : IDisposable
             "/api",
             (module) =>
                 module
-                    .WithController(() => new ApiMap(_app))
+                    .WithController(() => new ApiMap(_host))
                     .HandleHttpException(ApiHelper.HandleHttpException)
                     .HandleUnhandledException(ApiHelper.HandleException)
         );
 
-        if (Directory.Exists(_app.Setting.WebServer.Directory))
+        if (Directory.Exists(Setting.WebServer.Directory))
         {
             _server.WithStaticFolder(
                 "/",
-                _app.Setting.WebServer.Directory,
-                _app.Setting.WebServer.DisableFilesHotUpdate
+                Setting.WebServer.Directory,
+                Setting.WebServer.DisableFilesHotUpdate
             );
             _server.HandleHttpException(HandleHttpException);
         }
         else
-            Logger.Warn("静态网页目录不存在");
+            Logger.LogWarning("静态网页目录不存在");
     }
 
     private static void ConfigureLocalSessionManager(LocalSessionManager localSessionManager)
@@ -68,9 +72,9 @@ public class HttpServer : IDisposable
         localSessionManager.SessionDuration = TimeSpan.FromHours(1);
     }
 
-    private static async Task HandleException(IHttpContext httpContext, Exception e)
+    private async Task HandleException(IHttpContext httpContext, Exception e)
     {
-        Logger.Fatal(e, string.Empty, $"[{httpContext.Id}]");
+        Logger.LogCritical(e, "[{}]", httpContext.Id);
         await Task.CompletedTask;
     }
 
@@ -80,35 +84,30 @@ public class HttpServer : IDisposable
 
         try
         {
-            _app.Setting.WebServer.UrlPrefixes.ToList().ForEach((url) => options.AddUrlPrefix(url));
+            Setting.WebServer.UrlPrefixes.ToList().ForEach((url) => options.AddUrlPrefix(url));
         }
         catch (Exception e)
         {
-            Logger.Error(e, nameof(HttpServer), string.Empty);
+            Logger.LogError(e, "");
         }
 
-        if (_app.Setting.WebServer.Certificate.Enable)
+        if (Setting.WebServer.Certificate.Enable)
         {
-            options.AutoLoadCertificate = _app.Setting.WebServer.Certificate.AutoLoadCertificate;
-            options.AutoRegisterCertificate = _app.Setting
-                .WebServer
-                .Certificate
-                .AutoRegisterCertificate;
+            options.AutoLoadCertificate = Setting.WebServer.Certificate.AutoLoadCertificate;
+            options.AutoRegisterCertificate = Setting.WebServer.Certificate.AutoRegisterCertificate;
 
-            if (string.IsNullOrEmpty(_app.Setting.WebServer.Certificate.Path))
+            if (string.IsNullOrEmpty(Setting.WebServer.Certificate.Path))
                 return options;
 
-            if (File.Exists(_app.Setting.WebServer.Certificate.Path))
-                options.Certificate = string.IsNullOrEmpty(
-                    _app.Setting.WebServer.Certificate.Password
-                )
-                    ? new(_app.Setting.WebServer.Certificate.Path!)
+            if (File.Exists(Setting.WebServer.Certificate.Path))
+                options.Certificate = string.IsNullOrEmpty(Setting.WebServer.Certificate.Password)
+                    ? new(Setting.WebServer.Certificate.Path!)
                     : new(
-                        _app.Setting.WebServer.Certificate.Path!,
-                        _app.Setting.WebServer.Certificate.Password
+                        Setting.WebServer.Certificate.Path!,
+                        Setting.WebServer.Certificate.Password
                     );
             else
-                Logger.Warn($"“{_app.Setting.WebServer.Certificate.Path}”不存在");
+                Logger.LogWarning("证书文件“{}”不存在", Setting.WebServer.Certificate.Path);
         }
 
         return options;
@@ -118,7 +117,7 @@ public class HttpServer : IDisposable
     {
         if (exception.StatusCode == 404)
         {
-            if (_app.Setting.WebServer.DisableFilesHotUpdate)
+            if (Setting.WebServer.DisableFilesHotUpdate)
                 _404HtmlContent ??= File.Exists(_404HtmlPath)
                     ? File.ReadAllText(_404HtmlPath)
                     : null;
@@ -130,9 +129,12 @@ public class HttpServer : IDisposable
             if (!string.IsNullOrEmpty(_404HtmlContent))
             {
                 context.Response.StatusCode = 200;
-                await context.SendStringAsync(_404HtmlContent!, "text/html", Encoding.UTF8);
-                Logger.Info(
-                    $"[{context.Id}] {context.Request.HttpMethod} {context.RequestedPath}: 404 -> 200"
+                await context.SendStringAsync(_404HtmlContent!, "text/html", EncodingsMap.UTF8);
+                Logger.LogInformation(
+                    "[{}] {} {}: 404 -> 200",
+                    context.Id,
+                    context.Request.HttpMethod,
+                    context.RequestedPath
                 );
                 return;
             }
@@ -153,7 +155,7 @@ public class HttpServer : IDisposable
     }
 
     private string? _404HtmlPath =>
-        Path.Combine(_app.Setting.WebServer.Directory, _app.Setting.WebServer.Page404);
+        Path.Combine(Setting.WebServer.Directory, Setting.WebServer.Page404);
 
     private string? _404HtmlContent;
 }

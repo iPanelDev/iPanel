@@ -1,34 +1,39 @@
 using EmbedIO.WebSockets;
 using iPanel.Core.Models.Client;
+using iPanel.Core.Models.Packets;
 using iPanel.Core.Models.Users;
+using iPanel.Utils;
 using iPanel.Utils.Extensions;
-using Swan.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text;
-using System;
-using iPanel.Utils;
-using iPanel.Core.Models.Packets;
 
 namespace iPanel.Core.Server.WebSocket;
 
 public class BroadcastWsModule : WebSocketModule
 {
     public readonly Dictionary<string, ConsoleListener> Listeners = new();
-    private readonly App _app;
     private readonly string _salt = Guid.NewGuid().ToString("N");
 
-    public BroadcastWsModule(App app)
-        : base("/broadcast", true)
+    private readonly IHost _host;
+    private IServiceProvider Services => _host.Services;
+    private ILogger<BroadcastWsModule> Logger =>
+        Services.GetRequiredService<ILogger<BroadcastWsModule>>();
+
+    public BroadcastWsModule(IHost host)
+        : base("/ws/broadcast", true)
     {
-        Encoding = new UTF8Encoding(false);
-        _app = app;
+        _host = host;
+        Encoding = EncodingsMap.UTF8;
     }
 
     protected override void OnStart(CancellationToken cancellationToken)
     {
-        Logger.Info("广播WS服务器已开启");
+        Logger.LogInformation("广播WS服务器已开启");
     }
 
     protected override async Task OnClientConnectedAsync(IWebSocketContext context)
@@ -36,7 +41,7 @@ public class BroadcastWsModule : WebSocketModule
         var clientUrl = context.RemoteEndPoint.ToString();
         if (context.Session[SessionKeyConstants.User] is not User user || user is null)
         {
-            Logger.Warn($"[{clientUrl}] 尝试连接广播WS服务器（401）");
+            Logger.LogWarning("[{}] 尝试连接广播WS服务器（401）", clientUrl);
             await context.CloseAsync(CloseStatusCode.Abnormal, "Unauthorized");
 
             return;
@@ -46,13 +51,13 @@ public class BroadcastWsModule : WebSocketModule
         context.SendAsync(new WsSentPacket("return", "connection_id", connectionId));
         Listeners[connectionId] = new(user, context, connectionId);
 
-        Logger.Info($"[{clientUrl}] 连接到广播WS服务器");
+        Logger.LogInformation("[{}] 连接到广播WS服务器", clientUrl);
     }
 
     protected override Task OnClientDisconnectedAsync(IWebSocketContext context)
     {
         Listeners.Remove(Encryption.GetMD5($"{_salt}.{context.RemoteEndPoint}"));
-        Logger.Info($"[{context.RemoteEndPoint}] 从广播WS服务器断开连接");
+        Logger.LogInformation("[{}] 从广播WS服务器断开连接", context.RemoteEndPoint);
         return Task.CompletedTask;
     }
 

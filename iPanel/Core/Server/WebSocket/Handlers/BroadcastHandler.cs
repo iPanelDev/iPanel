@@ -1,12 +1,13 @@
 using iPanel.Core.Models.Packets;
 using iPanel.Core.Models.Packets.Event;
 using iPanel.Core.Models.Client;
-using iPanel.Utils;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Swan.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace iPanel.Core.Server.WebSocket.Handlers;
 
@@ -16,8 +17,13 @@ namespace iPanel.Core.Server.WebSocket.Handlers;
 [Handler("broadcast.server_stop")]
 public class BroadcastHandler : HandlerBase
 {
-    public BroadcastHandler(App app)
-        : base(app) { }
+    public BroadcastHandler(IHost host)
+        : base(host) { }
+
+    private BroadcastWsModule BroadcastWsModule => Services.GetRequiredService<BroadcastWsModule>();
+
+    private ILogger<BroadcastHandler> Logger =>
+        Services.GetRequiredService<ILogger<BroadcastHandler>>();
 
     private void Send(Instance instance, string subType, object? data)
     {
@@ -25,9 +31,9 @@ public class BroadcastHandler : HandlerBase
             instance.InstanceId
             ?? throw new NullReferenceException($"{nameof(instance.InstanceId)}为空");
 
-        lock (_app.HttpServer.BroadcastWsModule.Listeners)
+        lock (BroadcastWsModule.Listeners)
         {
-            foreach (ConsoleListener console in _app.HttpServer.BroadcastWsModule.Listeners.Values)
+            foreach (ConsoleListener console in BroadcastWsModule.Listeners.Values)
             {
                 if (
                     console.InstanceIdSubscribed == instanceID
@@ -49,7 +55,12 @@ public class BroadcastHandler : HandlerBase
 
     public override async Task Handle(Instance instance, WsReceivedPacket packet)
     {
-        Logger.Info($"[{instance.Address}] 收到广播：{packet.SubType}，数据：{packet.Data ?? "空"}");
+        Logger.LogInformation(
+            "[{}] 收到广播：{}，数据：{}",
+            instance.Address,
+            packet.SubType,
+            packet.Data ?? "空"
+        );
         switch (packet.SubType)
         {
             case "server_input":

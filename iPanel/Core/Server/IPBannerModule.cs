@@ -1,16 +1,24 @@
 using EmbedIO;
 using EmbedIO.Security;
+using iPanel.Core.Models.Settings;
 using iPanel.Core.Server.Api;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 
 namespace iPanel.Core.Server;
 
 public class IPBannerModule : IPBanningModule
 {
-    public IPBannerModule(App app)
-        : base("/", app.Setting.WebServer.WhiteList, app.Setting.WebServer.BanMinutes)
+    private readonly IHost _host;
+    private Setting Setting => _host.Services.GetRequiredService<Setting>();
+
+    public IPBannerModule(IHost host)
+        : base("/")
     {
-        this.WithMaxRequestsPerSecond(app.Setting.WebServer.MaxRequestsPerSecond);
+        _host = host;
+        this.WithMaxRequestsPerSecond(Setting.WebServer.MaxRequestsPerSecond);
+        this.WithWhitelist(Setting.WebServer.WhiteList);
         OnHttpException = Handle403;
     }
 

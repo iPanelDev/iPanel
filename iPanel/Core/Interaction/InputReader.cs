@@ -1,3 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,36 +8,36 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Swan.Logging;
 
 namespace iPanel.Core.Interaction;
 
-public class InputParser
+public class InputReader
 {
-    private readonly App _app;
-
-    private readonly IReadOnlyDictionary<string, CommandParser> _commandParser;
+    private readonly IReadOnlyDictionary<string, Command> _commandParser;
 
     private readonly string _allCommands;
-
     private static readonly char[] _separator = new char[] { '\x20' };
+    private readonly IHost _host;
+    private IServiceProvider Services => _host.Services;
 
-    public InputParser(App app)
+    private ILogger<InputReader> Logger => Services.GetRequiredService<ILogger<InputReader>>();
+
+    public InputReader(IHost host)
     {
-        _app = app;
+        _host = host;
 
         var stringBuilder = new StringBuilder();
-        var attributes = new List<(CommandAttribute, CommandUsageAttribute[])>();
-        var dict = new Dictionary<string, CommandParser>();
+        var attributes = new List<(CommandDescriptionAttribute, CommandUsageAttribute[])>();
+        var dict = new Dictionary<string, Command>();
 
         stringBuilder.AppendLine($"iPanel {Constant.Version}");
-        foreach (var type in Assembly.GetCallingAssembly().GetTypes())
+        foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
         {
-            var attribute = type.GetCustomAttribute<CommandAttribute>();
+            var attribute = type.GetCustomAttribute<CommandDescriptionAttribute>();
             if (attribute is null)
                 continue;
 
-            var handler = (CommandParser?)Activator.CreateInstance(type, _app);
+            var handler = (Command?)Activator.CreateInstance(type, _host);
 
             if (handler is null)
                 continue;
@@ -49,11 +52,11 @@ public class InputParser
         foreach (var attributePair in attributes)
         {
             stringBuilder.AppendLine(
-                $"- {attributePair.Item1.RootCommand}  {attributePair.Item1.Description}"
+                $"▪ {attributePair.Item1.RootCommand}  {attributePair.Item1.Description}"
             );
 
             foreach (var usage in attributePair.Item2)
-                stringBuilder.AppendLine($"  - {usage.Example}  {usage.Description}");
+                stringBuilder.AppendLine($"  ▪ {usage.Example}  {usage.Description}");
         }
 
         _allCommands = stringBuilder.ToString();
@@ -131,7 +134,7 @@ public class InputParser
 
             if (inColon)
             {
-                Logger.Error("语法错误：含有未闭合的冒号（\"）。若要作为参数的一部分传输，请使用\\\"进行转义");
+                Logger.LogError("语法错误：含有未闭合的冒号（\"）。若要作为参数的一部分传输，请使用\\\"进行转义");
                 return;
             }
             if (stringBuilder.Length != 0)
@@ -139,12 +142,15 @@ public class InputParser
         }
 
         if (args.Count == 0)
-            Logger.Error("未知命令。请使用\"help\"查看所有命令");
+        {
+            Logger.LogError("未知命令。请使用\"help\"查看所有命令");
+            return;
+        }
 
         if (args[0] == "help" || args[0] == "?")
-            Logger.Info(_allCommands);
+            Logger.LogInformation("{}", _allCommands);
         else if (!_commandParser.TryGetValue(args[0], out var parser))
-            Logger.Error("未知命令。请使用\"help\"查看所有命令");
+            Logger.LogError("未知命令。请使用\"help\"查看所有命令");
         else
             try
             {
@@ -152,7 +158,7 @@ public class InputParser
             }
             catch (Exception e)
             {
-                Logger.Error(e, string.Empty, "解析命令时出现异常");
+                Logger.LogError(e, "解析命令时出现异常");
             }
     }
 }

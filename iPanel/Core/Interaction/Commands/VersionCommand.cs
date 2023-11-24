@@ -1,21 +1,26 @@
 using iPanel.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Swan.Logging;
 using System;
 using System.IO;
 using System.Reflection;
 
-namespace iPanel.Core.Interaction.Parser;
+namespace iPanel.Core.Interaction.Commands;
 
-[Command("version", "显示详细的版本和版权信息", Priority = -1)]
-public class VersionParser : CommandParser
+[CommandDescription("version", "显示详细的版本和版权信息", Priority = -1)]
+public class VersionCommand : Command
 {
-    public VersionParser(App app)
-        : base(app) { }
+    public VersionCommand(IHost host)
+        : base(host) { }
+
+    private ILogger<VersionCommand> Logger =>
+        Services.GetRequiredService<ILogger<VersionCommand>>();
 
     public override void Parse(string[] args)
     {
-        Logger.Info("Copyright (C) 2023 iPanelDev. All rights reserved.");
+        Logger.LogInformation("Copyright (C) 2023 iPanelDev. All rights reserved.");
         var versionTable = new Table()
             .RoundedBorder()
             .AddColumns(

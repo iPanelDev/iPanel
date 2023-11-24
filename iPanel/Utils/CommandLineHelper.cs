@@ -1,6 +1,7 @@
 using iPanel.Core.Models.Settings;
-using iPanel.Core.Service;
 using iPanel.Utils.Json;
+using Microsoft.Extensions.Hosting;
+using System;
 using System.CommandLine;
 using System.IO;
 using System.Text.Json;
@@ -16,9 +17,7 @@ public static class CommandLineHelper
 
         rootCommnad.AddCommand(settingsCmd);
         settingsCmd.SetHandler(WriteSetting);
-        rootCommnad.SetHandler(
-            async () => await new App(SettingManager.ReadSetting()).StartAsync()
-        );
+        rootCommnad.SetHandler(() => new AppBuilder(ReadSetting()).Build().Run());
 
         return rootCommnad;
     }
@@ -31,4 +30,10 @@ public static class CommandLineHelper
                 options: new(JsonSerializerOptionsFactory.CamelCase) { WriteIndented = true }
             )
         );
+
+    public static Setting ReadSetting() =>
+        JsonSerializer.Deserialize<Setting>(
+            File.ReadAllText("setting.json"),
+            JsonSerializerOptionsFactory.CamelCase
+        ) ?? throw new NullReferenceException("文件为空");
 }

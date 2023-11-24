@@ -16,8 +16,6 @@ public class WebServerSetting
 
     public int MaxRequestsPerSecond { get; init; } = 50;
 
-    public int BanMinutes { get; init; } = 30;
-
     public string[] WhiteList { get; init; } = Array.Empty<string>();
 
     public CertificateSettings Certificate { get; init; } = new();

@@ -1,20 +1,23 @@
+using iPanel.Core.Models.Client;
 using iPanel.Core.Models.Client.Infos;
 using iPanel.Core.Models.Packets;
 using iPanel.Core.Models.Packets.Event;
-using iPanel.Utils;
 using iPanel.Utils.Json;
-using iPanel.Core.Models.Client;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
-using Swan.Logging;
 
 namespace iPanel.Core.Server.WebSocket.Handlers;
 
 [Handler("return.*")]
 public class ReturnHandler : HandlerBase
 {
-    public ReturnHandler(App app)
-        : base(app) { }
+    public ReturnHandler(IHost host)
+        : base(host) { }
+
+    private ILogger<ReturnHandler> Logger => Services.GetRequiredService<ILogger<ReturnHandler>>();
 
     public override async Task Handle(Instance instance, WsReceivedPacket packet)
     {
@@ -43,7 +46,7 @@ public class ReturnHandler : HandlerBase
         }
     }
 
-    private static void HandleAsRequest(Instance instance, WsReceivedPacket packet)
+    private void HandleAsRequest(Instance instance, WsReceivedPacket packet)
     {
         if (string.IsNullOrEmpty(packet.RequestId))
             return;
@@ -54,7 +57,7 @@ public class ReturnHandler : HandlerBase
         }
         catch (Exception e)
         {
-            Logger.Error(e, nameof(ReturnHandler), string.Empty);
+            Logger.LogError(e, "");
         }
     }
 }

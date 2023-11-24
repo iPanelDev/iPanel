@@ -1,16 +1,28 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Swan.Logging;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 
 namespace iPanel.Utils;
 
-public static class ResourceFileManager
+public class ResourceFileManager
 {
+    private IServiceProvider Services => _host.Services;
+    private ILogger<ResourceFileManager> Logger =>
+        Services.GetRequiredService<ILogger<ResourceFileManager>>();
     private const string _resourceKey = "iPanel.Sources.dist.zip";
+    private readonly IHost _host;
 
-    public static void Release()
+    public ResourceFileManager(IHost host)
+    {
+        _host = host;
+    }
+
+    public void Release()
     {
         if (Directory.Exists("dist"))
             return;
@@ -18,8 +30,9 @@ public static class ResourceFileManager
         var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(_resourceKey);
         if (stream is null)
         {
-            Logger.Warn(
-                $"嵌入文件“{_resourceKey}”丢失。此文件为此软件对应版本的前端网页的压缩包，请自行到 https://github.com/iPanelDev/WebConsole/releases/latest 下载最新的版本，解压后放在“dist”文件夹下并重启"
+            Logger.LogWarning(
+                "嵌入文件“{}”丢失。此文件为此软件对应版本的前端网页的压缩包，请自行到 https://github.com/iPanelDev/WebConsole/releases/latest 下载最新的版本，解压后放在“dist”文件夹下并重启",
+                _resourceKey
             );
             return;
         }
@@ -32,7 +45,7 @@ public static class ResourceFileManager
         fileStream.Write(bytes, 0, bytes.Length);
         fileStream.Close();
 
-        Logger.Info($"嵌入文件“{_resourceKey}”已释放");
+        Logger.LogInformation("嵌入文件“{}”已释放", _resourceKey);
         ZipFile.ExtractToDirectory(_resourceKey, "dist");
 
         var table = new Table()
@@ -65,7 +78,7 @@ public static class ResourceFileManager
             );
         }
 
-        Logger.Info("嵌入文件解压完成");
+        Logger.LogInformation("嵌入文件解压完成");
         AnsiConsole.Write(table);
     }
 }
