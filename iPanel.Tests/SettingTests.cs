@@ -77,5 +77,14 @@ public class SettingTests
         );
 
         Assert.Throws<SettingsException>(() => new Setting { InstancePassword = null!, }.Check());
+
+        Assert.Throws<SettingsException>(
+            () =>
+                new Setting
+                {
+                    InstancePassword = "6",
+                    WebServer = new() { MaxRequestsPerSecond = -1 }
+                }.Check()
+        );
     }
 }

@@ -37,10 +37,4 @@ public partial class ApiMap : WebApiController
     {
         await HttpContext.SendJsonAsync(Constant.Version, HttpStatusCode.OK);
     }
-
-    [Route(HttpVerbs.Get, "/meta/os")]
-    public async Task GetOS()
-    {
-        await HttpContext.SendJsonAsync(Environment.OSVersion, HttpStatusCode.OK);
-    }
 }
