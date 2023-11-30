@@ -9,12 +9,12 @@ public class SystemInfo
     public string? CPUName { get; init; }
 
     [JsonPropertyName("totalRam")]
-    public long TotalRAM { get; init; }
+    public double TotalRAM { get; init; }
 
     [JsonPropertyName("freeRam")]
-    public long FreeRAM { get; init; }
+    public double FreeRAM { get; init; }
 
-    public double RAMUsage => TotalRAM == 0 ? 0 : (1 - (double)FreeRAM / TotalRAM) * 100;
+    public double RAMUsage => TotalRAM == 0 ? 0 : (1 - FreeRAM / TotalRAM) * 100;
 
     public double CPUUsage { get; init; }
 }

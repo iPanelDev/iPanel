@@ -31,9 +31,16 @@ public static class CommandLineHelper
             )
         );
 
-    public static Setting ReadSetting() =>
-        JsonSerializer.Deserialize<Setting>(
-            File.ReadAllText("setting.json"),
-            JsonSerializerOptionsFactory.CamelCase
-        ) ?? throw new NullReferenceException("文件为空");
+    public static Setting ReadSetting()
+    {
+        if (!File.Exists("setting.json"))
+        {
+            WriteSetting();
+            throw new FileNotFoundException("\"setting.json\"不存在，现已重新创建，请修改后重启");
+        }
+        return JsonSerializer.Deserialize<Setting>(
+                File.ReadAllText("setting.json"),
+                JsonSerializerOptionsFactory.CamelCase
+            ) ?? throw new NullReferenceException("文件为空");
+    }
 }

@@ -143,9 +143,9 @@ public class HttpServer : IDisposable
         await context.SendStandardHtmlAsync(exception.StatusCode);
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public void Start(CancellationToken cancellationToken)
     {
-        await _server.RunAsync(cancellationToken);
+        _server.Start(cancellationToken);
     }
 
     public void Dispose()

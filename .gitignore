@@ -2,8 +2,6 @@ bin/
 obj/
 .vs/
 
-FodyWeavers.xsd
-
 node_modules
 *.mcdr
 __pycache__/**
@@ -11,4 +9,4 @@ __pycache__/**
 
 LocalTest/
 TestResults/
-dist.zip
+webconsole.zip

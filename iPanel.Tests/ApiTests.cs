@@ -56,7 +56,7 @@ public class ApiTests : IDisposable
     [Fact]
     public async Task ShouldBeAbleToGetStatus()
     {
-        var response = await _httpClient.GetAsync(_base + "/user/@self/status");
+        var response = await _httpClient.GetAsync(_base + "/users/@self/status");
         Assert.True(response.IsSuccessStatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JsonObject>(
@@ -66,16 +66,16 @@ public class ApiTests : IDisposable
     }
 
     [Theory]
-    [InlineData("/user")]
-    [InlineData("/user/@self")]
-    [InlineData("/user/114514")]
-    [InlineData("/instance")]
-    [InlineData("/instance/114514")]
-    [InlineData("/instance/114514/subscribe?connectionId=114154")]
-    [InlineData("/instance/114514/start")]
-    [InlineData("/instance/114514/stop")]
-    [InlineData("/instance/114514/kill")]
-    [InlineData("/instance/114514/input")]
+    [InlineData("/users")]
+    [InlineData("/users/@self")]
+    [InlineData("/users/114514")]
+    [InlineData("/instances")]
+    [InlineData("/instances/114514")]
+    [InlineData("/instances/114514/subscribe?connectionId=114154")]
+    [InlineData("/instances/114514/start")]
+    [InlineData("/instances/114514/stop")]
+    [InlineData("/instances/114514/kill")]
+    [InlineData("/instances/114514/input")]
     public async Task ShouldBeAbleToGet401or403or405(string url)
     {
         var response = await _httpClient.SendAsync(new(HttpMethod.Get, _base + url));

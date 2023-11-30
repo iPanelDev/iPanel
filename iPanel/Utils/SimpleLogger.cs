@@ -11,14 +11,6 @@ namespace iPanel.Utils;
 public class SimpleLogger : IMicrosoftLogger, ISwanLogger
 {
     private static readonly object _lock = new();
-    private readonly string _categoryName = "unknown";
-
-    public SimpleLogger() { }
-
-    public SimpleLogger(string categoryName)
-    {
-        _categoryName = categoryName;
-    }
 
     public static LogLevel StaticLogLevel { get; set; } = LogLevel.Debug;
     public LogLevel LogLevel => StaticLogLevel;
@@ -119,9 +111,6 @@ public class SimpleLogger : IMicrosoftLogger, ISwanLogger
         var stringBuilder = new StringBuilder();
         var stringState = state?.ToString() ?? string.Empty;
 
-        // if (!string.IsNullOrEmpty(_categoryName))
-        //     stringBuilder.Append($"[{_categoryName}]");
-
         if (!string.IsNullOrEmpty(stringState))
             stringBuilder.AppendLine(stringState);
 
@@ -152,7 +141,19 @@ public class SimpleLogger : IMicrosoftLogger, ISwanLogger
                 Fatal(lines);
                 break;
         }
-        OnMessage?.Invoke((uint)logLevel, lines);
+
+        var level = logLevel switch
+        {
+            MicrosoftLogLevel.Trace => LogLevel.Trace,
+            MicrosoftLogLevel.Debug => LogLevel.Debug,
+            MicrosoftLogLevel.Information => LogLevel.Info,
+            MicrosoftLogLevel.Warning => LogLevel.Warning,
+            MicrosoftLogLevel.Error => LogLevel.Error,
+            MicrosoftLogLevel.Critical => LogLevel.Fatal,
+            MicrosoftLogLevel.None => LogLevel.None,
+            _ => throw new ArgumentOutOfRangeException(nameof(logLevel))
+        };
+        OnMessage?.Invoke((uint)level, lines);
     }
 
     public bool IsEnabled(MicrosoftLogLevel logLevel)
@@ -169,7 +170,7 @@ public class SimpleLogger : IMicrosoftLogger, ISwanLogger
             _ => throw new ArgumentOutOfRangeException(nameof(logLevel))
         };
 
-        return LogLevel <= level;
+        return LogLevel >= level;
     }
 
     public IDisposable? BeginScope<TState>(TState state)

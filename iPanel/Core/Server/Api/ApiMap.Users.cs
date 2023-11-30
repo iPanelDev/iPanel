@@ -17,7 +17,7 @@ namespace iPanel.Core.Server.Api;
 
 public partial class ApiMap
 {
-    [Route(HttpVerbs.Get, "/user/@self/status")]
+    [Route(HttpVerbs.Get, "/users/@self/status")]
     public async Task Status()
     {
         if (HttpContext.IsLogined())
@@ -27,7 +27,9 @@ public partial class ApiMap
                 {
                     Logined = true,
                     SessionDuration = HttpContext.Session.Duration,
-                    User = new SafeUser((HttpContext.Session[SessionKeyConstants.User] as User)!),
+                    User = (UserWithoutPwd)(
+                        (HttpContext.Session[SessionKeyConstants.User] as User)!
+                    ),
                 },
                 HttpStatusCode.OK
             );
@@ -37,7 +39,7 @@ public partial class ApiMap
         await HttpContext.SendJsonAsync(new Status { Logined = false });
     }
 
-    [Route(HttpVerbs.Post, "/user/@self/login")]
+    [Route(HttpVerbs.Post, "/users/@self/login")]
     public async Task Login()
     {
         if (HttpContext.IsLogined())
@@ -47,7 +49,7 @@ public partial class ApiMap
                 {
                     Logined = true,
                     SessionDuration = HttpContext.Session.Duration,
-                    User = new SafeUser((HttpContext.Session[SessionKeyConstants.User] as User)!),
+                    User = (HttpContext.Session[SessionKeyConstants.User] as User)!,
                 }
             );
             return;
@@ -63,11 +65,11 @@ public partial class ApiMap
             throw HttpException.BadRequest();
 
         if (!DateTime.TryParse(verifyBody.Time, out DateTime dateTime))
-            throw HttpException.BadRequest("\"Time\"无效");
+            throw HttpException.BadRequest("\"time\"无效");
 
         var span = dateTime - DateTime.Now;
         if (span.TotalSeconds < -10 || span.TotalMinutes > 10)
-            throw HttpException.Forbidden("\"Time\"已过期");
+            throw HttpException.BadRequest("\"time\"已过期");
 
         if (
             !UserManager.Users.TryGetValue(verifyBody.UserName!, out User? user)
@@ -90,6 +92,7 @@ public partial class ApiMap
             user.IPAddresses.RemoveRange(10, user.IPAddresses.Count - 10);
 
         HttpContext.Session[SessionKeyConstants.User] = user;
+        HttpContext.Session[SessionKeyConstants.UserName] = verifyBody.UserName;
 
         Logger.LogInformation("[{}] 登录成功", HttpContext.Id);
 
@@ -98,40 +101,42 @@ public partial class ApiMap
             {
                 Logined = true,
                 SessionDuration = HttpContext.Session.Duration,
-                User = new SafeUser((HttpContext.Session[SessionKeyConstants.User] as User)!),
+                User = (HttpContext.Session[SessionKeyConstants.User] as User)!,
             }
         );
     }
 
-    [Route(HttpVerbs.Get, "/user/@self/logout")]
+    [Route(HttpVerbs.Get, "/users/@self/logout")]
     public async Task Logout()
     {
         HttpContext.EnsureLogined();
         HttpContext.Session.Delete();
-        HttpContext.Response.SetCookie(new("user", "", "/") { Expired = true });
         await HttpContext.SendJsonAsync(null);
         Logger.LogInformation("[{}] 退出成功", HttpContext.Id);
     }
 
-    [Route(HttpVerbs.Get, "/user")]
+    [Route(HttpVerbs.Get, "/users")]
     public async Task ListUsers()
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
         await HttpContext.SendJsonAsync(
             UserManager.Users
-                .Select((kv) => new KeyValuePair<string, SafeUser>(kv.Key, new SafeUser(kv.Value)))
+                .Select(
+                    (kv) =>
+                        new KeyValuePair<string, UserWithoutPwd>(kv.Key, kv.Value)
+                )
                 .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
         );
     }
 
-    [Route(HttpVerbs.Get, "/user/@self")]
+    [Route(HttpVerbs.Get, "/users/@self")]
     public async Task GetUser()
     {
-        await HttpContext.SendJsonAsync(new SafeUser(HttpContext.EnsureLogined()));
+        await HttpContext.SendJsonAsync(HttpContext.EnsureLogined());
     }
 
-    [Route(HttpVerbs.Get, "/user/{userName}")]
+    [Route(HttpVerbs.Get, "/users/{userName}")]
     public async Task GetUserInfo(string userName)
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
@@ -139,16 +144,19 @@ public partial class ApiMap
         if (!UserManager.Users.TryGetValue(userName, out User? user))
             await HttpContext.SendJsonAsync("用户不存在", HttpStatusCode.NotFound);
         else
-            await HttpContext.SendJsonAsync(new SafeUser(user));
+            await HttpContext.SendJsonAsync(user);
     }
 
-    [Route(HttpVerbs.Delete, "/user/{userName}")]
+    [Route(HttpVerbs.Delete, "/users/{userName}")]
     public async Task RemoveUser(string userName)
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
-        if (userName == "@self")
-            throw HttpException.Forbidden();
+        if (
+            userName == "@self"
+            || userName == HttpContext.Session[SessionKeyConstants.UserName]?.ToString()
+        )
+            throw HttpException.Forbidden("不能删除自己");
 
         if (UserManager.Remove(userName))
         {
@@ -160,13 +168,16 @@ public partial class ApiMap
             await HttpContext.SendJsonAsync("用户不存在", HttpStatusCode.NotFound);
     }
 
-    [Route(HttpVerbs.Post, "/user/{userName}")]
+    [Route(HttpVerbs.Post, "/users/{userName}")]
     public async Task CreateUser(string userName)
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
-        if (userName == "@self")
-            throw HttpException.Forbidden();
+        if (
+            userName == "@self"
+            || userName == HttpContext.Session[SessionKeyConstants.UserName]?.ToString()
+        )
+            throw HttpException.Forbidden("不能创建自己");
 
         if (UserManager.Users.ContainsKey(userName))
         {
@@ -190,7 +201,7 @@ public partial class ApiMap
         Logger.LogInformation("[{}] 创建用户{}成功", HttpContext.Id, userName);
     }
 
-    [Route(HttpVerbs.Put, "/user/{userName}")]
+    [Route(HttpVerbs.Put, "/users/{userName}")]
     public async Task EditUser(string userName)
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
@@ -201,7 +212,10 @@ public partial class ApiMap
         User? user;
         string? message;
 
-        if (userName == "@self")
+        if (
+            userName == "@self"
+            || userName == HttpContext.Session[SessionKeyConstants.UserName]?.ToString()
+        )
             if (
                 HttpContext.Session.TryGetValue(SessionKeyConstants.User, out user)
                 && user is not null

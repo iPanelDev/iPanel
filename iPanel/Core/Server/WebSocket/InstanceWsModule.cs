@@ -12,8 +12,6 @@ using iPanel.Utils.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Spectre.Console;
-using Spectre.Console.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,26 +91,11 @@ public class InstanceWsModule : WebSocketModule
                     JsonSerializerOptionsFactory.CamelCase
                 ) ?? throw new PacketException("空数据包");
 
-            if (Setting.Debug)
-            {
-                Logger.LogDebug("[{}] 收到数据", clientUrl);
-
-                AnsiConsole.Write(
-                    new JsonText(message)
-                        .BracesColor(Color.White) // 中括号
-                        .BracketColor(Color.White) // 大括号
-                        .CommaColor(Color.White) // 逗号
-                        .MemberColor(Color.SkyBlue1)
-                        .StringColor(Color.LightSalmon3_1)
-                        .NumberColor(Color.DarkSeaGreen2)
-                        .BooleanColor(Color.DodgerBlue3)
-                        .NullColor(Color.DodgerBlue3)
-                );
-                AnsiConsole.WriteLine();
-            }
+            Logger.LogDebug("[{}] 收到数据\n{}", clientUrl, packet);
         }
         catch (Exception e)
         {
+            Logger.LogDebug("[{}] 收到数据\n{}", clientUrl, message);
             Logger.LogWarning(e, "[{}] 处理数据包异常", clientUrl);
             await context.SendAsync(
                 new WsSentPacket(
@@ -133,7 +116,11 @@ public class InstanceWsModule : WebSocketModule
         if (!verified || instance is null)
         {
             if (path != "request.verify")
+            {
                 await context.CloseAsync();
+                Logger.LogWarning("[{}] 发送了未经允许的数据包类型：{}", clientUrl, path);
+                return;
+            }
 
             await Verify(context, packet);
             return;

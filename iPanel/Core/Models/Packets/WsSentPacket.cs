@@ -11,7 +11,12 @@ public class WsSentPacket : WsPacket<object>
             $"iPanel",
             "host",
             null,
-            new() { Version = Constant.Version, Environment = Environment.Version.ToString() }
+            new()
+            {
+                Version = Constant.Version,
+                Environment = Environment.Version.ToString(),
+                Name = "iPanel"
+            }
         );
 
     public WsSentPacket() { }

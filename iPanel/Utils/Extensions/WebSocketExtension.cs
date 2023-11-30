@@ -1,7 +1,4 @@
 using EmbedIO.WebSockets;
-using iPanel.Core.Server.Api;
-using Spectre.Console;
-using Spectre.Console.Json;
 using Swan.Logging;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
@@ -17,21 +14,7 @@ public static class WebSocketExtension
 
         await context.WebSocket.SendAsync(EncodingsMap.UTF8.GetBytes(payload), true);
 
-        if (SimpleLogger.StaticLogLevel <= LogLevel.Debug)
-        {
-            AnsiConsole.Write(
-                new JsonText(payload)
-                    .BracesColor(Color.White)
-                    .BracketColor(Color.White)
-                    .CommaColor(Color.White)
-                    .MemberColor(Color.SkyBlue1)
-                    .StringColor(Color.LightSalmon3_1)
-                    .NumberColor(Color.DarkSeaGreen2)
-                    .BooleanColor(Color.DodgerBlue3)
-                    .NullColor(Color.DodgerBlue3)
-            );
-            AnsiConsole.WriteLine();
-        }
+        Logger.Debug($"[{context.RemoteEndPoint}] 发送数据\n{payload}");
     }
 
     public static async Task CloseAsync(this IWebSocketContext context) =>

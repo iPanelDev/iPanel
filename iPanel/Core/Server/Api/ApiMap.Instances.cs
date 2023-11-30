@@ -13,8 +13,8 @@ namespace iPanel.Core.Server.Api;
 
 public partial class ApiMap
 {
-    [Route(HttpVerbs.Get, "/instance")]
-    public async Task ListInstances()
+    [Route(HttpVerbs.Get, "/instances")]
+    public async Task GetAllInstances()
     {
         var user = HttpContext.EnsureLogined();
         await HttpContext.SendJsonAsync(
@@ -31,8 +31,8 @@ public partial class ApiMap
         );
     }
 
-    [Route(HttpVerbs.Get, "/instance/{instanceId}")]
-    public async Task GetInstanceInfo(string instanceId)
+    [Route(HttpVerbs.Get, "/instances/{instanceId}")]
+    public async Task GetInstance(string instanceId)
     {
         HttpContext.EnsureAccess(instanceId, false);
 
@@ -42,10 +42,10 @@ public partial class ApiMap
         )
             await HttpContext.SendJsonAsync(instance);
         else
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
+            throw HttpException.NotFound("实例不存在");
     }
 
-    [Route(HttpVerbs.Get, "/instance/{instanceId}/subscribe")]
+    [Route(HttpVerbs.Get, "/instances/{instanceId}/subscribe")]
     public async Task SubscribeInstance(string instanceId, [QueryField(true)] string connectionId)
     {
         HttpContext.EnsureAccess(instanceId, false);
@@ -59,13 +59,10 @@ public partial class ApiMap
             await HttpContext.SendJsonAsync(null, HttpStatusCode.OK);
         }
         else
-        {
-            HttpContext.Session[SessionKeyConstants.InstanceId] = null!;
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
-        }
+            throw HttpException.NotFound("实例不存在");
     }
 
-    [Route(HttpVerbs.Get, "/instance/{instanceId}/start")]
+    [Route(HttpVerbs.Get, "/instances/{instanceId}/start")]
     public async Task CallInstanceStart(string instanceId)
     {
         HttpContext.EnsureAccess(instanceId);
@@ -75,18 +72,23 @@ public partial class ApiMap
             && instance is not null
         )
         {
-            instance?.SendAsync(
-                new WsSentPacket("request", "server_start", null, sender: Sender.FromUser())
+            await instance.SendAsync(
+                new WsSentPacket(
+                    "request",
+                    "server_start",
+                    null,
+                    Sender.CreateUserSender(
+                        HttpContext.Session[SessionKeyConstants.UserName]?.ToString()
+                    )
+                )
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
         else
-        {
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
-        }
+            throw HttpException.NotFound("实例不存在");
     }
 
-    [Route(HttpVerbs.Get, "/instance/{instanceId}/stop")]
+    [Route(HttpVerbs.Get, "/instances/{instanceId}/stop")]
     public async Task CallInstanceStop(string instanceId)
     {
         HttpContext.EnsureAccess(instanceId);
@@ -96,16 +98,23 @@ public partial class ApiMap
             && instance is not null
         )
         {
-            instance?.SendAsync(
-                new WsSentPacket("request", "server_stop", null, sender: Sender.FromUser())
+            await instance.SendAsync(
+                new WsSentPacket(
+                    "request",
+                    "server_stop",
+                    null,
+                    Sender.CreateUserSender(
+                        HttpContext.Session[SessionKeyConstants.UserName]?.ToString()
+                    )
+                )
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
         else
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
+            throw HttpException.NotFound("实例不存在");
     }
 
-    [Route(HttpVerbs.Get, "/instance/{instanceId}/kill")]
+    [Route(HttpVerbs.Get, "/instances/{instanceId}/kill")]
     public async Task CallInstanceKill(string instanceId)
     {
         HttpContext.EnsureAccess(instanceId);
@@ -115,16 +124,23 @@ public partial class ApiMap
             && instance is not null
         )
         {
-            instance?.SendAsync(
-                new WsSentPacket("request", "server_kill", null, sender: Sender.FromUser())
+            await instance.SendAsync(
+                new WsSentPacket(
+                    "request",
+                    "server_kill",
+                    null,
+                    Sender.CreateUserSender(
+                        HttpContext.Session[SessionKeyConstants.UserName]?.ToString()
+                    )
+                )
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
         else
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
+            throw HttpException.NotFound("实例不存在");
     }
 
-    [Route(HttpVerbs.Post, "/instance/{instanceId}/input")]
+    [Route(HttpVerbs.Post, "/instances/{instanceId}/input")]
     public async Task CallInstanceInput(string instanceId)
     {
         HttpContext.EnsureAccess(instanceId);
@@ -138,12 +154,19 @@ public partial class ApiMap
             && instance is not null
         )
         {
-            instance.SendAsync(
-                new WsSentPacket("request", "server_input", inputs, sender: Sender.FromUser())
+            await instance.SendAsync(
+                new WsSentPacket(
+                    "request",
+                    "server_input",
+                    inputs,
+                    Sender.CreateUserSender(
+                        HttpContext.Session[SessionKeyConstants.UserName]?.ToString()
+                    )
+                )
             );
             await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
         }
         else
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.NotFound);
+            throw HttpException.NotFound("实例不存在");
     }
 }

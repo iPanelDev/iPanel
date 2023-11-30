@@ -29,11 +29,12 @@ public class App : IHost
     {
         _host = host;
         _cancellationTokenSource = new();
-
+        Setting.Check();
+        Logger.LogInformation("{}", Constant.Logo);
         SimpleLogger.StaticLogLevel = Setting.Debug
             ? Swan.Logging.LogLevel.Debug
             : Swan.Logging.LogLevel.Info;
-        Console.CancelKeyPress += (_, _) => Dispose();
+        Console.CancelKeyPress += (_, _) => StopAsync();
         ResourceFileManager.Release();
     }
 
@@ -43,12 +44,18 @@ public class App : IHost
         GC.SuppressFinalize(this);
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken = default)
+    public Task StartAsync(CancellationToken cancellationToken = default)
     {
         UserManager.Read();
         Logger.LogInformation("启动完毕");
         InputReader.Start(cancellationToken);
-        await HttpServer.StartAsync(cancellationToken);
+        HttpServer.Start(cancellationToken);
+
+        Logger.LogInformation("讨论区/公告/Bug反馈：{}", "https://github.com/orgs/iPanelDev/discussions");
+        Logger.LogInformation("文档：{}", "https://ipaneldev.github.io/");
+        Logger.LogInformation("GitHub仓库：{}", "https://github.com/iPanelDev/iPanel");
+
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken = default)

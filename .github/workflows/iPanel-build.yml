@@ -48,8 +48,8 @@ jobs:
         run: |
           cd "${{ github.workspace }}"
           7z x -odist -y artifact.tar
-          7z a -y dist.zip ./dist/*
-          copy dist.zip iPanel/Sources/dist.zip
+          7z a -y webconsole.zip ./dist/*
+          copy webconsole.zip iPanel/Sources/webconsole.zip
 
       - name: Install .NET
         uses: actions/setup-dotnet@v3

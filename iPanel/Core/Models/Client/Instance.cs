@@ -4,7 +4,7 @@ namespace iPanel.Core.Models.Client;
 
 public class Instance : Client
 {
-    public InstanceInfo? Info { get; set; } = new();
+    public InstanceInfo Info { get; set; } = new();
 
     public string? CustomName { get; set; }
 

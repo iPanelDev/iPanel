@@ -26,10 +26,6 @@ jobs:
           dotnet test 
           cd ../
 
-      - name: Output directories
-        shell: cmd
-        run: tree /f
-
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()

@@ -37,5 +37,6 @@ public class Sender
             Metadata = instance.Metadata
         };
 
-    public static Sender FromUser() => new() { Type = "user" };
+    public static Sender CreateUserSender(string? userName) =>
+        new() { Type = "user", Name = userName };
 }

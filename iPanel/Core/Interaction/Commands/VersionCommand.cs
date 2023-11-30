@@ -42,11 +42,6 @@ public class VersionCommand : Command
                 .AddRow("创建时间", File.GetCreationTime(commandlineArgs[0]).ToString("o"))
                 .AddRow("修改时间", File.GetLastWriteTime(commandlineArgs[0]).ToString("o"));
 
-        versionTable
-            .AddRow("发布许可证", "GPL - 3.0")
-            .AddRow("文档", "https://ipaneldev.github.io/")
-            .AddRow("GitHub仓库", "https://github.com/iPanelDev/iPanel");
-
         AnsiConsole.Write(versionTable);
     }
 }
