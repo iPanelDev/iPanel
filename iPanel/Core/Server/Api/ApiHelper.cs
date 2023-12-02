@@ -91,7 +91,8 @@ public static class ApiHelper
             throw HttpException.Forbidden("权限不足");
     }
 
-    private static async Task SendJsonAsync(this IHttpContext httpContext, ApiPacket packet)
+    private static async Task SendJsonAsync<T>(this IHttpContext httpContext, ApiPacket<T> packet)
+        where T : notnull
     {
         httpContext.Response.StatusCode = packet.Code;
         await httpContext.SendStringAsync(
@@ -103,17 +104,30 @@ public static class ApiHelper
         httpContext.SetHandled();
     }
 
-    public static async Task SendJsonAsync(
+    private static async Task SendPacketAsync(this IHttpContext httpContext, ApiPacket packet) =>
+        await SendJsonAsync(httpContext, packet);
+
+    public static async Task SendPacketAsync<T>(
         this IHttpContext httpContext,
-        object? data,
+        T? data = default,
         HttpStatusCode statusCode = HttpStatusCode.OK
-    ) => await SendJsonAsync(httpContext, new() { Data = data, Code = (int)statusCode });
+    )
+        where T : notnull =>
+        await SendJsonAsync(
+            httpContext,
+            new ApiPacket<T>() { Data = data, Code = (int)statusCode }
+        );
+
+    public static async Task SendPacketAsync(
+        this IHttpContext httpContext,
+        HttpStatusCode statusCode = HttpStatusCode.OK
+    ) => await SendPacketAsync(httpContext, new ApiPacket() { Code = (int)statusCode });
 
     public static async Task HandleHttpException(IHttpContext context, IHttpException exception)
     {
         var httpStatusCode = (HttpStatusCode)exception.StatusCode;
-        await context.SendJsonAsync(
-            new()
+        await context.SendPacketAsync(
+            new ApiPacket
             {
                 ErrorMsg =
                     exception.Message
@@ -130,10 +144,10 @@ public static class ApiHelper
     public static async Task HandleException(IHttpContext context, Exception e)
     {
         if (context.IsLogined())
-            await context.SendJsonAsync(new() { ErrorMsg = $"{e.GetType()}", Code = 500 });
+            await context.SendPacketAsync(new ApiPacket { ErrorMsg = $"{e.GetType()}", Code = 500 });
         else
-            await context.SendJsonAsync(
-                new() { ErrorMsg = $"{e.GetType()}:{e.Message}", Code = 500 }
+            await context.SendPacketAsync(
+                new ApiPacket { ErrorMsg = $"{e.GetType()}:{e.Message}", Code = 500 }
             );
     }
 }

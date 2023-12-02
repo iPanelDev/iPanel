@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -77,11 +78,14 @@ public class InputReader
             if (input is null)
                 continue;
 
-            Parse(input.Trim().TrimStart('/'));
+            if (Parse(input.Trim().TrimStart('/'), out var args))
+                Handle(args);
+            else
+                Logger.LogError("语法错误：含有未闭合的冒号（\"）。若要作为参数的一部分传输，请使用\\\"进行转义");
         }
     }
 
-    private void Parse(string line)
+    public static bool Parse(string line, [NotNullWhen(true)] out List<string>? result)
     {
         var args = new List<string>();
 
@@ -134,13 +138,18 @@ public class InputReader
 
             if (inColon)
             {
-                Logger.LogError("语法错误：含有未闭合的冒号（\"）。若要作为参数的一部分传输，请使用\\\"进行转义");
-                return;
+                result = null;
+                return false;
             }
             if (stringBuilder.Length != 0)
                 args.Add(stringBuilder.ToString());
         }
+        result = args;
+        return true;
+    }
 
+    private void Handle(List<string> args)
+    {
         if (args.Count == 0)
         {
             Logger.LogError("未知命令。请使用\"help\"查看所有命令");

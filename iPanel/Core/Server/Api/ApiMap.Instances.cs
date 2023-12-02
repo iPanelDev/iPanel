@@ -17,7 +17,7 @@ public partial class ApiMap
     public async Task GetAllInstances()
     {
         var user = HttpContext.EnsureLogined();
-        await HttpContext.SendJsonAsync(
+        await HttpContext.SendPacketAsync(
             InstanceWsModule.Instances.Values
                 .Where(
                     (instance) =>
@@ -40,7 +40,7 @@ public partial class ApiMap
             InstanceWsModule.Instances.TryGetValue(instanceId, out Instance? instance)
             && instance is not null
         )
-            await HttpContext.SendJsonAsync(instance);
+            await HttpContext.SendPacketAsync(instance);
         else
             throw HttpException.NotFound("实例不存在");
     }
@@ -56,7 +56,7 @@ public partial class ApiMap
         if (InstanceWsModule.Instances.ContainsKey(instanceId))
         {
             listener.InstanceIdSubscribed = instanceId;
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.OK);
+            await HttpContext.SendPacketAsync();
         }
         else
             throw HttpException.NotFound("实例不存在");
@@ -82,7 +82,7 @@ public partial class ApiMap
                     )
                 )
             );
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
+            await HttpContext.SendPacketAsync(HttpStatusCode.Accepted);
         }
         else
             throw HttpException.NotFound("实例不存在");
@@ -108,7 +108,7 @@ public partial class ApiMap
                     )
                 )
             );
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
+            await HttpContext.SendPacketAsync(HttpStatusCode.Accepted);
         }
         else
             throw HttpException.NotFound("实例不存在");
@@ -134,7 +134,7 @@ public partial class ApiMap
                     )
                 )
             );
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
+            await HttpContext.SendPacketAsync(HttpStatusCode.Accepted);
         }
         else
             throw HttpException.NotFound("实例不存在");
@@ -164,7 +164,7 @@ public partial class ApiMap
                     )
                 )
             );
-            await HttpContext.SendJsonAsync(null, HttpStatusCode.Accepted);
+            await HttpContext.SendPacketAsync(HttpStatusCode.Accepted);
         }
         else
             throw HttpException.NotFound("实例不存在");

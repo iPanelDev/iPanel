@@ -107,6 +107,12 @@ public class UserManager
         return result;
     }
 
+    public void Clear()
+    {
+        _users.Clear();
+        Save();
+    }
+
     public static bool ValidatePassword(
         [NotNullWhen(true)] string? password,
         bool ignoreNull,

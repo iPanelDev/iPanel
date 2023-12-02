@@ -1,7 +1,6 @@
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
-using iPanel.Core.Models.Settings;
 using iPanel.Core.Server.WebSocket;
 using iPanel.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,12 +29,12 @@ public partial class ApiMap : WebApiController
     [Route(HttpVerbs.Get, "/")]
     public async Task Root()
     {
-        await HttpContext.SendJsonAsync("Hello world. :)", HttpStatusCode.OK);
+        await HttpContext.SendPacketAsync("Hello world. :)");
     }
 
     [Route(HttpVerbs.Get, "/version")]
     public async Task GetVersion()
     {
-        await HttpContext.SendJsonAsync(Constant.Version, HttpStatusCode.OK);
+        await HttpContext.SendPacketAsync(Constant.Version);
     }
 }

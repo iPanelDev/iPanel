@@ -22,21 +22,18 @@ public partial class ApiMap
     {
         if (HttpContext.IsLogined())
         {
-            await HttpContext.SendJsonAsync(
+            await HttpContext.SendPacketAsync(
                 new Status
                 {
                     Logined = true,
                     SessionDuration = HttpContext.Session.Duration,
-                    User = (UserWithoutPwd)(
-                        (HttpContext.Session[SessionKeyConstants.User] as User)!
-                    ),
-                },
-                HttpStatusCode.OK
+                    User = (HttpContext.Session[SessionKeyConstants.User] as User)!,
+                }
             );
             return;
         }
 
-        await HttpContext.SendJsonAsync(new Status { Logined = false });
+        await HttpContext.SendPacketAsync(new Status { Logined = false });
     }
 
     [Route(HttpVerbs.Post, "/users/@self/login")]
@@ -44,7 +41,7 @@ public partial class ApiMap
     {
         if (HttpContext.IsLogined())
         {
-            await HttpContext.SendJsonAsync(
+            await HttpContext.SendPacketAsync(
                 new Status
                 {
                     Logined = true,
@@ -58,13 +55,13 @@ public partial class ApiMap
         var verifyBody =
             await HttpContext.ConvertRequestTo<VerifyBody>() ?? throw HttpException.BadRequest();
 
-        if (string.IsNullOrEmpty(verifyBody.Time))
-            throw HttpException.BadRequest();
-
         if (string.IsNullOrEmpty(verifyBody.UserName))
-            throw HttpException.BadRequest();
+            throw HttpException.BadRequest("用户名为空");
 
-        if (!DateTime.TryParse(verifyBody.Time, out DateTime dateTime))
+        if (
+            string.IsNullOrEmpty(verifyBody.Time)
+            || !DateTime.TryParse(verifyBody.Time, out DateTime dateTime)
+        )
             throw HttpException.BadRequest("\"time\"无效");
 
         var span = dateTime - DateTime.Now;
@@ -73,15 +70,13 @@ public partial class ApiMap
 
         if (
             !UserManager.Users.TryGetValue(verifyBody.UserName!, out User? user)
-            || user.Level == PermissionLevel.Guest
-        )
-            throw HttpException.Forbidden("无效用户");
-
-        if (
-            verifyBody.MD5
-            != Encryption.GetMD5($"{verifyBody.Time}.{verifyBody.UserName}.{user.Password}")
+            || verifyBody.MD5
+                != Encryption.GetMD5($"{verifyBody.Time}.{verifyBody.UserName}.{user.Password}")
         )
             throw HttpException.Forbidden("用户名或密码错误");
+
+        if (user.Level == PermissionLevel.Guest)
+            throw HttpException.Forbidden("用户无效");
 
         user.LastLoginTime = DateTime.Now;
 
@@ -96,7 +91,7 @@ public partial class ApiMap
 
         Logger.LogInformation("[{}] 登录成功", HttpContext.Id);
 
-        await HttpContext.SendJsonAsync(
+        await HttpContext.SendPacketAsync(
             new Status
             {
                 Logined = true,
@@ -111,7 +106,7 @@ public partial class ApiMap
     {
         HttpContext.EnsureLogined();
         HttpContext.Session.Delete();
-        await HttpContext.SendJsonAsync(null);
+        await HttpContext.SendPacketAsync();
         Logger.LogInformation("[{}] 退出成功", HttpContext.Id);
     }
 
@@ -120,12 +115,9 @@ public partial class ApiMap
     {
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
-        await HttpContext.SendJsonAsync(
+        await HttpContext.SendPacketAsync(
             UserManager.Users
-                .Select(
-                    (kv) =>
-                        new KeyValuePair<string, UserWithoutPwd>(kv.Key, kv.Value)
-                )
+                .Select((kv) => new KeyValuePair<string, UserWithoutPwd>(kv.Key, kv.Value))
                 .ToDictionary((kv) => kv.Key, (kv) => kv.Value)
         );
     }
@@ -133,7 +125,7 @@ public partial class ApiMap
     [Route(HttpVerbs.Get, "/users/@self")]
     public async Task GetUser()
     {
-        await HttpContext.SendJsonAsync(HttpContext.EnsureLogined());
+        await HttpContext.SendPacketAsync(HttpContext.EnsureLogined());
     }
 
     [Route(HttpVerbs.Get, "/users/{userName}")]
@@ -142,9 +134,9 @@ public partial class ApiMap
         HttpContext.EnsureLevel(PermissionLevel.Administrator);
 
         if (!UserManager.Users.TryGetValue(userName, out User? user))
-            await HttpContext.SendJsonAsync("用户不存在", HttpStatusCode.NotFound);
+            throw HttpException.NotFound("用户不存在");
         else
-            await HttpContext.SendJsonAsync(user);
+            await HttpContext.SendPacketAsync(user as UserWithoutPwd);
     }
 
     [Route(HttpVerbs.Delete, "/users/{userName}")]
@@ -161,11 +153,11 @@ public partial class ApiMap
         if (UserManager.Remove(userName))
         {
             UserManager.Save();
-            await HttpContext.SendJsonAsync(null);
+            await HttpContext.SendPacketAsync();
             Logger.LogInformation("[{}] 删除用户{}成功", HttpContext.Id, userName);
         }
         else
-            await HttpContext.SendJsonAsync("用户不存在", HttpStatusCode.NotFound);
+            throw HttpException.NotFound("用户不存在");
     }
 
     [Route(HttpVerbs.Post, "/users/{userName}")]
@@ -180,10 +172,7 @@ public partial class ApiMap
             throw HttpException.Forbidden("不能创建自己");
 
         if (UserManager.Users.ContainsKey(userName))
-        {
-            await HttpContext.SendJsonAsync("用户已存在", HttpStatusCode.Conflict);
-            return;
-        }
+            throw new HttpException(HttpStatusCode.Conflict, "用户已存在");
 
         var user =
             await HttpContext.ConvertRequestTo<User>() ?? throw HttpException.BadRequest("用户对象为空");
@@ -197,7 +186,7 @@ public partial class ApiMap
         UserManager.Add(userName, user);
         UserManager.Save();
 
-        await HttpContext.SendJsonAsync(null);
+        await HttpContext.SendPacketAsync();
         Logger.LogInformation("[{}] 创建用户{}成功", HttpContext.Id, userName);
     }
 
@@ -225,7 +214,7 @@ public partial class ApiMap
                     throw HttpException.BadRequest(message);
 
                 user.Password = newUser.Password;
-                await HttpContext.SendJsonAsync(null);
+                await HttpContext.SendPacketAsync();
                 UserManager.Save();
                 Logger.LogInformation("[{}] 更新用户{}成功", HttpContext.Id, userName);
                 return;
@@ -246,7 +235,7 @@ public partial class ApiMap
         user.Description = newUser.Description ?? user.Description;
         UserManager.Save();
 
-        await HttpContext.SendJsonAsync(null);
+        await HttpContext.SendPacketAsync();
         Logger.LogInformation("[{}] 更新用户{}成功", HttpContext.Id, userName);
     }
 }
