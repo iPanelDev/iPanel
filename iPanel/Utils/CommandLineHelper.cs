@@ -6,10 +6,20 @@ using System.CommandLine;
 using System.IO;
 using System.Text.Json;
 
+#if WINDOWS
+using System.Runtime.InteropServices;
+#endif
+
 namespace iPanel.Utils;
 
 public static class CommandLineHelper
 {
+
+#if WINDOWS
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+#endif
+
     public static RootCommand Create()
     {
         var rootCommnad = new RootCommand();
@@ -36,11 +46,28 @@ public static class CommandLineHelper
         if (!File.Exists("setting.json"))
         {
             WriteSetting();
+#if WINDOWS
+            MessageBox(IntPtr.Zero, "\"setting.json\"不存在，现已重新创建，请修改后重启", "错误", 0x10 | 0x0);
+#endif
             throw new FileNotFoundException("\"setting.json\"不存在，现已重新创建，请修改后重启");
         }
-        return JsonSerializer.Deserialize<Setting>(
-                File.ReadAllText("setting.json"),
-                JsonSerializerOptionsFactory.CamelCase
-            ) ?? throw new NullReferenceException("文件为空");
+        Setting? settingfilevalue = null;
+        try
+        {
+            settingfilevalue = JsonSerializer.Deserialize<Setting>(File.ReadAllText("setting.json"), JsonSerializerOptionsFactory.CamelCase);
+            if (settingfilevalue == null)
+            {
+                throw new NullReferenceException("文件为空");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.Error.WriteLine("读取设置文件发生异常: " + ex.Message);
+#if WINDOWS
+            MessageBox(IntPtr.Zero, "读取设置文件发生异常:\r\n" + ex.Message, "错误", 0x10 | 0x0);
+#endif
+            throw;
+        }
+        return settingfilevalue;
     }
 }

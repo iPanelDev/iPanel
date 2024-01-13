@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
 
         <Authors>iPanelDev</Authors>
-        <Version>2.3.0.0-alpha</Version>
+        <Version>2.3.1.0-alpha</Version>
         <Company>https://ipaneldev.github.io/</Company>
         <Description>iPanel网页面板后端</Description>
         <Product>iPanel网页面板后端</Product>

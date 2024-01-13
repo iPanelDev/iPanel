@@ -1,11 +1,15 @@
 bin/
 obj/
 .vs/
+release_full_platform/
 
 node_modules
 *.mcdr
 __pycache__/**
 *.pyc
+
+*.csproj.user
+*.pubxml.user
 
 LocalTest/
 TestResults/

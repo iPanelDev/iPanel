@@ -59,7 +59,16 @@ jobs:
       - name: Build iPanel
         shell: powershell
         run: |
-          dotnet publish iPanel/iPanel.csproj --no-self-contained -p:PublishSingleFile=true -p:IncludeContentInSingleFile=true -p:RuntimeIdentifier=${{ matrix.runtimeIdentifier }} -f net6.0
+          $runtimeIdentifier = "${{ matrix.runtimeIdentifier }}"
+          $defineConstants = ""
+          if ($runtimeIdentifier.StartsWith('win')) {
+            $defineConstants = "-p:DefineConstants=WINDOWS"
+          } elseif ($runtimeIdentifier.StartsWith('linux')) {
+            $defineConstants = "-p:DefineConstants=LINUX"
+          } elseif ($runtimeIdentifier.StartsWith('osx')) {
+            $defineConstants = "-p:DefineConstants=MACOS"
+          }
+          dotnet publish iPanel/iPanel.csproj --no-self-contained -p:PublishSingleFile=true -p:IncludeContentInSingleFile=true -p:RuntimeIdentifier=$runtimeIdentifier $defineConstants -f net6.0
 
       - name: Upload binary files(${{ matrix.runtimeIdentifier }})
         uses: actions/upload-artifact@v3
