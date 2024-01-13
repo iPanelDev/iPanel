@@ -1,6 +1,8 @@
+using System;
+
 using iPanel.Core.Models.Exceptions;
 using iPanel.Core.Models.Settings;
-using System;
+
 using Xunit;
 
 namespace iPanel.Tests;

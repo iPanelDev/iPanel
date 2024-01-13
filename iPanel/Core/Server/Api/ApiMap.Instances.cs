@@ -1,13 +1,15 @@
-using EmbedIO;
-using EmbedIO.Routing;
-using EmbedIO.WebApi;
-using iPanel.Core.Models.Client;
-using iPanel.Core.Models.Packets;
-using iPanel.Core.Models.Users;
 using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+
+using EmbedIO;
+using EmbedIO.Routing;
+using EmbedIO.WebApi;
+
+using iPanel.Core.Models.Client;
+using iPanel.Core.Models.Packets;
+using iPanel.Core.Models.Users;
 
 namespace iPanel.Core.Server.Api;
 

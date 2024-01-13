@@ -1,8 +1,10 @@
-using iPanel.Core.Models.Client;
-using iPanel.Core.Models.Packets;
-using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading.Tasks;
+
+using iPanel.Core.Models.Client;
+using iPanel.Core.Models.Packets;
+
+using Microsoft.Extensions.Hosting;
 
 namespace iPanel.Core.Server.WebSocket.Handlers;
 

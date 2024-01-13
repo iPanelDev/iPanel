@@ -1,5 +1,6 @@
-using iPanel.Core.Models.Users;
 using System;
+
+using iPanel.Core.Models.Users;
 
 namespace iPanel.Core.Models.Packets.Data;
 

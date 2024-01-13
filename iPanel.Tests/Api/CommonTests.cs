@@ -1,6 +1,3 @@
-using iPanel.Core.Models.Packets;
-using iPanel.Utils.Json;
-using Microsoft.Extensions.Hosting;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -8,9 +5,15 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+
+using iPanel.Core.Models.Packets;
+using iPanel.Utils.Json;
+
+using Microsoft.Extensions.Hosting;
+
 using Xunit;
 
-namespace iPanel.Tests;
+namespace iPanel.Tests.Api;
 
 [Collection("IPANEL")]
 public class CommonTests : IDisposable

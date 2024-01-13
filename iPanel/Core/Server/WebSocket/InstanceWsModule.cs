@@ -1,17 +1,3 @@
-using EmbedIO.WebSockets;
-using iPanel.Core.Models.Client;
-using iPanel.Core.Models.Exceptions;
-using iPanel.Core.Models.Packets;
-using iPanel.Core.Models.Packets.Data;
-using iPanel.Core.Models.Packets.Event;
-using iPanel.Core.Models.Settings;
-using iPanel.Core.Server.WebSocket.Handlers;
-using iPanel.Utils;
-using iPanel.Utils.Extensions;
-using iPanel.Utils.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +8,24 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
+using EmbedIO.WebSockets;
+
+using iPanel.Core.Models.Client;
+using iPanel.Core.Models.Exceptions;
+using iPanel.Core.Models.Packets;
+using iPanel.Core.Models.Packets.Data;
+using iPanel.Core.Models.Packets.Event;
+using iPanel.Core.Models.Settings;
+using iPanel.Core.Server.WebSocket.Handlers;
+using iPanel.Utils;
+using iPanel.Utils.Extensions;
+using iPanel.Utils.Json;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
 using Timer = System.Timers.Timer;
 
 namespace iPanel.Core.Server.WebSocket;

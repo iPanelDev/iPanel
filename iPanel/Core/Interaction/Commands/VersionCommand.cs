@@ -1,11 +1,14 @@
-using iPanel.Utils;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Spectre.Console;
 using System;
 using System.IO;
 using System.Reflection;
+
+using iPanel.Utils;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+using Spectre.Console;
 
 namespace iPanel.Core.Interaction.Commands;
 

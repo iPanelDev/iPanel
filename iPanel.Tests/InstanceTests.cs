@@ -1,11 +1,15 @@
+using System;
+using System.Text.Json;
+
 using iPanel.Core.Models.Packets;
 using iPanel.Core.Models.Packets.Data;
 using iPanel.Utils;
 using iPanel.Utils.Json;
+
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Text.Json;
+
 using WebSocket4Net;
+
 using Xunit;
 
 namespace iPanel.Tests;

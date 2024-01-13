@@ -1,13 +1,16 @@
-using iPanel.Core.Models.Users;
-using iPanel.Core.Service;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+
+using iPanel.Core.Models.Users;
+using iPanel.Core.Service;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+using Spectre.Console;
 
 namespace iPanel.Core.Interaction.Commands;
 

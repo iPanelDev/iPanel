@@ -1,5 +1,6 @@
-using iPanel.Core.Models.Client;
 using System.Text.Json.Serialization;
+
+using iPanel.Core.Models.Client;
 
 namespace iPanel.Core.Models.Packets.Data;
 

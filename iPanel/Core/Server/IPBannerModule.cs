@@ -1,10 +1,13 @@
+using System.Threading.Tasks;
+
 using EmbedIO;
 using EmbedIO.Security;
+
 using iPanel.Core.Models.Settings;
 using iPanel.Core.Server.Api;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks;
 
 namespace iPanel.Core.Server;
 

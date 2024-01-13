@@ -1,14 +1,16 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 using iPanel.Core.Interaction;
 using iPanel.Core.Models.Settings;
 using iPanel.Core.Server;
 using iPanel.Core.Service;
 using iPanel.Utils;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace iPanel;
 
@@ -31,10 +33,12 @@ public class App : IHost
         _cancellationTokenSource = new();
         Setting.Check();
         Logger.LogInformation("{}", Constant.Logo);
+
         SimpleLogger.StaticLogLevel = Setting.Debug
             ? Swan.Logging.LogLevel.Debug
             : Swan.Logging.LogLevel.Info;
         Console.CancelKeyPress += (_, _) => StopAsync();
+
         ResourceFileManager.Release();
     }
 

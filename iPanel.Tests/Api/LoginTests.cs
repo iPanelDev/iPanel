@@ -1,20 +1,23 @@
-using iPanel.Core.Models.Users;
-using iPanel.Core.Models.Packets;
-using iPanel.Core.Models.Packets.Data;
-using iPanel.Core.Service;
-using iPanel.Utils.Json;
-using iPanel.Utils;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
-using Xunit;
 using System.Threading.Tasks;
 
-namespace iPanel.Tests;
+using iPanel.Core.Models.Packets;
+using iPanel.Core.Models.Packets.Data;
+using iPanel.Core.Models.Users;
+using iPanel.Core.Service;
+using iPanel.Utils;
+using iPanel.Utils.Json;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+using Xunit;
+
+namespace iPanel.Tests.Api;
 
 [Collection("IPANEL")]
 public class LoginTests : IDisposable

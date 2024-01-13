@@ -1,7 +1,9 @@
 using iPanel.Core.Server.WebSocket;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using Spectre.Console;
 
 namespace iPanel.Core.Interaction.Commands;

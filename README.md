@@ -4,9 +4,9 @@
 
 网页版控制台后端
   
-[![GitHub bulid](https://img.shields.io/github/actions/workflow/status/iPanelDev/iPanel/ci.yml?branch=main&color=blue)](https://github.com/iPanelDev/iPanel-Host/actions/workflows/build.yml)
-![GitHub all releases](https://img.shields.io/github/downloads/iPanelDev/iPanel-Host/total?color=blue)
-[![GitHub repo file count](https://img.shields.io/github/languages/code-size/iPanelDev/iPanel-Host)](https://github.com/iPanelDev/iPanel-Host)
+[![GitHub bulid](https://img.shields.io/github/actions/workflow/status/iPanelDev/iPanel/ci.yml?branch=main&color=blue)](https://github.com/iPanelDev/iPanel/actions/workflows/iPanel-build.yml)
+![GitHub all releases](https://img.shields.io/github/downloads/iPanelDev/iPanel/total?color=blue)
+[![GitHub repo file count](https://img.shields.io/github/languages/code-size/iPanelDev/iPanel)](https://github.com/iPanelDev/iPanel)
 [![wakatime](https://wakatime.com/badge/user/724e95cb-6b0f-48fb-9f96-915cce8cc845/project/77afa545-87b2-4608-8df2-2e2355550d67.svg)](https://wakatime.com/badge/user/724e95cb-6b0f-48fb-9f96-915cce8cc845/project/77afa545-87b2-4608-8df2-2e2355550d67)
 ![net6.0](https://img.shields.io/badge/NET-6.0-512BD4)
 

@@ -1,6 +1,8 @@
-﻿using iPanel.Core.Models.Exceptions;
+﻿using System;
+
+using iPanel.Core.Models.Exceptions;
+
 using Swan.Logging;
-using System;
 
 namespace iPanel.Core.Models.Settings;
 

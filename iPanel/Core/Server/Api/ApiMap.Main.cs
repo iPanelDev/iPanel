@@ -1,14 +1,17 @@
-using EmbedIO;
-using EmbedIO.Routing;
-using EmbedIO.WebApi;
-using iPanel.Core.Server.WebSocket;
-using iPanel.Core.Service;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+
+using EmbedIO;
+using EmbedIO.Routing;
+using EmbedIO.WebApi;
+
+using iPanel.Core.Server.WebSocket;
+using iPanel.Core.Service;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace iPanel.Core.Server.Api;
 

@@ -1,15 +1,17 @@
-using EmbedIO;
-using EmbedIO.Sessions;
-using iPanel.Core.Models.Packets;
-using iPanel.Core.Models.Users;
-using iPanel.Utils;
-using iPanel.Utils.Json;
 using System;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+using EmbedIO;
+using EmbedIO.Sessions;
+
+using iPanel.Core.Models.Packets;
+using iPanel.Core.Models.Users;
+using iPanel.Utils;
+using iPanel.Utils.Json;
 
 namespace iPanel.Core.Server.Api;
 

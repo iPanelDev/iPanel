@@ -1,5 +1,6 @@
-using Microsoft.Extensions.Hosting;
 using System;
+
+using Microsoft.Extensions.Hosting;
 
 namespace iPanel.Core.Interaction;
 

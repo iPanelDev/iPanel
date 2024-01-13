@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
+
 using EmbedIO.WebSockets;
+
 using iPanel.Core.Models.Users;
 using iPanel.Core.Server;
-using System.Text.Json.Serialization;
 
 namespace iPanel.Core.Models.Client;
 
