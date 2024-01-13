@@ -48,8 +48,11 @@ jobs:
         run: |
           cd "${{ github.workspace }}"
           7z x -odist -y artifact.tar
+          del artifact.tar
           7z a -y webconsole.zip ./dist/*
+          Remove-Item -Path dist -Recurse -Force
           copy webconsole.zip iPanel/Sources/webconsole.zip
+          del webconsole.zip
 
       - name: Install .NET
         uses: actions/setup-dotnet@v3
@@ -59,7 +62,23 @@ jobs:
       - name: Build iPanel
         shell: powershell
         run: |
-          dotnet publish iPanel/iPanel.csproj --no-self-contained -p:PublishSingleFile=true -p:IncludeContentInSingleFile=true -p:RuntimeIdentifier=${{ matrix.runtimeIdentifier }} -f net6.0
+          $runtimeIdentifier = "${{ matrix.runtimeIdentifier }}"
+          $defineConstants = ""
+          if ($runtimeIdentifier.StartsWith('win')) {
+            $defineConstants = "-p:DefineConstants=WINDOWS"
+          } elseif ($runtimeIdentifier.StartsWith('linux')) {
+            $defineConstants = "-p:DefineConstants=LINUX"
+          } elseif ($runtimeIdentifier.StartsWith('osx')) {
+            $defineConstants = "-p:DefineConstants=MACOS"
+          }
+          dotnet publish iPanel/iPanel.csproj --no-self-contained -p:PublishSingleFile=true -p:IncludeContentInSingleFile=true -p:RuntimeIdentifier=$runtimeIdentifier $defineConstants -f net6.0
+
+      - name: Merge web page files
+        continue-on-error: true
+        shell: powershell
+        run: |
+          cd "${{ github.workspace }}"
+          7z x -o"iPanel/bin/Debug/net6.0/${{ matrix.runtimeIdentifier }}/publish/dist" -y iPanel/Sources/webconsole.zip
 
       - name: Upload binary files(${{ matrix.runtimeIdentifier }})
         uses: actions/upload-artifact@v3
