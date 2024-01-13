@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ public static class Program
         Console.OutputEncoding = EncodingsMap.UTF8;
         Console.InputEncoding = EncodingsMap.UTF8;
         Console.CancelKeyPress += (_, _) => Console.WriteLine("^C");
+
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             Console.Title = $"iPanel {Constant.Version}";
 
