@@ -11,7 +11,7 @@ public class UserWithoutPwd
 
     public string[] Instances { get; set; } = Array.Empty<string>();
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     public List<string> IPAddresses { get; set; } = new();
 }

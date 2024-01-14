@@ -44,6 +44,9 @@ public static class CommandLineHelper
             Console.ReadLine();
 
         Console.ResetColor();
+
+        if (e.HResult != 0 && context is not null)
+            context.ExitCode = e.HResult;
     }
 
     private static void WriteSetting() =>

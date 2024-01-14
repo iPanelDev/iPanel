@@ -40,7 +40,7 @@ public class VersionCommand : Command
         var commandlineArgs = Environment.GetCommandLineArgs();
         if (commandlineArgs.Length > 0 && File.Exists(commandlineArgs[0]))
             versionTable
-                .AddRow("文件名", Path.GetFileName(commandlineArgs[0]))
+                .AddRow("文件名", Path.GetFileName(commandlineArgs[0]).EscapeMarkup())
                 .AddRow("MD5", Encryption.GetMD5(File.ReadAllBytes(commandlineArgs[0])))
                 .AddRow("创建时间", File.GetCreationTime(commandlineArgs[0]).ToString("o"))
                 .AddRow("修改时间", File.GetLastWriteTime(commandlineArgs[0]).ToString("o"));

@@ -73,8 +73,8 @@ public class UserCommand : Command
                             kv.Key,
                             UserManager.LevelNames[kv.Value.Level],
                             kv.Value.LastLoginTime?.ToString() ?? string.Empty,
-                            kv.Value.IPAddresses.FirstOrDefault() ?? string.Empty,
-                            kv.Value.Description ?? string.Empty
+                            (kv.Value.IPAddresses.FirstOrDefault() ?? string.Empty).EscapeMarkup(),
+                            kv.Value.Description.EscapeMarkup()
                         );
                     AnsiConsole.Write(table);
                 }
@@ -173,7 +173,7 @@ public class UserCommand : Command
                             "无效的枚举值（可用值：Guest|ReadOnly|Assistant|Administrator）",
                             nameof(args)
                         ),
-                    Description = args.Length == 6 ? args[5] : null
+                    Description = args.Length == 6 ? args[5] : string.Empty
                 }
             )
         )
@@ -216,7 +216,7 @@ public class UserCommand : Command
                     "无效的枚举值（可用值：Guest|ReadOnly|Assistant|Administrator）",
                     nameof(args)
                 );
-            user.Description = args.Length == 6 ? args[5] : null;
+            user.Description = args.Length == 6 ? args[5] : string.Empty;
             UserManager.Save();
             Logger.LogInformation("修改成功");
         }

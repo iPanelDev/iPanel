@@ -33,9 +33,9 @@ public class ListConnectionCommand : Command
             foreach (var kv in InstanceWsModule.Instances)
             {
                 table.AddRow(
-                    kv.Value.Address ?? string.Empty,
-                    kv.Value.CustomName ?? string.Empty,
-                    $"{kv.Value.Metadata?.Name ?? "未知名称"}({kv.Value.Metadata?.Version ?? "?"})"
+                    (kv.Value.Address ?? string.Empty).EscapeMarkup(),
+                    (kv.Value.CustomName ?? string.Empty).EscapeMarkup(),
+                    $"{kv.Value.Metadata?.Name ?? "未知名称"}({kv.Value.Metadata?.Version ?? "?"})".EscapeMarkup()
                 );
             }
 
